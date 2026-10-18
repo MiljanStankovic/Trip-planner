@@ -8,7 +8,6 @@ dependencies = [
     "requests>=2.31",
     "beautifulsoup4>=4.12",
     "rich>=13.7",
-    "textual>=0.80",
 ]
 
 [project.optional-dependencies]

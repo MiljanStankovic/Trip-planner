@@ -1,20 +1,20 @@
-# Putešestvije · pregledač ponuda agencija
+# Putešestvije · ponude agencija u Claude Code-u
 
-Aplikacija u terminalu koja skuplja ponude domaćih turističkih agencija i slaže ih po **kontinentima i zemljama**. Klikneš zemlju, vidiš sve ponude, klikneš ponudu i dobiješ sve termine, cene, program i šta cena obuhvata (sa sajta agencije). Ono što vam se svidi označiš i pošalješ na Trello tablu **Putešestvije**. Trello ostaje tabla za vaše ideje, a aplikacija služi za traženje.
+U Claude Code-u ukucaš **`/putovanja`** i pored razgovora se otvori **pano**: kontinenti → zemlje → ponude → detalji ponude (svi termini, cene, šta cena obuhvata, doplate, program, link). Klikćeš kroz pano, a sa Claude-om se normalno dopisuješ ispod. Dugmići u panou šalju Claude-u poruku: **📌 Stavi u Trello** (kartica u 📬 Predlozi na tabli Putešestvije), **🔍 Uporedi** (druge agencije i "uradi sam" let + smeštaj), **💬 Pitaj Claude-a za zemlju**.
 
 ```
-┌ Kontinenti → zemlje ┐┌ Ponude za izabranu zemlju ─────────────────┐┌ Detalji ponude ─────────────┐
-│ Evropa (196)        ││ Polazak    Destinacija   Noći  Cena  Agen. ││ Polazak, svi termini i cene │
-│   Španija (46)      ││ 08.11. +24 Bangkok, Krabi 12  1.549 € JT    ││ Program                     │
-│ Azija (259)         ││ ...                                         ││ Cena obuhvata / ne obuhvata │
-├ Najbolje ponude ▼   ┤│                                             ││ Link                        │
-│ 💸 Najveći popust   ││                                             ││                             │
-└─────────────────────┘└─────────────────────────────────────────────┘└─────────────────────────────┘
+┌ razgovor sa Claude-om ─────────────────┐┌ Putešestvije ─────────────────────────────┐
+│ > nešto jeftinije u decembru?          ││ 🏠 Početna › Azija › Tajland              │
+│ Claude: Za decembar su najbolji…       ││ Tajland: 18 ponuda   Sortiraj: datum ▾    │
+│                                        ││ 08.11. +24 ✈ Bangkok, Krabi  1.549 € -18% │
+│                                        ││ 11.01. +6  ✈ Indokina        1.849 € -23% │
+│                                        ││ [💬 Pitaj Claude-a za Tajland]            │
+└────────────────────────────────────────┘└───────────────────────────────────────────┘
 ```
 
-**Tasteri:** `/` traži (zemlja, grad, agencija) · `Enter` ili `d` detalji sa sajta · `o` otvori u pregledaču · `t` označi za Trello · `s` sortiraj (datum, cena, popust, agencija) · `q` izlaz. Radi i mišem.
+Na početnoj su i **najbolje ponude** sa izborom kriterijuma: preporučeno za vas, najveći popust, najjeftinije, specijalne i poslednja mesta, polazi uskoro, izleti i vikendi.
 
-**Najbolje ponude** (levo dole) imaju izbor kriterijuma: preporučeno za vas, najveći popust, najjeftinije, specijalne i poslednja mesta, polazi uskoro, izleti i vikendi.
+Ispod panoa radi mali Python alat **`pt`**: skida ponude 11 agencija, čuva istoriju cena i odgovara panou i Claude-u. Trello ostaje tabla za vaše ideje.
 
 ## Instalacija
 
@@ -26,8 +26,7 @@ cd Trip-planner
 python3 -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -e .
 pt init                     # pravi ~/.config/putesestvije/config.toml – otvori i podesi profil
-pt agencije skeniraj        # prvo skeniranje
-pt                          # pregledač ponuda
+pt agencije skeniraj        # prvo skeniranje (~1 min)
 ```
 
 ### Claude Code plugin
@@ -37,7 +36,12 @@ U Claude Code-u (iz bilo kog foldera):
 ```
 /plugin marketplace add MiljanStankovic/Trip-planner
 /plugin install putesestvije@putesestvije
+/plugin install putesestvije-pano@putesestvije
 ```
+
+Pano poziva `pt`, pa `pt` mora da bude dostupan kad pokrećeš `claude`: aktiviraj venv pre `claude`, ili jednom u Claude Code-u upiši putanju: `/putovanja pt C:\Users\Miljan\Projects\Trip-planner\.venv\Scripts\pt.exe`.
+
+Ako je repo privatan, `marketplace add` traži pristup GitHub-u; tada umesto imena repoa upiši putanju do foldera (`/plugin marketplace add C:\Users\Miljan\Projects\Trip-planner`).
 
 Trello (jednom, za sve projekte):
 
@@ -51,13 +55,12 @@ Preporučeni konektori za istraživanje (opciono, u Claude Code-u preko `claude 
 
 ## Claude Code komande
 
-Glavna je **`/putesestvije:putovanja`** (obično radi i samo `/putovanja`): pokrene režim putovanja sa pregledom i menijem za klikanje (kontinent → zemlja → ponuda → detalji → Trello), a pored menija se normalno dopisuješ sa Claude-om. U terminalu biraš strelicama i Enter-om, u Claude desktop aplikaciji klikom. `/putovanja Tajland` odmah otvara Tajland.
+Glavna je **`/putovanja`** (pano). `/putovanja Tajland` otvara pano odmah na Tajlandu.
 
 | Komanda | Šta radi |
 |---|---|
-| `/putesestvije:putovanja [zemlja]` | Režim putovanja: meniji za klikanje + slobodno dopisivanje |
+| `/putovanja [zemlja]` | Pano Putešestvije pored razgovora |
 | `/putesestvije:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
-| `/putesestvije:u-trello` | Ponude označene u aplikaciji (`t`) šalje kao kartice u 📬 Predlozi |
 | `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
 | `/putesestvije:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
 | `/putesestvije:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
@@ -68,11 +71,10 @@ Glavna je **`/putesestvije:putovanja`** (obično radi i samo `/putovanja`): pokr
 ## Komande `pt`
 
 ```
-pt                                  pregledač ponuda (kontinenti → zemlje → ponude → detalji)
+pt top [popust|jeftino|specijal|uskoro|izlet]   najbolje ponude po kriterijumu
 pt zemlje                           broj ponuda po kontinentu i zemlji
 pt zemlja tajland                   sve ponude za zemlju ili grad
 pt ponuda <ID> --detalji            sve o ponudi + program i cene sa sajta agencije
-pt izabrano                         ponude označene za Trello
 pt agencije skeniraj [--samo travelland bigblue]
 pt agencije nove [--dana 7] [--sve]
 pt agencije ubaci ponude.json       ponude koje je Claude pročitao (Filip Travel)
@@ -89,7 +91,7 @@ Svaka komanda prima `--json` (tako ih zovu Claude komande).
 
 ### Trello iz `pt` (opciono)
 
-`pt trello ...` koristi Trello REST API (aplikacija `pt` ga ne traži; slanje ide preko `/putesestvije:u-trello`). Ključ: https://trello.com/power-ups/admin → New → API key → generiši token. Zatim:
+`pt trello ...` koristi Trello REST API; pano i Claude komande ga ne traže (rade preko Trello MCP-a). Ključ: https://trello.com/power-ups/admin → New → API key → generiši token. Zatim:
 
 ```bash
 export TRELLO_KEY=...  TRELLO_TOKEN=...      # npr. u ~/.zshrc; nikad u config.toml ni u git

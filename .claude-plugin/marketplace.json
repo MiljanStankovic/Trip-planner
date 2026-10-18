@@ -1,11 +1,18 @@
 {
   "name": "putesestvije",
-  "owner": { "name": "Miljan Stanković" },
+  "owner": {
+    "name": "Miljan Stanković"
+  },
   "plugins": [
     {
       "name": "putesestvije",
       "source": "./",
       "description": "Planer putovanja: agencije, preporuke, Trello"
+    },
+    {
+      "name": "putesestvije-pano",
+      "source": "./pano",
+      "description": "Pano Putešestvije u Claude Code-u: ponude po kontinentima i zemljama, detalji, Trello"
     }
   ]
 }

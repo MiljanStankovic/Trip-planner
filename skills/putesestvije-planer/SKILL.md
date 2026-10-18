@@ -29,7 +29,9 @@ Projekat ima Python alat `pt` (instaliran iz ovog repoa). Uvek ga zovi sa `--jso
 - `pt --json zemlje` — broj ponuda po kontinentu i zemlji
 - `pt --json zemlja <naziv>` — sve ponude za zemlju ili grad (sa zemljom, kontinentom, svim terminima)
 - `pt --json ponuda <ID> --detalji` — jedna ponuda + program, šta cena obuhvata i ne obuhvata, sa sajta agencije
-- `pt --json izabrano` — ponude koje je korisnik označio u aplikaciji za Trello
+- `pt --json top <preporuka|popust|jeftino|specijal|uskoro|izlet>` — najbolje ponude po kriterijumu
+
+Korisnik često radi iz panoa `/putovanja`: poruke "Stavi ponudu <ID> u Trello listu 📬 Predlozi" i "Uporedi ponudu <ID>…" dolaze odatle. Klik u panou je potvrda: uradi odmah.
 
 Ako `pt` nije dostupan, reci kako da se instalira (`pip install -e .` u repou) i nastavi bez njega.
 

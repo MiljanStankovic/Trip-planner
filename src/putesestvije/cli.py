@@ -1,7 +1,8 @@
 """Ulazna tačka: `pt`.
 
-  pt                               pregledač ponuda (kontinenti → zemlje → ponude → detalji)
+  pt                               pomoć (pregled ponuda je pano /putovanja u Claude Code-u)
   pt zemlje                        broj ponuda po kontinentu i zemlji
+  pt top [kriterijum]              najbolje ponude: preporuka, popust, jeftino, specijal, uskoro, izlet
   pt zemlja NAZIV                  sve ponude za zemlju (ili grad, npr. "budimpešta")
   pt ponuda ID [--detalji]         sve o jednoj ponudi; --detalji čita program i cene sa sajta
   pt izabrano [--poslato ID...]    ponude označene za Trello (u pregledaču taster t)
@@ -271,6 +272,18 @@ def cmd_picked(cfg: Config, args) -> int:
     return 0
 
 
+def cmd_top(cfg: Config, args) -> int:
+    items = catalog.load(db.connect())
+    out = []
+    for it, why in catalog.top(items, cfg, args.kriterijum, limit=args.limit):
+        d = it.to_dict()
+        d["zasto"] = why
+        out.append(d)
+    _out({"kriterijumi": catalog.TOP_CRITERIA, "ponude": out}, args.json,
+         lambda: [console.print(f"{d['id'][:8]}  {d.get('date_from') or '—'}  {d['destination']}  ({d['agencija']})  {d['zasto']}") for d in out])
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pt", description="Putešestvije: planer putovanja")
     p.add_argument("--json", action="store_true", help="mašinski izlaz")
@@ -292,8 +305,10 @@ def build_parser() -> argparse.ArgumentParser:
     s = tr.add_parser("dodaj"); s.add_argument("--lista", required=True); s.add_argument("--naslov", required=True)
     s.add_argument("--opis"); s.add_argument("--rok", help="YYYY-MM-DD"); s.add_argument("--link"); s.set_defaults(fn=cmd_add)
 
-    s = sub.add_parser("app", help="pregledač ponuda"); s.set_defaults(fn=lambda cfg, a: _run_app())
     s = sub.add_parser("zemlje"); s.set_defaults(fn=cmd_countries)
+    s = sub.add_parser("top"); s.add_argument("kriterijum", nargs="?", default="preporuka",
+                                              choices=list(catalog.TOP_CRITERIA))
+    s.add_argument("--limit", type=int, default=12); s.set_defaults(fn=cmd_top)
     s = sub.add_parser("zemlja"); s.add_argument("naziv", nargs="+"); s.set_defaults(fn=cmd_country)
     s = sub.add_parser("ponuda"); s.add_argument("id"); s.add_argument("--detalji", action="store_true")
     s.add_argument("--osvezi", action="store_true"); s.set_defaults(fn=cmd_offer)
@@ -304,12 +319,6 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def _run_app() -> int:
-    from .app import run
-    run()
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     as_json = "--json" in argv
@@ -318,7 +327,9 @@ def main(argv: list[str] | None = None) -> int:
     args.json = as_json
     cfg = load()
     if not getattr(args, "fn", None):
-        return _run_app()
+        build_parser().print_help()
+        print("\nPregled ponuda: u Claude Code-u ukucaj /putovanja")
+        return 0
     return args.fn(cfg, args)
 
 

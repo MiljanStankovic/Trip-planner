@@ -1,0 +1,9 @@
+{
+  "name": "putesestvije-pano",
+  "version": "0.1.0",
+  "description": "Pano Putešestvije: ponude domaćih agencija po kontinentima i zemljama, detalji i slanje u Trello, uz razgovor sa Claude-om",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "Miljan Stanković"
+  }
+}
