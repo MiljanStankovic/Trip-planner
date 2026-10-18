@@ -157,14 +157,18 @@ export const register: Register = on => {
       await $.store.set('ptPath', args.slice(3).trim())
       return { text: `Putanja do alata pt sačuvana: ${args.slice(3).trim()}` }
     }
-    await $.ui.open({ id: PANE, title: 'Putešestvije', focus: true, columns: 72 } as any)
+    // Telefon i uski ekrani ne otvaraju bočni pano: tada se aplikacija crta u razgovoru (CommandOutput ispod).
+    const otvoren = await $.ui.open({ id: PANE, title: 'Putešestvije', focus: true, columns: 72 } as any)
+    const uPanou = !!otvoren?.isPlaced
     if (args) void otvoriZemlju($, args)
     else {
       await idiNa($, { view: 'pocetna' })
       void ucitajPocetnu($)
     }
     return {
-      text: args ? `Otvoren pano Putešestvije: ${args}.` : 'Otvoren pano Putešestvije.',
+      text: uPanou
+        ? (args ? `Otvoren pano Putešestvije: ${args}.` : 'Otvoren pano Putešestvije.')
+        : 'Putešestvije',
       context: [
         'Korisnik je otvorio pano Putešestvije (ponude domaćih turističkih agencija po kontinentima i zemljama).',
         'Iz panoa stižu poruke kao "Stavi ponudu <ID> u Trello" ili "Uporedi ponudu <ID>". Radi ih po skillu putesestvije-planer:',
@@ -174,7 +178,17 @@ export const register: Register = on => {
     }
   })
 
-  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+  on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => crtaj($, e))
+
+  // Gde nema bočnog panoa (telefon): ista aplikacija u redu ispod komande /putovanja.
+  on('ui.render', { component: 'CommandOutput', props: { command: 'putovanja' } } as any, async ($, e: any, next: any) => {
+    if (e.props?.text && e.props.text !== 'Putešestvije') return next(e)
+    return crtaj($, e)
+  })
+}
+
+async function crtaj($: any, e: any) {
+  {
     const { Box, Text, Button, Select, Link, Markdown } = $.ui.resolve(e) as any
     const n = await read($, nav)
     const st = await read($, status)
@@ -371,5 +385,5 @@ export const register: Register = on => {
         <Markdown text={md.join('\n')} />
       </Box>
     )
-  })
+  }
 }

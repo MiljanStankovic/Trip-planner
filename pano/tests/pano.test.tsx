@@ -67,3 +67,27 @@ test('pano: početna → kontinent → zemlja → ponuda → Trello', async ($, 
     await ui.unmount()
   }
 })
+
+test('telefon: bez bočnog panoa aplikacija se crta u razgovoru ispod /putovanja', async ($, on) => {
+  mock.store(on)
+  on('process.run', async (_$, e: any) => ({
+    value: { exitCode: 0, stdout: odgovor(e.argv), stderr: '', isStdoutTruncated: false, isStderrTruncated: false },
+  }) as any)
+  on('ui.open', async () => ({ value: { isPlaced: false } }) as any)
+
+  const r = await $.command.run({ command: 'putovanja', args: '' } as any)
+  expect(r.text).toBe('Putešestvije')
+
+  const ui = await $.ui.mount({
+    plugin: 'putesestvije-pano', surface: 'mobile', component: 'CommandOutput',
+    props: { command: 'putovanja', args: '', text: 'Putešestvije', isErrored: false } as any,
+  })
+  await ui.redraw()
+  expect(await ui.find({ key: 'k-Azija' })).toBeDefined()
+  expect(await ui.find({ key: 'kr-popust' })).toBeDefined()
+  await ui.press({ key: 'k-Azija' })
+  await ui.press({ key: 'z-Tajland' })
+  await ui.redraw()
+  expect(await ui.find({ key: `p-${PONUDA.id}` })).toBeDefined()
+  await ui.unmount()
+})
