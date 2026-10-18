@@ -1,0 +1,11 @@
+{
+  "name": "putesestvije",
+  "owner": { "name": "Miljan Stanković" },
+  "plugins": [
+    {
+      "name": "putesestvije",
+      "source": "./",
+      "description": "Planer putovanja: agencije, preporuke, Trello"
+    }
+  ]
+}

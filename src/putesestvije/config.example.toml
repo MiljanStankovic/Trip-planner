@@ -1,0 +1,35 @@
+# Putešestvije — podešavanja
+# Kopija ide u ~/.config/putesestvije/config.toml (komanda: pt init)
+# ili postavi PT_CONFIG=/putanja/do/config.toml
+
+[profil]
+home_airport = "BEG"
+alt_airports = ["BUD", "TSR", "INI"]   # razmotri ako je osetno jeftinije
+currency = "EUR"
+# budget_per_person = 600              # gornja granica po osobi za jedan aranžman (odkomentariši i upiši)
+transport = ["avion", "autobus", "sopstveni"]
+min_days_ahead = 5                     # ne predlaži polaske ranije od ovoga
+max_days_ahead = 180
+min_nights = 1
+max_nights = 10
+likes = ["advent", "budimpešta", "segedin", "divčibare"]   # sa naše table; dopuni
+dislikes = []
+
+[agencije]
+# Agencije koje Python čita direktno. Filip Travel čita Claude (/putesestvije:agencije).
+ukljucene = ["travelland", "bigblue", "odeon"]
+
+[trello]
+board_id = "6ad4cd042c7e038b9e1d453a"   # Putešestvije
+# Ključ i token NE upisuj ovde; stavi ih u okruženje: TRELLO_KEY, TRELLO_TOKEN
+
+[trello.lists]
+predlozi   = "6ad4ddb45b18aa1da56cf30c"
+izleti     = "6ad4cd052c7e038b9e1d4540"
+hrana      = "6ad4cd88c023955397f0020b"
+aktivnosti = "6ad4cd72dcd94f45f11d6fc3"
+kod_kuce   = "6ad4cdc023bd8ce7ee5b57a1"
+kupovina   = "6ad4d798709bba5c7617e093"
+planirano  = "6ad4d799dd62ee3c9ce31628"
+zavrseno   = "6ad4d79bfae47066fd4417ae"
+bucketlist = "6ad4cf4c5fff27c26a3fff07"

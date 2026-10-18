@@ -1,0 +1,7 @@
+{
+  "name": "putesestvije",
+  "version": "0.1.0",
+  "description": "Planer putovanja za dvoje: ponude domaćih agencija, istraživanje letova i smeštaja, preporuke i Trello tabla Putešestvije",
+  "author": { "name": "Miljan Stanković" },
+  "keywords": ["travel", "trello", "putovanja", "agencije"]
+}
