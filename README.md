@@ -109,7 +109,7 @@ Bez ključa sve radi; Claude komande koriste Trello MCP.
 | Kontiki | `pt` | ture i Nova godina; datumi, cene na sajtu |
 | Big Blue | `pt` | evropske metropole; datumi, cene na sajtu |
 | Odeon World Travel | `pt` | ture i wellness (i Segedin); datumi, cene retko |
-| Filip Travel, Ponte, Plana Tours | Claude preko WebFetch → `pt agencije ubaci` | sajt odbija skripte ili cene učitava JavaScript |
+| Filip Travel, Ponte, Plana Tours | Claude, samo kad pozoveš `/putesestvije:agencije` ili `/putesestvije:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
 
 Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putesestvije/scrapers/` i dodaj je u `scrapers/__init__.py`.
 
