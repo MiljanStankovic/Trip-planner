@@ -69,14 +69,14 @@ def cmd_scan(cfg: Config, args) -> int:
     if not args.json:
         for k, v in SKIPPED.items():
             console.print(f"[dim]{v}[/]")
-        console.print("[dim]Filip Travel čita Claude komandom /putesestvije:agencije[/]")
+        console.print("[dim]Filip Travel, Ponte i Plana čita Claude komandom /putesestvije:agencije[/]")
     _out(summary, args.json)
     return 0
 
 
 def cmd_new(cfg: Config, args) -> int:
     conn = db.connect()
-    items = recommend(db.new_since(conn, args.dana), cfg.profile, limit=100) if not args.sve else None
+    items = recommend(db.new_since(conn, args.dana), cfg.profile, limit=100, per_source=100) if not args.sve else None
     rows = [x.to_dict() for x in items] if items is not None else [dict(r) for r in db.new_since(conn, args.dana)]
     _out(rows, args.json, lambda: console.print(offer_table(items or [], f"Nove ponude, poslednjih {args.dana} dana")) if items is not None
          else console.print_json(data=rows))
@@ -125,7 +125,7 @@ def cmd_reject(cfg: Config, args) -> int:
 
 def cmd_recommend(cfg: Config, args) -> int:
     conn = db.connect()
-    items = recommend(db.active_offers(conn), cfg.profile, limit=args.limit)
+    items = recommend(db.active_offers(conn), cfg.profile, limit=args.limit, per_source=args.po_agenciji)
     _out([x.to_dict() for x in items], args.json, lambda: console.print(offer_table(items, "⭐ Preporuke")))
     return 0
 
@@ -217,7 +217,8 @@ def build_parser() -> argparse.ArgumentParser:
     s = ag.add_parser("istorija"); s.add_argument("id"); s.set_defaults(fn=cmd_history)
     s = ag.add_parser("odbij"); s.add_argument("id"); s.set_defaults(fn=cmd_reject)
 
-    s = sub.add_parser("preporuke"); s.add_argument("--limit", type=int, default=10); s.set_defaults(fn=cmd_recommend)
+    s = sub.add_parser("preporuke"); s.add_argument("--limit", type=int, default=10)
+    s.add_argument("--po-agenciji", type=int, default=3, help="najviše ponuda po agenciji"); s.set_defaults(fn=cmd_recommend)
 
     tr = sub.add_parser("trello", help="Trello tabla").add_subparsers(dest="sub", required=True)
     s = tr.add_parser("tabla"); s.set_defaults(fn=cmd_board)

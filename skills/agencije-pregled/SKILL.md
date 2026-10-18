@@ -13,8 +13,7 @@ Cilj: jednom nedeljno (ili na dve nedelje) da dobijemo kratak, iskren pregled š
 
 2. **Skeniraj agencije koje čita Python.** `pt --json agencije skeniraj`. Zabeleži greške po agenciji.
 
-3. **Filip Travel preko WebFetch-a.** Za svaku stranicu iz `za_claude.filip.pages` (iz izlaza skeniranja) pozovi `WebFetch` i izvuci ponude: naslov, destinacija, datum polaska (ISO), broj noćenja, prevoz (avion/autobus), cena po osobi ako je vidljiva, link. Upiši ih u privremeni JSON (lista objekata sa poljima `source: "filip"`, `title`, `url`, `destination`, `date_from`, `nights`, `transport`, `price`, `note`) i pozovi `pt --json agencije ubaci <fajl>`. Ako sajt odbije, preskoči i napomeni.
-   - Kontiki ne čitaj (robots.txt). Samo napomeni link.
+3. **Agencije koje čitaš ti (Filip Travel, Ponte, Plana).** Za svaku stranicu iz `za_claude.<agencija>.pages` (iz izlaza skeniranja) pozovi `WebFetch` i izvuci ponude: naslov, destinacija, datum polaska (ISO), broj noćenja, prevoz (avion/autobus), cena po osobi ako je vidljiva, link. Upiši ih u privremeni JSON (lista objekata sa poljima `source: "<agencija>"`, `title`, `url`, `destination`, `date_from`, `nights`, `transport`, `price`, `note`) i pozovi `pt --json agencije ubaci <fajl>`. Ako sajt odbije, preskoči i napomeni.
    - Ne izmišljaj cene ni datume. Ako nečega nema, ostavi `null`.
 
 4. **Izaberi.** `pt --json preporuke --limit 12` i `pt --json agencije nove --dana 14`. Od toga izaberi **najviše 5** stvarno dobrih:

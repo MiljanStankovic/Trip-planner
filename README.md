@@ -94,15 +94,21 @@ Bez ključa sve radi osim Trello panela u `pt`; Claude komande koriste Trello MC
 
 ## Agencije
 
-| Agencija | Kako | Cene |
+| Agencija | Kako | Šta se dobija |
 |---|---|---|
-| Travelland | `pt` (HTML) | da |
-| Big Blue | `pt` (HTML) | datumi da, cene na sajtu (JavaScript) |
-| Odeon World Travel | `pt` (HTML) | datumi da, cene retko |
-| Filip Travel | Claude preko WebFetch → `pt agencije ubaci` | kad su vidljive |
-| Kontiki | ne čita se – robots.txt zabranjuje | ručno, kontiki.rs |
+| Travelland | `pt` | city break, Egipat, Kipar; cene i stare cene |
+| Argus Tours | `pt` | sigurni polasci, praznici (npr. Dan primirja); cene "od" |
+| Grand Tours | `pt` | autobuski izleti i vikend putovanja (Budimpešta, Temišvar, adventi); cene u € ili dinarima |
+| Felix Travel | `pt` | evropski gradovi i adventi; cene, datumi na stranici ponude |
+| Fibula Air Travel | `pt` | hoteli sa letom iz Beograda; polazak, noći, cena po osobi |
+| Kontiki | `pt` | ture i Nova godina; datumi, cene na sajtu |
+| Big Blue | `pt` | evropske metropole; datumi, cene na sajtu |
+| Odeon World Travel | `pt` | ture i wellness (i Segedin); datumi, cene retko |
+| Filip Travel, Ponte, Plana Tours | Claude preko WebFetch → `pt agencije ubaci` | sajt odbija skripte ili cene učitava JavaScript |
 
-Skripte poštuju robots.txt i prave pauzu između stranica. Sajtovi agencija se menjaju; kad parser prestane da vraća ponude, `pytest` i komanda `pt agencije skeniraj` to odmah pokažu, a parser je jedan mali fajl u `src/putesestvije/scrapers/`. Nova agencija = nova klasa sa `pages` i `parse()`, dodata u `scrapers/__init__.py`.
+Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putesestvije/scrapers/` i dodaj je u `scrapers/__init__.py`.
+
+Skripte poštuju robots.txt i prave pauzu između stranica. Preporuke imaju najviše 3 ponude po agenciji (`--po-agenciji`), da ne bi jedna agencija zauzela ceo spisak. Sajtovi agencija se menjaju; kad parser prestane da vraća ponude, `pt agencije skeniraj` to pokaže (0 ponuda), a parser je jedan mali fajl.
 
 ## Nedeljni pregled
 

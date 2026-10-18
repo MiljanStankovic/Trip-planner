@@ -71,7 +71,7 @@ def parse_dates(text: str, today: date | None = None) -> list[str]:
     """Izvlači datume tipa '11.11, 29.12 i 30.12.2026.' u ISO listu.
 
     Datum bez godine dobija sledeću godinu koja se pojavi u tekstu; ako je nema,
-    najbliži budući datum u odnosu na danas.
+    tekuću godinu, osim ako je prošao pre više od 60 dana (onda sledeću).
     """
     today = today or date.today()
     found = [(int(d), int(m), int(y) if y else None) for d, m, y in _DATE_RE.findall(text)]
@@ -83,7 +83,7 @@ def parse_dates(text: str, today: date | None = None) -> list[str]:
         if y is None:
             y = today.year
             try:
-                if date(y, m, d) < today:
+                if (today - date(y, m, d)).days > 60:
                     y += 1
             except ValueError:
                 continue
@@ -108,3 +108,10 @@ def guess_transport(text: str) -> str | None:
     if "sopstven" in t:
         return "sopstveni"
     return None
+
+
+def upcoming(dates: list[str], today: date | None = None) -> tuple[str | None, list[str]]:
+    """Prvi budući datum i ostali budući; prošli termini se odbacuju."""
+    t = (today or date.today()).isoformat()
+    fut = sorted(d for d in dates if d >= t)
+    return (fut[0], fut[1:]) if fut else (None, [])

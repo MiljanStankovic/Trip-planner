@@ -61,11 +61,11 @@ Prvo `pt --json preporuke` i `pt --json agencije nove`. Baza pamti istoriju cena
 
 | Agencija | Ko čita | Napomena |
 |---|---|---|
-| Travelland | `pt` | Cene u statičnom HTML-u, najpouzdaniji izvor |
-| Big Blue | `pt` | Datumi da, cene se učitavaju JavaScript-om |
-| Odeon World Travel | `pt` | Ture i wellness sa datumima, cene retko |
-| Filip Travel | Claude (`WebFetch`), pa `pt agencije ubaci` | Sajt odbija skripte; vidi komandu /putesestvije:agencije |
-| Kontiki | niko | robots.txt zabranjuje automatsko čitanje. Ne zaobilazi to. Navedi link kontiki.rs da otvorimo sami |
+| Travelland, Argus, Grand Tours, Felix, Fibula | `pt` | Cene u statičnom HTML-u. Grand Tours ima i jednodnevne izlete u dinarima |
+| Kontiki, Big Blue, Odeon | `pt` | Datumi da, cene uglavnom na sajtu (otvori stranicu ponude sa `WebFetch`) |
+| Filip Travel, Ponte, Plana Tours | Claude (`WebFetch`), pa `pt agencije ubaci` | Vidi komandu /putesestvije:agencije |
+
+Kad korisnik pomene agenciju koje nema na spisku, proveri njen sajt (`WebFetch`) i ponudi da se doda.
 
 Pravila:
 - Ako cena nije vidljiva, otvori stranicu same ponude sa `WebFetch`. Ako ni tamo nije, napiši "cena na sajtu" sa linkom. Nikad ne izmišljaj cenu.

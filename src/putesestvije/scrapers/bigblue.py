@@ -7,13 +7,14 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
-from ..models import Offer, guess_transport, parse_dates
+from ..models import Offer, guess_transport, parse_dates, upcoming
 from .base import Scraper
 
 
 def _fix_lang(u: str) -> str:
     """Relativni linkovi ("../location/x") u meniju gube /sr/ prefiks."""
-    return re.sub(r"^(https://bigblue\.rs)/(location|tour)/", r"\1/sr/\2/", u)
+    u = re.sub(r"^(https://(?:www\.)?(?:bigblue|kontiki)\.rs)/(location|tour)/", r"\1/sr/\2/", u)
+    return u.replace("/sr/sr/", "/sr/")
 
 
 class BigBlue(Scraper):
@@ -35,6 +36,9 @@ class BigBlue(Scraper):
             dates = parse_dates(text)
             if not dates:
                 continue
+            first, rest = upcoming(dates)
+            if not first:
+                continue
             name = re.split(r"\s[-–]\s", text, maxsplit=1)[0].strip()
             offers.append(
                 Offer(
@@ -42,8 +46,8 @@ class BigBlue(Scraper):
                     title=text,
                     url=_fix_lang(urljoin(url, href)),
                     destination=name,
-                    date_from=dates[0],
-                    extra_dates=dates[1:],
+                    date_from=first,
+                    extra_dates=rest,
                     transport=guess_transport(text) or ("avion" if "metropole" in url else None),
                     note="cena na sajtu (JavaScript)",
                 )

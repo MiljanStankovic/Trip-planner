@@ -25,7 +25,8 @@ def offer_table(items: list[Scored], title: str, compact: bool = False) -> Table
         t.add_column("Zašto", style="green")
     for x in items:
         r = x.row
-        price = f"{r['price']:.0f} €" if r["price"] else "—"
+        cur = "din" if (r["currency"] or "EUR") == "RSD" else "€"
+        price = f"{r['price']:.0f} {cur}" if r["price"] else "—"
         if r["old_price"] and r["price"] and r["old_price"] > r["price"]:
             price = f"[strike dim]{r['old_price']:.0f}[/] {price}"
         icon = {"avion": "✈", "autobus": "🚌"}.get(r["transport"] or "", "")

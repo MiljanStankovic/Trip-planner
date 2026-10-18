@@ -37,7 +37,7 @@ def score(row: sqlite3.Row, p: Profile, today: date | None = None) -> Scored | N
         reasons.append("poslednja mesta")
     if row["transport"] and p.transport and row["transport"] not in p.transport:
         return None
-    if row["nights"] is not None and not (p.min_nights <= row["nights"] <= p.max_nights):
+    if row["nights"] and not (p.min_nights <= row["nights"] <= p.max_nights):
         return None
     if row["date_from"]:
         days = (date.fromisoformat(row["date_from"]) - today).days
@@ -48,20 +48,24 @@ def score(row: sqlite3.Row, p: Profile, today: date | None = None) -> Scored | N
             reasons.append(f"polazak za {days} dana")
 
     price = row["price"]
+    if price is not None and (row["currency"] or "EUR") == "RSD":
+        price = price / p.rsd_per_eur
+    if row["nights"] == 0:
+        reasons.append("jednodnevni izlet")
     if price is not None and p.budget_per_person:
         if price > p.budget_per_person:
             return None
         s += 15 * (1 - price / p.budget_per_person)
-        reasons.append(f"{price:.0f} € u okviru budžeta {p.budget_per_person:.0f} €")
+        reasons.append(f"~{price:.0f} € u okviru budžeta {p.budget_per_person:.0f} €")
     elif price is None:
         s -= 5
         reasons.append("cena nije poznata")
 
-    if row["old_price"] and price and row["old_price"] > price:
-        pct = 100 * (row["old_price"] - price) / row["old_price"]
+    if row["old_price"] and row["price"] and row["old_price"] > row["price"]:
+        pct = 100 * (row["old_price"] - row["price"]) / row["old_price"]
         s += min(pct, 40) * 0.6
         reasons.append(f"sniženo {pct:.0f}%")
-    if row["min_price"] and price and price <= row["min_price"] and row["first_seen"] != row["last_seen"]:
+    if row["min_price"] and row["price"] and row["price"] <= row["min_price"] and row["first_seen"] != row["last_seen"]:
         s += 5
         reasons.append("najniža cena do sada")
 
@@ -72,12 +76,12 @@ def score(row: sqlite3.Row, p: Profile, today: date | None = None) -> Scored | N
 
     if row["status"] == "nova":
         s += 3
-    order = ("volite", "sniženo", "najniža", "poslednja", "polazak", "cena nije", )
+    order = ("volite", "sniženo", "najniža", "poslednja", "jednodnevni", "polazak", "cena nije", )
     reasons.sort(key=lambda r: next((i for i, k in enumerate(order) if r.startswith(k)), len(order)))
     return Scored(row, s, reasons)
 
 
-def recommend(rows: list[sqlite3.Row], p: Profile, limit: int = 10) -> list[Scored]:
+def recommend(rows: list[sqlite3.Row], p: Profile, limit: int = 10, per_source: int = 3) -> list[Scored]:
     scored = [x for x in (score(r, p) for r in rows) if x]
     # jedna ponuda po destinaciji i agenciji, najbolje bodovana
     best: dict[tuple, Scored] = {}
@@ -85,4 +89,14 @@ def recommend(rows: list[sqlite3.Row], p: Profile, limit: int = 10) -> list[Scor
         key = (x.row["source"], (x.row["destination"] or x.row["title"]).lower())
         if key not in best or x.score > best[key].score:
             best[key] = x
-    return sorted(best.values(), key=lambda x: x.score, reverse=True)[:limit]
+    out: list[Scored] = []
+    count: dict[str, int] = {}
+    for x in sorted(best.values(), key=lambda x: x.score, reverse=True):
+        src = x.row["source"]
+        if count.get(src, 0) >= per_source:
+            continue
+        count[src] = count.get(src, 0) + 1
+        out.append(x)
+        if len(out) >= limit:
+            break
+    return out

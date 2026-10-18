@@ -33,6 +33,7 @@ class Profile:
     max_nights: int = 10
     likes: list[str] = field(default_factory=list)  # ključne reči: "pariz", "wellness", "advent"
     dislikes: list[str] = field(default_factory=list)  # "krstarenje", "daleka putovanja"
+    rsd_per_eur: float = 117.0  # za poređenje dinarskih cena sa budžetom u EUR
 
 
 @dataclass
@@ -65,7 +66,8 @@ class TrelloCfg:
 class Config:
     profile: Profile = field(default_factory=Profile)
     trello: TrelloCfg = field(default_factory=TrelloCfg)
-    agencies: list[str] = field(default_factory=lambda: ["travelland", "bigblue", "odeon"])
+    agencies: list[str] = field(default_factory=lambda: [
+        "travelland", "argus", "grandtours", "felix", "fibula", "kontiki", "bigblue", "odeon"])
     path: Path | None = None
 
 

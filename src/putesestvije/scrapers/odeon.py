@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
-from ..models import Offer, guess_transport, parse_dates, parse_nights, parse_price
+from ..models import Offer, guess_transport, parse_dates, parse_nights, parse_price, upcoming
 from .base import Scraper
 
 
@@ -32,14 +32,17 @@ class Odeon(Scraper):
             content = " ".join((content_el.get_text(" ", strip=True) if content_el else "").split())
             title = " ".join(title.split())
             dates = parse_dates(content)
+            first, rest = upcoming(dates)
+            if dates and not first:
+                continue  # svi termini prošli
             offers.append(
                 Offer(
                     source=self.source,
                     title=f"{title} {content}".strip(),
                     url=urljoin(url, link["href"]),
                     destination=title.replace("✈", "").strip().title(),
-                    date_from=dates[0] if dates else None,
-                    extra_dates=dates[1:],
+                    date_from=first,
+                    extra_dates=rest,
                     nights=parse_nights(content),
                     transport=guess_transport(title + " " + content),
                     price=parse_price(content),
