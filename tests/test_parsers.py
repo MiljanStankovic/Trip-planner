@@ -146,3 +146,15 @@ def test_jungletribe():
                               "discount": "1099.00", "currency": "EUR", "lastPlaces": 1, "isBestDeal": 0})
     assert (o.destination, o.price, o.old_price, o.nights, o.note) == ("Tajland", 1099.0, 1299.0, 8, "poslednja mesta")
     assert o.url == "https://www.jungletribe.rs/destinacije/azija/tajland/hotel-x"
+
+
+from putesestvije.geo import classify
+
+
+def test_geo():
+    assert classify("Rim Dan Primirija") == ("Italija", "Evropa")
+    assert classify("Toskana Dan Primirja") == ("Italija", "Evropa")
+    assert classify("Bangkok i Puket") == ("Tajland", "Azija")
+    assert classify("Hotel X", "", "https://www.jungletribe.rs/destinacije/afrika/zanzibar/x") == ("Tanzanija", "Afrika")
+    assert classify("Krstarenje Nilom") == ("Egipat", "Afrika")
+    assert classify("Primirja tura")[0] == "Nepoznato"

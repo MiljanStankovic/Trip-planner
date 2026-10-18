@@ -25,7 +25,11 @@ Projekat ima Python alat `pt` (instaliran iz ovog repoa). Uvek ga zovi sa `--jso
 - `pt --json preporuke --limit 10` — najbolje ponude agencija po profilu, sa razlozima
 - `pt --json agencije nove --dana 7` — nove ponude
 - `pt --json agencije istorija <ID>` — kretanje cene
-- `pt --json agencije skeniraj` — sveže ponude (traje ~20 s)
+- `pt --json agencije skeniraj` — sveže ponude (traje ~1 min)
+- `pt --json zemlje` — broj ponuda po kontinentu i zemlji
+- `pt --json zemlja <naziv>` — sve ponude za zemlju ili grad (sa zemljom, kontinentom, svim terminima)
+- `pt --json ponuda <ID> --detalji` — jedna ponuda + program, šta cena obuhvata i ne obuhvata, sa sajta agencije
+- `pt --json izabrano` — ponude koje je korisnik označio u aplikaciji za Trello
 
 Ako `pt` nije dostupan, reci kako da se instalira (`pip install -e .` u repou) i nastavi bez njega.
 

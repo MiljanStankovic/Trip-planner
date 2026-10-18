@@ -1,6 +1,10 @@
 """Ulazna tačka: `pt`.
 
-  pt                               tabla: Trello + preporuke + novo ove nedelje
+  pt                               pregledač ponuda (kontinenti → zemlje → ponude → detalji)
+  pt zemlje                        broj ponuda po kontinentu i zemlji
+  pt zemlja NAZIV                  sve ponude za zemlju (ili grad, npr. "budimpešta")
+  pt ponuda ID [--detalji]         sve o jednoj ponudi; --detalji čita program i cene sa sajta
+  pt izabrano [--poslato ID...]    ponude označene za Trello (u pregledaču taster t)
   pt agencije skeniraj [--samo X]  skini ponude agencija i sačuvaj istoriju cena
   pt agencije nove [--dana 7]      ponude prvi put viđene u poslednjih N dana
   pt agencije ubaci FAJL.json      ubaci ponude koje je Claude pročitao (npr. Filip Travel)
@@ -28,9 +32,9 @@ from zoneinfo import ZoneInfo
 
 from rich.console import Console
 
-from . import db
+from . import catalog, db, details
 from .config import Config, load
-from .dashboard import offer_table, show
+from .dashboard import offer_table
 from .match import recommend
 from .models import Offer
 from .scrapers import CLAUDE_SOURCES, SCRAPERS, SKIPPED
@@ -205,6 +209,68 @@ def cmd_init(cfg: Config, args) -> int:
     return 0
 
 
+def cmd_countries(cfg: Config, args) -> int:
+    tree = catalog.tree(catalog.load(db.connect()))
+    data = {k: dict(v.most_common()) for k, v in tree.items()}
+
+    def render():
+        for cont, countries in data.items():
+            console.print(f"[bold]{cont}[/] ({sum(countries.values())})")
+            console.print("   " + ", ".join(f"{c} {n}" for c, n in countries.items()))
+    _out(data, args.json, render)
+    return 0
+
+
+def cmd_country(cfg: Config, args) -> int:
+    items = catalog.sort_items(catalog.by_country(catalog.load(db.connect()), " ".join(args.naziv)), "datum")
+    rows = [it.to_dict() for it in items]
+
+    def render():
+        from rich.table import Table
+        t = Table(title=f"{' '.join(args.naziv)} · {len(items)} ponuda", header_style="bold cyan")
+        for c in ("ID", "Polazak", "Destinacija", "Zemlja", "Noći", "Cena", "Agencija"):
+            t.add_column(c)
+        for it in items:
+            t.add_row(it.id[:8], it["date_from"] or "—", (it["destination"] or "")[:28], it.country,
+                      str(it["nights"] if it["nights"] is not None else ""), it.price_str(), it.agency)
+        console.print(t)
+    _out(rows, args.json, render)
+    return 0
+
+
+def cmd_offer(cfg: Config, args) -> int:
+    conn = db.connect()
+    row = _find_offer(conn, args.id)
+    if not row:
+        console.print("[red]Nema te ponude.[/]")
+        return 1
+    it = next((i for i in catalog.load(conn, 3650) if i.id == row["id"]), None)
+    data = it.to_dict() if it else dict(row)
+    data["istorija_cene"] = [dict(h) for h in db.price_history(conn, row["id"])]
+    if args.detalji:
+        data["sa_sajta"] = details.get(conn, row["id"], row["url"], refresh=args.osvezi)
+    _out(data, args.json, lambda: console.print_json(data=data))
+    return 0
+
+
+def cmd_picked(cfg: Config, args) -> int:
+    conn = db.connect()
+    for pid in args.poslato or []:
+        row = _find_offer(conn, pid)
+        if row:
+            db.mark_sent(conn, row["id"])
+    items = {i.id: i for i in catalog.load(conn, 3650)}
+    rows = [items[r["id"]].to_dict() if r["id"] in items else dict(r) for r in db.picked(conn)]
+
+    def render():
+        if not rows:
+            console.print("Nema označenih ponuda. U pregledaču (`pt`) označi ponudu tasterom [bold]t[/].")
+        for r in rows:
+            console.print(f"📌 {r['id'][:8]}  {r.get('date_from') or '—'}  {r.get('destination')}  ({r.get('agencija', r['source'])})  {r['url']}")
+    _out(rows, args.json, render)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pt", description="Putešestvije: planer putovanja")
     p.add_argument("--json", action="store_true", help="mašinski izlaz")
@@ -226,9 +292,22 @@ def build_parser() -> argparse.ArgumentParser:
     s = tr.add_parser("dodaj"); s.add_argument("--lista", required=True); s.add_argument("--naslov", required=True)
     s.add_argument("--opis"); s.add_argument("--rok", help="YYYY-MM-DD"); s.add_argument("--link"); s.set_defaults(fn=cmd_add)
 
+    s = sub.add_parser("app", help="pregledač ponuda"); s.set_defaults(fn=lambda cfg, a: _run_app())
+    s = sub.add_parser("zemlje"); s.set_defaults(fn=cmd_countries)
+    s = sub.add_parser("zemlja"); s.add_argument("naziv", nargs="+"); s.set_defaults(fn=cmd_country)
+    s = sub.add_parser("ponuda"); s.add_argument("id"); s.add_argument("--detalji", action="store_true")
+    s.add_argument("--osvezi", action="store_true"); s.set_defaults(fn=cmd_offer)
+    s = sub.add_parser("izabrano"); s.add_argument("--poslato", nargs="*"); s.set_defaults(fn=cmd_picked)
+
     s = sub.add_parser("profil"); s.set_defaults(fn=cmd_profile)
     s = sub.add_parser("init"); s.add_argument("--force", action="store_true"); s.set_defaults(fn=cmd_init)
     return p
+
+
+def _run_app() -> int:
+    from .app import run
+    run()
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -239,8 +318,7 @@ def main(argv: list[str] | None = None) -> int:
     args.json = as_json
     cfg = load()
     if not getattr(args, "fn", None):
-        show(cfg, console)
-        return 0
+        return _run_app()
     return args.fn(cfg, args)
 
 

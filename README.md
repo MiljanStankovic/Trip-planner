@@ -1,20 +1,20 @@
-# Putešestvije · CLI za putovanja
+# Putešestvije · pregledač ponuda agencija
 
-Mini aplikacija u terminalu za planiranje putovanja i izlazaka za dvoje:
-
-- **`pt`** – Python alat: skida ponude domaćih agencija, pamti istoriju cena, boduje ponude po našem profilu, prikazuje Trello tablu i preporuke jednu pored druge.
-- **Claude Code plugin `putesestvije`** – Claude kao mozak: komande-modovi za istraživanje (letovi, smeštaj, aranžmani), predloge i planiranje, sa upisom u Trello tablu **Putešestvije**.
-- **Nedeljni pregled** – zakazano pokretanje koje skenira agencije, piše izveštaj u `izvestaji/` i stavlja do 5 predloga u Trello listu **📬 Predlozi**.
-
-Trello ostaje samo tabla (ideje → Planirano → Završeno). Istraživanje i savet su u terminalu.
+Aplikacija u terminalu koja skuplja ponude domaćih turističkih agencija i slaže ih po **kontinentima i zemljama**. Klikneš zemlju, vidiš sve ponude, klikneš ponudu i dobiješ sve termine, cene, program i šta cena obuhvata (sa sajta agencije). Ono što vam se svidi označiš i pošalješ na Trello tablu **Putešestvije**. Trello ostaje tabla za vaše ideje, a aplikacija služi za traženje.
 
 ```
-┌──────────────── Trello · Putešestvije ─────────────┐┌──── ⭐ Preporuke ─────────────┐
-│ 📬 Predlozi │ Izleti │ Hrana │ Aktivnosti │ ...    ││ 03.11 ✈ Sevilja  499 € -33%  │
-│ • ...       │ • ...  │ • ... │ • ...      │        ││ 25.10 ✈ Aja Napa 337 € -30%  │
-└────────────────────────────────────────────────────┘└───────────────────────────────┘
-┌──────────────────────── 🆕 Novo ove nedelje ─────────────────────────────────────────┐
+┌ Kontinenti → zemlje ┐┌ Ponude za izabranu zemlju ─────────────────┐┌ Detalji ponude ─────────────┐
+│ Evropa (196)        ││ Polazak    Destinacija   Noći  Cena  Agen. ││ Polazak, svi termini i cene │
+│   Španija (46)      ││ 08.11. +24 Bangkok, Krabi 12  1.549 € JT    ││ Program                     │
+│ Azija (259)         ││ ...                                         ││ Cena obuhvata / ne obuhvata │
+├ Najbolje ponude ▼   ┤│                                             ││ Link                        │
+│ 💸 Najveći popust   ││                                             ││                             │
+└─────────────────────┘└─────────────────────────────────────────────┘└─────────────────────────────┘
 ```
+
+**Tasteri:** `/` traži (zemlja, grad, agencija) · `Enter` ili `d` detalji sa sajta · `o` otvori u pregledaču · `t` označi za Trello · `s` sortiraj (datum, cena, popust, agencija) · `q` izlaz. Radi i mišem.
+
+**Najbolje ponude** (levo dole) imaju izbor kriterijuma: preporučeno za vas, najveći popust, najjeftinije, specijalne i poslednja mesta, polazi uskoro, izleti i vikendi.
 
 ## Instalacija
 
@@ -27,7 +27,7 @@ python3 -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts
 pip install -e .
 pt init                     # pravi ~/.config/putesestvije/config.toml – otvori i podesi profil
 pt agencije skeniraj        # prvo skeniranje
-pt                          # tabla
+pt                          # pregledač ponuda
 ```
 
 ### Claude Code plugin
@@ -49,25 +49,27 @@ Pa u Claude Code-u `/mcp` → trello → prijava na Trello.
 
 Preporučeni konektori za istraživanje (opciono, u Claude Code-u preko `claude mcp add`): SlickTrip, eDreams, Expedia (letovi i hoteli), Booking.com, Civitatis (ture), AccuWeather (vreme).
 
-## Modovi (Claude Code)
+## Claude Code komande
 
 | Komanda | Šta radi |
 |---|---|
-| `/putesestvije:pocetna` | Tabla + preporuke + novo ove nedelje, sa predlogom sledećeg koraka |
-| `/putesestvije:predlozi [vikend\|mesec\|putovanje]` | Šta da radimo: 3 ideje sa table + 1 nova + ponude agencija |
-| `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, vreme, poređenje sa "uradi sam" |
-| `/putesestvije:planiraj <kartica>` | Plan za izabranu karticu, prebacivanje u Planirano, datum, labela, kalendar |
-| `/putesestvije:agencije [filter]` | Sveže skeniranje (uključujući Filip Travel) i nove/pojeftinjene ponude |
+| `/putesestvije:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
+| `/putesestvije:u-trello` | Ponude označene u aplikaciji (`t`) šalje kao kartice u 📬 Predlozi |
+| `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
+| `/putesestvije:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
+| `/putesestvije:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
+| `/putesestvije:agencije` | Sveže skeniranje (i agencije koje čita Claude) |
 | `/putesestvije:pregled [auto]` | Nedeljni pregled: izveštaj + predlozi u Trello |
-| `/putesestvije:tabla` | Trello tabla |
-| `/putesestvije:profil [izmena]` | Profil: aerodrom, budžet, šta volimo |
-
-Skillovi u pluginu: `putesestvije-planer` (način istraživanja i planiranja) i `agencije-pregled` (nedeljni pregled).
+| `/putesestvije:profil` | Profil: budžet, šta volite, aerodrom |
 
 ## Komande `pt`
 
 ```
-pt                                  tabla (Trello levo, preporuke desno, novo dole)
+pt                                  pregledač ponuda (kontinenti → zemlje → ponude → detalji)
+pt zemlje                           broj ponuda po kontinentu i zemlji
+pt zemlja tajland                   sve ponude za zemlju ili grad
+pt ponuda <ID> --detalji            sve o ponudi + program i cene sa sajta agencije
+pt izabrano                         ponude označene za Trello
 pt agencije skeniraj [--samo travelland bigblue]
 pt agencije nove [--dana 7] [--sve]
 pt agencije ubaci ponude.json       ponude koje je Claude pročitao (Filip Travel)
@@ -84,13 +86,13 @@ Svaka komanda prima `--json` (tako ih zovu Claude komande).
 
 ### Trello iz `pt` (opciono)
 
-Tabla u `pt` prikazu i `pt trello ...` koriste Trello REST API. Ključ: https://trello.com/power-ups/admin → New → API key → generiši token. Zatim:
+`pt trello ...` koristi Trello REST API (aplikacija `pt` ga ne traži; slanje ide preko `/putesestvije:u-trello`). Ključ: https://trello.com/power-ups/admin → New → API key → generiši token. Zatim:
 
 ```bash
 export TRELLO_KEY=...  TRELLO_TOKEN=...      # npr. u ~/.zshrc; nikad u config.toml ni u git
 ```
 
-Bez ključa sve radi osim Trello panela u `pt`; Claude komande koriste Trello MCP.
+Bez ključa sve radi; Claude komande koriste Trello MCP.
 
 ## Agencije
 

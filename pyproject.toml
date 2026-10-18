@@ -1,13 +1,14 @@
 [project]
 name = "putesestvije"
 version = "0.1.0"
-description = "CLI za planiranje putovanja: ponude domaćih agencija, istorija cena, preporuke i Trello tabla Putešestvije"
+description = "Pregledač ponuda domaćih turističkih agencija po kontinentima i zemljama, sa detaljima i slanjem u Trello"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "requests>=2.31",
     "beautifulsoup4>=4.12",
     "rich>=13.7",
+    "textual>=0.80",
 ]
 
 [project.optional-dependencies]

@@ -37,6 +37,12 @@ CREATE TABLE IF NOT EXISTS price_history (
     price REAL,
     PRIMARY KEY (offer_id, seen_at)
 );
+CREATE TABLE IF NOT EXISTS izabrano (
+    offer_id TEXT PRIMARY KEY,
+    added_at TEXT NOT NULL,
+    sent_at TEXT
+);
+CREATE TABLE IF NOT EXISTS details (offer_id TEXT PRIMARY KEY, fetched_at TEXT, data TEXT);
 CREATE TABLE IF NOT EXISTS runs (
     started_at TEXT PRIMARY KEY,
     source TEXT,
@@ -126,3 +132,30 @@ def set_status(conn: sqlite3.Connection, offer_id: str, status: str) -> bool:
 
 def get(conn: sqlite3.Connection, offer_id: str) -> sqlite3.Row | None:
     return conn.execute("SELECT * FROM offers WHERE id=?", (offer_id,)).fetchone()
+
+
+def toggle_pick(conn: sqlite3.Connection, offer_id: str) -> bool:
+    """Označi/odznači ponudu za Trello. Vraća True ako je sada označena."""
+    if conn.execute("SELECT 1 FROM izabrano WHERE offer_id=?", (offer_id,)).fetchone():
+        conn.execute("DELETE FROM izabrano WHERE offer_id=?", (offer_id,))
+        conn.commit()
+        return False
+    conn.execute("INSERT INTO izabrano (offer_id, added_at) VALUES (?,?)", (offer_id, _now()))
+    conn.commit()
+    return True
+
+
+def picked(conn: sqlite3.Connection, include_sent: bool = False) -> list[sqlite3.Row]:
+    q = """SELECT o.*, i.added_at, i.sent_at FROM izabrano i JOIN offers o ON o.id = i.offer_id"""
+    if not include_sent:
+        q += " WHERE i.sent_at IS NULL"
+    return conn.execute(q + " ORDER BY i.added_at").fetchall()
+
+
+def mark_sent(conn: sqlite3.Connection, offer_id: str) -> None:
+    conn.execute("UPDATE izabrano SET sent_at=? WHERE offer_id=?", (_now(), offer_id))
+    conn.commit()
+
+
+def picked_ids(conn: sqlite3.Connection) -> set[str]:
+    return {r[0] for r in conn.execute("SELECT offer_id FROM izabrano WHERE sent_at IS NULL")}
