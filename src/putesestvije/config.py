@@ -67,7 +67,7 @@ class Config:
     profile: Profile = field(default_factory=Profile)
     trello: TrelloCfg = field(default_factory=TrelloCfg)
     agencies: list[str] = field(default_factory=lambda: [
-        "travelland", "argus", "grandtours", "felix", "fibula", "kontiki", "bigblue", "odeon"])
+        "travelland", "argus", "grandtours", "halotours", "belvi", "felix", "fibula", "jungletribe", "kontiki", "bigblue", "odeon"])
     path: Path | None = None
 
 

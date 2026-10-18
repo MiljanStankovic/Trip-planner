@@ -61,7 +61,8 @@ Prvo `pt --json preporuke` i `pt --json agencije nove`. Baza pamti istoriju cena
 
 | Agencija | Ko čita | Napomena |
 |---|---|---|
-| Travelland, Argus, Grand Tours, Felix, Fibula | `pt` | Cene u statičnom HTML-u. Grand Tours ima i jednodnevne izlete u dinarima |
+| Travelland, Argus, Grand Tours, Halo Tours, Belvi, Felix, Fibula | `pt` | Cene u statičnom HTML-u. Grand Tours i Halo Tours imaju izlete i advente u dinarima |
+| Jungle Tribe | `pt` | Daleka putovanja (Azija, Karibi, Afrika...), svi polasci sa cenama i popustima |
 | Kontiki, Big Blue, Odeon | `pt` | Datumi da, cene uglavnom na sajtu (otvori stranicu ponude sa `WebFetch`) |
 | Filip Travel, Ponte, Plana Tours | Claude (`WebFetch`), pa `pt agencije ubaci` | Vidi komandu /putesestvije:agencije |
 

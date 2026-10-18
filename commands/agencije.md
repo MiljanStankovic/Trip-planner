@@ -1,5 +1,5 @@
 ---
-description: Skeniraj domaće agencije (8 preko pt, plus Filip Travel, Ponte i Plana preko WebFetch-a) i prikaži nove i pojeftinjene ponude
+description: Skeniraj domaće agencije (11 preko pt, plus Filip Travel, Ponte i Plana preko WebFetch-a) i prikaži nove i pojeftinjene ponude
 argument-hint: "[destinacija ili tip, opciono]"
 ---
 

@@ -18,7 +18,7 @@ rsd_per_eur = 117                      # kurs za poređenje cena u dinarima sa b
 
 [agencije]
 # Agencije koje Python čita direktno. Filip Travel, Ponte i Plana čita Claude (/putesestvije:agencije).
-ukljucene = ["travelland", "argus", "grandtours", "felix", "fibula", "kontiki", "bigblue", "odeon"]
+ukljucene = ["travelland", "argus", "grandtours", "halotours", "belvi", "felix", "fibula", "jungletribe", "kontiki", "bigblue", "odeon"]
 
 [trello]
 board_id = "6ad4cd042c7e038b9e1d453a"   # Putešestvije

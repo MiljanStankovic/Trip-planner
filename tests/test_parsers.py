@@ -121,3 +121,28 @@ def test_felix():
 def test_kontiki():
     (o,) = Kontiki().parse(KONTIKI, "https://kontiki.rs/sr/")
     assert o.source == "kontiki" and o.destination == "Andaluzijska tura" and o.date_from == "2027-12-27"
+
+
+from putesestvije.models import parse_month_words
+from putesestvije.scrapers.halotours import HaloTours
+from putesestvije.scrapers.jungletribe import JungleTribe
+
+HALO = """<div class="gdl-package-grid2"><h2 class="package-title"><a href="https://www.halotours.rs/aranzman/advent-u-budimpesti/">Budimpešta</a></h2>
+<span class="package-price">3999 dinara</span><div class="package-date">04 dec 2027 - 06 dec 2027</div></div>"""
+
+
+def test_month_words():
+    assert parse_month_words("21 okt", today=date(2026, 10, 18)) == ["2026-10-21"]
+
+
+def test_halotours():
+    (o,) = HaloTours().parse(HALO, "https://www.halotours.rs/")
+    assert (o.destination, o.price, o.currency, o.date_from, o.nights) == ("Budimpešta", 3999.0, "RSD", "2027-12-04", 2)
+
+
+def test_jungletribe():
+    o = JungleTribe.to_offer({"name": "Hotel X 4*", "startDate": "2027-01-10", "endDate": "2027-01-18",
+                              "slug": "destinacije/azija/tajland/hotel-x", "price": "1299.00",
+                              "discount": "1099.00", "currency": "EUR", "lastPlaces": 1, "isBestDeal": 0})
+    assert (o.destination, o.price, o.old_price, o.nights, o.note) == ("Tajland", 1099.0, 1299.0, 8, "poslednja mesta")
+    assert o.url == "https://www.jungletribe.rs/destinacije/azija/tajland/hotel-x"

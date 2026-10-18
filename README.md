@@ -99,6 +99,9 @@ Bez ključa sve radi osim Trello panela u `pt`; Claude komande koriste Trello MC
 | Travelland | `pt` | city break, Egipat, Kipar; cene i stare cene |
 | Argus Tours | `pt` | sigurni polasci, praznici (npr. Dan primirja); cene "od" |
 | Grand Tours | `pt` | autobuski izleti i vikend putovanja (Budimpešta, Temišvar, adventi); cene u € ili dinarima |
+| Halo Tours | `pt` | adventi i vikend ture autobusom (Budimpešta, Zagreb, Ljubljana, Beč); cene u dinarima ili € |
+| Belvi Travel | `pt` | polasci autobusom i avionom (Istanbul, Prag, Toskana), praznici; cene "od" |
+| Jungle Tribe | `pt` (njihov javni JSON) | daleka i neobična putovanja i hoteli sa letom; svi polasci (~470), cene i popusti |
 | Felix Travel | `pt` | evropski gradovi i adventi; cene, datumi na stranici ponude |
 | Fibula Air Travel | `pt` | hoteli sa letom iz Beograda; polazak, noći, cena po osobi |
 | Kontiki | `pt` | ture i Nova godina; datumi, cene na sajtu |

@@ -115,3 +115,17 @@ def upcoming(dates: list[str], today: date | None = None) -> tuple[str | None, l
     t = (today or date.today()).isoformat()
     fut = sorted(d for d in dates if d >= t)
     return (fut[0], fut[1:]) if fut else (None, [])
+
+
+_SR_MONTHS = {"jan": 1, "feb": 2, "mar": 3, "apr": 4, "maj": 5, "jun": 6, "jul": 7,
+              "avg": 8, "aug": 8, "sep": 9, "okt": 10, "oct": 10, "nov": 11, "dec": 12}
+
+
+def parse_month_words(text: str, today: date | None = None) -> list[str]:
+    """Datumi tipa '21 okt', '05 dec 2026' u ISO."""
+    out = []
+    for d, mon, y in re.findall(r"(\d{1,2})\.?\s+([A-Za-zčćžšđ]{3})[a-zčćžšđ]*\.?\s*(\d{4})?", text):
+        m = _SR_MONTHS.get(mon.lower()[:3])
+        if m:
+            out += parse_dates(f"{int(d)}.{m}.{y}", today=today)
+    return out

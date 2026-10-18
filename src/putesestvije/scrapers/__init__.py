@@ -7,16 +7,19 @@ ubacuje ih komandom `pt agencije ubaci`.
 
 from .argus import Argus
 from .base import BlockedByRobots, ScrapeResult, Scraper
+from .belvi import Belvi
 from .bigblue import BigBlue
 from .felix import Felix
 from .fibula import Fibula
 from .grandtours import GrandTours
+from .halotours import HaloTours
+from .jungletribe import JungleTribe
 from .kontiki import Kontiki
 from .odeon import Odeon
 from .travelland import Travelland
 
 SCRAPERS: dict[str, type[Scraper]] = {
-    s.source: s for s in (Travelland, Argus, GrandTours, Felix, Fibula, Kontiki, BigBlue, Odeon)
+    s.source: s for s in (Travelland, Argus, GrandTours, HaloTours, Belvi, Felix, Fibula, JungleTribe, Kontiki, BigBlue, Odeon)
 }
 
 # Agencije koje čita Claude (WebFetch), ne Python.
