@@ -181,6 +181,14 @@ export const register: Register = on => {
     const cols = (e.props as any)?.bodyColumns ?? e.viewport?.columns ?? 70
     const rows = Math.max(10, (e.viewport?.rows ?? 30) - 6)
     const kratko = (s: string, k: number) => (s.length > k ? s.slice(0, k - 1) + '…' : s)
+    const telefon = e.surface === 'mobile' // telefon nema Select: tamo su izbori dugmići
+
+    const izaberiKriterijum = async (v: string) => {
+      await idiNa($, { kriterijum: v })
+      const r = await pt($, ['top', v, '--limit', '12'])
+      if (r) await update($, top, () => r.ponude as Ponuda[])
+    }
+    const SORTOVI: [Nav['sort'], string][] = [['datum', 'datum'], ['cena', 'cena'], ['popust', 'popust']]
 
     const zaglavlje = (
       <Box flexDirection="row" gap={1}>
@@ -214,13 +222,21 @@ export const register: Register = on => {
             ))}
           </Box>
           <Box flexDirection="column">
-            <Select key="kriterijum" label="Najbolje ponude: " value={n.kriterijum}
-              options={KRITERIJUMI.map(([value, label]) => ({ value, label }))}
-              onSelect={async (v: string) => {
-                await idiNa($, { kriterijum: v })
-                const r = await pt($, ['top', v, '--limit', '12'])
-                if (r) await update($, top, () => r.ponude as Ponuda[])
-              }} />
+            {telefon ? (
+              <Box flexDirection="column">
+                <Text bold>Najbolje ponude</Text>
+                <Box flexDirection="row" flexWrap="wrap" gap={1}>
+                  {KRITERIJUMI.map(([v, label]) => (
+                    <Button key={`kr-${v}`} variant={v === n.kriterijum ? 'primary' : 'secondary'}
+                      onPress={() => izaberiKriterijum(v)}>{label}</Button>
+                  ))}
+                </Box>
+              </Box>
+            ) : (
+              <Select key="kriterijum" label="Najbolje ponude: " value={n.kriterijum}
+                options={KRITERIJUMI.map(([value, label]) => ({ value, label }))}
+                onSelect={izaberiKriterijum} />
+            )}
             {t.slice(0, Math.max(3, rows - kontinenti.length - 6)).map(p => (
               <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
                 {kratko(`${ime(p)} · ${p.zemlja}`, Math.max(20, cols - 34))} <Text dimColor>{kratko(`${p.agencija} · ${p.zasto ?? cena(p)}`, 32)}</Text>
@@ -260,11 +276,20 @@ export const register: Register = on => {
         <Box flexDirection="column" gap={1}>
           {zaglavlje}
           {statusRed}
-          <Box flexDirection="row" gap={2}>
+          <Box flexDirection={telefon ? 'column' : 'row'} gap={telefon ? 0 : 2}>
             <Text bold>{n.zemlja}: {ture.length} ponuda</Text>
-            <Select key="sort" label="Sortiraj: " value={n.sort}
-              options={[{ value: 'datum', label: 'datum' }, { value: 'cena', label: 'cena' }, { value: 'popust', label: 'popust' }]}
-              onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
+            {telefon ? (
+              <Box flexDirection="row" gap={1}>
+                {SORTOVI.map(([v, label]) => (
+                  <Button key={`sort-${v}`} variant={v === n.sort ? 'primary' : 'secondary'}
+                    onPress={() => idiNa($, { sort: v, strana: 0 })}>{label}</Button>
+                ))}
+              </Box>
+            ) : (
+              <Select key="sort" label="Sortiraj: " value={n.sort}
+                options={SORTOVI.map(([value, label]) => ({ value, label }))}
+                onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
+            )}
           </Box>
           <Box flexDirection="column">
             {vidljive.map(t => {

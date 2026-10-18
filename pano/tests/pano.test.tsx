@@ -33,22 +33,28 @@ test('pano: početna → kontinent → zemlja → ponuda → Trello', async ($, 
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
   expect(r.text).toContain('Putešestvije')
 
-  for (const surface of ['terminal', 'desktop'] as const) {
+  for (const surface of ['terminal', 'desktop', 'mobile'] as const) {
     const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface, ...PANE })
-    await ui.advance(50)
+    const sacekaj = () => (surface === 'mobile' ? ui.redraw() : ui.advance(50))
+    await sacekaj()
     expect(await ui.find({ key: 'k-Azija' })).toBeDefined()
     expect(await ui.find({ key: `t-${PONUDA.id}` })).toBeDefined()
 
+    if (surface === 'mobile') {
+      expect(await ui.find({ key: 'kr-popust' })).toBeDefined()
+      await ui.press({ key: 'kr-popust' })
+    }
     await ui.press({ key: 'k-Azija' })
     expect(await ui.find({ key: 'z-Tajland' })).toBeDefined()
 
     await ui.press({ key: 'z-Tajland' })
-    await ui.advance(50)
+    await sacekaj()
     expect(await ui.find({ key: `p-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ key: 'p-zzz1' })).toBeUndefined() // isti aranžman: jedan red, +1 termin
+    if (surface === 'mobile') await ui.press({ key: 'sort-cena' })
 
     await ui.press({ key: `p-${PONUDA.id}` })
-    await ui.advance(50)
+    await sacekaj()
     expect(await ui.find({ type: 'Markdown', text: /Cena obuhvata/ })).toBeDefined()
     expect(await ui.find({ type: 'Markdown', text: /Svi termini \(2\)/ })).toBeDefined()
 
