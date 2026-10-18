@@ -74,7 +74,7 @@ class Config:
 def load() -> Config:
     for p in DEFAULT_CONFIG_PATHS:
         if p and p.is_file():
-            raw = tomllib.loads(p.read_text(encoding="utf-8"))
+            raw = tomllib.loads(p.read_text(encoding="utf-8-sig"))
             cfg = Config(path=p)
             for k, v in raw.get("profil", {}).items():
                 if hasattr(cfg.profile, k):

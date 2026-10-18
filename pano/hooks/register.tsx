@@ -84,7 +84,7 @@ function grupisi(list: Ponuda[], sort: Nav['sort']): Tura[] {
 async function pt($: any, args: string[], timeoutMs = 60000): Promise<any> {
   const bin = ((await $.store.get('ptPath')) as string | undefined) || 'pt'
   try {
-    const r = await $.process.run([bin, '--json', ...args], { timeoutMs })
+    const r = await $.process.run([bin, '--json', ...args], { timeoutMs, env: { PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } })
     if (r.exitCode !== 0) {
       await update($, status, () => `⚠️ pt: ${(r.stderr || r.stdout).slice(0, 160)}`)
       return null

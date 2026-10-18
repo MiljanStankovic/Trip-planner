@@ -320,6 +320,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # Windows: izlaz ka panou i terminalu uvek u UTF-8 (č, ć, đ, emoji), ne u cp1252.
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
     argv = list(sys.argv[1:] if argv is None else argv)
     as_json = "--json" in argv
     argv = [a for a in argv if a != "--json"]
