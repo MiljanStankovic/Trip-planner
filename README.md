@@ -51,8 +51,11 @@ Preporučeni konektori za istraživanje (opciono, u Claude Code-u preko `claude 
 
 ## Claude Code komande
 
+Glavna je **`/putesestvije:putovanja`** (obično radi i samo `/putovanja`): pokrene režim putovanja sa pregledom i menijem za klikanje (kontinent → zemlja → ponuda → detalji → Trello), a pored menija se normalno dopisuješ sa Claude-om. U terminalu biraš strelicama i Enter-om, u Claude desktop aplikaciji klikom. `/putovanja Tajland` odmah otvara Tajland.
+
 | Komanda | Šta radi |
 |---|---|
+| `/putesestvije:putovanja [zemlja]` | Režim putovanja: meniji za klikanje + slobodno dopisivanje |
 | `/putesestvije:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
 | `/putesestvije:u-trello` | Ponude označene u aplikaciji (`t`) šalje kao kartice u 📬 Predlozi |
 | `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
