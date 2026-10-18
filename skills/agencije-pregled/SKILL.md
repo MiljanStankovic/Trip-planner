@@ -46,7 +46,7 @@ Cilj: jednom nedeljno (ili na dve nedelje) da dobijemo kratak, iskren pregled š
 - <ponuda>: <stara> → <nova> €
 
 ## Napomene
-- greške po agencijama, Kontiki link, šta nije provereno (TBC)
+- greške po agencijama, šta nije provereno (TBC)
 ```
 
 Kratko. Bez ponavljanja istih ponuda iz prošlog izveštaja ako se ništa nije promenilo (pročitaj poslednji fajl u `izvestaji/`).
