@@ -27,6 +27,7 @@ export type Detalji = {
   obuhvata?: string
   ne_obuhvata?: string
   termini?: string
+  sobe?: string
   napomene?: string
   tekst?: string
   greska?: string

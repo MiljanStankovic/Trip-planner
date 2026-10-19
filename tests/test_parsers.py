@@ -158,3 +158,18 @@ def test_geo():
     assert classify("Hotel X", "", "https://www.jungletribe.rs/destinacije/afrika/zanzibar/x") == ("Tanzanija", "Afrika")
     assert classify("Krstarenje Nilom") == ("Egipat", "Afrika")
     assert classify("Primirja tura")[0] == "Nepoznato"
+
+
+def test_details_polasci_i_sobe():
+    from putesestvije.details import extract
+    html = """<html><body><h1>Milano</h1>
+    <div class="departure" data-dateFrom="2026-10-22" data-dateTo="2026-10-26">22.10.</div>
+    <div class="departure" data-dateFrom="2026-11-11" data-dateTo="2026-11-15">11.11.</div>
+    <div data-dateFrom="2026-12-01" data-dateTo="2026-12-05" data-href="/druga-tura/">x</div>
+    <h3>Cenovnik</h3><ul><li>€ 259</li><li>€ 199</li><li>€ 159 i još malo teksta</li></ul>
+    <div class="unit"><h4>Dvokrevetna soba, Standard</h4>
+      <del class="unit-price-old" data-unitPriceOld="€ 159"></del><div class="unit-price-total" data-unitPriceTotal="€ 99"></div></div>
+    </body></html>"""
+    d = extract(html)
+    assert d["termini"] == "22.10.2026. – 26.10.2026.\n11.11.2026. – 15.11.2026."
+    assert d["sobe"] == "Dvokrevetna soba, Standard: € 99 po osobi (bilo € 159)"

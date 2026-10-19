@@ -506,8 +506,9 @@ async function crtaj($: any, e: any) {
   }
   if (d) {
     if (d.greska) md.push(`\n> ⚠️ ${d.greska}`)
-    const sekcije: [keyof Detalji, string][] = [['opis', 'Ukratko'], ['obuhvata', 'Cena obuhvata'],
-      ['ne_obuhvata', 'Cena ne obuhvata / doplate'], ['program', 'Program'], ['termini', 'Termini i cene sa sajta'],
+    const sekcije: [keyof Detalji, string][] = [['opis', 'Ukratko'], ['termini', '📅 Polasci (sa sajta agencije)'],
+      ['sobe', '🛏 Cena po tipu sobe (za ovaj polazak)'], ['obuhvata', 'Cena obuhvata'],
+      ['ne_obuhvata', 'Cena ne obuhvata / doplate'], ['program', 'Program'],
       ['napomene', 'Napomene'], ['tekst', 'Sa stranice']]
     for (const [k, naslov] of sekcije) {
       const v = d[k]
