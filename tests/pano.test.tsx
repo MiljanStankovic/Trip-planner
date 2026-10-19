@@ -51,14 +51,19 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     expect(await ui.find({ text: /Konektori/ })).toBeDefined()
     expect(await ui.find({ text: /Najjeftinije svuda/ })).toBeDefined()
 
+    expect(await ui.find({ text: /Preporučeno za tebe/ })).toBeDefined()
+    expect(await ui.find({ key: 'nz-Španija' })).toBeDefined() // prvi kontinent je otvoren, zemlje se vide odmah
+    await ui.select({ plugin: 'putovanja', key: 'sort', value: 'cena' } as any)
     await ui.press({ key: 'nk-Azija' })
     await ui.advance(50)
     expect(await ui.find({ key: 'nz-Tajland' })).toBeDefined()
+    expect(await ui.find({ text: /Preporučeno za tebe/ })).toBeDefined() // klik na kontinent samo otvara zemlje
     await ui.press({ key: 'nz-Tajland' })
     await ui.advance(50)
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ key: 'b1-zzz1' })).toBeUndefined() // isti aranžman: jedan red, 2 polaska
     expect(await ui.find({ text: /deca do 12 god/ })).toBeDefined() // popusti stižu u pozadini
+    expect(JSON.stringify(await ui.find({ key: 'sort' }))).toContain('"cena"') // isti redosled kao na početnoj
 
     await ui.press({ key: `b2-${PONUDA.id}` }) // i drugi red reda otvara ponudu
     await ui.advance(50)
@@ -70,6 +75,7 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     await ui.press({ key: 'nazad' })
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
     await ui.press({ key: 't-ag' })
+    await ui.press({ key: 'nk-Evropa' }) // sledeća površina kreće od istog stanja
     await ui.unmount()
   }
 })

@@ -8,7 +8,7 @@ const VERZIJA_ALATA = '0.5.0' // isto kao version u pyproject.toml; kad se razli
 const KONEKTORI_STRANA = 'https://claude.ai/settings/connectors'
 
 const nav = atom({ plugin: 'putovanja', key: 'nav' } as const, {
-  view: 'pocetna', kontinent: '', zemlja: '', ponudaId: '', kriterijum: 'preporuka', strana: 0, sort: 'cena',
+  view: 'pocetna', kontinent: '', zemlja: '', ponudaId: '', kriterijum: 'preporuka', strana: 0, sort: 'preporuka',
   mesec: '', kalStrana: 0,
   diy: { odakle: 'Beograd', kuda: '', od: '', do: '', osoba: '2' },
   putnici: '', izvoriOtvoreni: false,
@@ -32,14 +32,6 @@ const popustiMapa = atom({ plugin: 'putovanja', key: 'popustiMapa' } as const, {
 const trelloUkljucen = atom({ plugin: 'putovanja', key: 'trello' } as const, false)
 const alatPutanja = atom({ plugin: 'putovanja', key: 'alat' } as const, '')
 
-const KRITERIJUMI: [string, string][] = [
-  ['preporuka', 'Preporučeno'],
-  ['jeftino', 'Najjeftinije'],
-  ['popust', 'Najveći popust'],
-  ['specijal', 'Poslednja mesta'],
-  ['uskoro', 'Polazi uskoro'],
-  ['izlet', 'Izleti i vikendi'],
-]
 const PUTNICI: [string, string][] = [
   ['1+0', '1 odrasla osoba'], ['2+0', '2 odrasla'], ['3+0', '3 odrasla'], ['4+0', '4 odrasla'],
   ['2+1', '2 odrasla + 1 dete'], ['2+2', '2 odrasla + 2 dece'], ['1+1', '1 odrasla + 1 dete'],
@@ -210,6 +202,7 @@ function grupisi(list: Ponuda[], sort: Nav['sort']): Tura[] {
     const po = [...svi].sort((a, b) => (a.date_from ?? '9999').localeCompare(b.date_from ?? '9999'))
     if (po[0]) ture.push({ glavna: po[0], svi: po })
   }
+  if (sort === 'preporuka') return ture
   const kljuc = (t: Tura): number | string =>
     sort === 'cena' ? Math.min(...t.svi.map(eur)) : sort === 'popust' ? -Math.max(...t.svi.map(popust)) : t.glavna.date_from ?? '9999'
   return ture.sort((a, b) => {
@@ -349,7 +342,7 @@ async function postaviDiy($: any, polje: keyof Diy, vrednost: string, ucitaj = f
 }
 
 async function ucitajTop($: any, kriterijum: string) {
-  const t = await pt($, ['top', kriterijum, '--limit', '24'])
+  const t = await pt($, ['top', kriterijum, '--limit', '40'])
   if (t) await update($, top, () => t.ponude as Ponuda[])
 }
 
@@ -361,7 +354,7 @@ async function ucitajPocetnu($: any) {
   const z = await pt($, ['zemlje'])
   if (z) await update($, zemlje, () => z)
   const n = await read($, nav)
-  await ucitajTop($, n.kriterijum)
+  await ucitajTop($, 'preporuka')
   const j = await pt($, ['top', 'jeftino', '--limit', '6'])
   if (j) await update($, jeftino, () => j.ponude as Ponuda[])
   if (z) await update($, status, () => '')
@@ -638,30 +631,38 @@ async function crtaj($: any, e: any) {
   const sirinaNav = 21
   const navKolona = (vis: number) => {
     const w = sirinaNav - 1
-    const red = (key: string, tekst: string, broj: number, aktivno: boolean, onPress: () => void) => aktivno
-      ? <Button plain key={key} onPress={onPress}><Text color={C.sky} backgroundColor={C.sel}>▌</Text><Text bold backgroundColor={C.sel}>{padR(tekst, w - 5)}{padL(String(broj), 3)} </Text></Button>
-      : <Button plain key={key} onPress={onPress}><Text color={C.fg2}>{' ' + padR(tekst, w - 5)}</Text><Text color={C.dim}>{padL(String(broj), 3)} </Text></Button>
     const kontinenti = Object.entries(z)
-    const uKont = n.kontinent && z[n.kontinent] && n.view !== 'pocetna'
-    const mesta = Math.max(4, vis - 2)
-    if (uKont) {
-      const sve = Object.entries(z[n.kontinent] ?? {}).sort((a, b) => b[1] - a[1])
-      const i = Math.max(0, sve.findIndex(([x]) => x === n.zemlja))
-      const od = Math.max(0, Math.min(i - Math.floor(mesta / 2), sve.length - mesta))
-      return (
-        <Box flexDirection="column" width={sirinaNav} flexShrink={0}>
-          <Button plain key="nav-nazad" onPress={() => idiNa($, { view: 'pocetna', zemlja: '' })}><Text color={C.sky}>{padR(' ‹ ' + n.kontinent, w)}</Text></Button>
-          <Text> </Text>
-          {sve.slice(od, od + mesta).map(([zem, c]) => red(`nz-${zem}`, zem, c, zem === n.zemlja, () => otvoriZemlju($, zem)))}
-          {sve.length > mesta && <Text color={C.dim}> +{sve.length - mesta} zemalja</Text>}
-        </Box>
-      )
-    }
+    const otvoren = n.kontinent && z[n.kontinent] ? n.kontinent : (kontinenti[0]?.[0] ?? '')
+    const zemljeOtv = Object.entries(z[otvoren] ?? {}).sort((x, y) => y[1] - x[1])
+    const mesta = Math.max(3, vis - 2 - kontinenti.length)
+    const i = Math.max(0, zemljeOtv.findIndex(([x]) => x === n.zemlja))
+    const od = zemljeOtv.length > mesta ? Math.max(0, Math.min(i - Math.floor(mesta / 2), zemljeOtv.length - mesta + 1)) : 0
+    const vidljive = zemljeOtv.length > mesta ? zemljeOtv.slice(od, od + mesta - 1) : zemljeOtv
+    const kontRed = (k: string, c: number, otv: boolean) => (
+      <Button plain key={`nk-${k}`} onPress={() => idiNa($, { kontinent: k })}>
+        <Text color={otv ? C.sky : C.dim}>{otv ? '▾' : '▸'}</Text><Text bold={otv} color={otv ? undefined : C.fg2}>{padR(' ' + k, w - 5)}</Text><Text color={C.dim}>{padL(String(c), 3)} </Text>
+      </Button>
+    )
     return (
       <Box flexDirection="column" width={sirinaNav} flexShrink={0}>
-        <Text color={C.dim}>{padR(' Kontinenti', w)}</Text>
+        <Button plain key="nav-pocetna" onPress={() => idiNa($, { view: 'pocetna', zemlja: '', strana: 0 })}>
+          <Text color={n.view === 'pocetna' ? C.sky : C.fg2} bold={n.view === 'pocetna'}>{padR(' Preporučeno', w)}</Text>
+        </Button>
         <Text> </Text>
-        {kontinenti.map(([k, c]) => red(`nk-${k}`, k, Object.values(c).reduce((a, b) => a + b, 0), k === n.kontinent && n.view === 'kontinent', () => otvoriKontinent($, k)))}
+        {kontinenti.map(([k, c]) => (
+          <Box flexDirection="column" key={`nkb-${k}`}>
+            {kontRed(k, Object.values(c).reduce((x, y) => x + y, 0), k === otvoren)}
+            {k === otvoren && (
+              <Box flexDirection="column">
+                {od > 0 && <Text color={C.dim}>   … još {od} gore</Text>}
+                {vidljive.map(([zem, cz]) => zem === n.zemlja && n.view !== 'pocetna'
+                  ? <Button plain key={`nz-${zem}`} onPress={() => otvoriZemlju($, zem)}><Text color={C.sky} backgroundColor={C.sel}> ▌</Text><Text bold backgroundColor={C.sel}>{padR(zem, w - 6)}{padL(String(cz), 3)} </Text></Button>
+                  : <Button plain key={`nz-${zem}`} onPress={() => otvoriZemlju($, zem)}><Text color={C.fg2}>{'  ' + padR(zem, w - 6)}</Text><Text color={C.dim}>{padL(String(cz), 3)} </Text></Button>)}
+                {od + vidljive.length < zemljeOtv.length && <Text color={C.dim}>   +{zemljeOtv.length - od - vidljive.length} zemalja</Text>}
+              </Box>
+            )}
+          </Box>
+        ))}
       </Box>
     )
   }
@@ -735,6 +736,16 @@ async function crtaj($: any, e: any) {
       onSelect={(v: string) => idiNa($, { putnici: v })} />
   )
 
+  const SORT_OPC: [Nav['sort'], string][] = [['preporuka', 'Preporučeno'], ['cena', 'Najjeftinije'], ['datum', 'Po datumu'], ['popust', 'Najveći popust']]
+  const izborSorta = telefon ? (
+    <Box flexDirection="row" gap={1} flexWrap="wrap">
+      {SORT_OPC.map(([v, l]) => <Button key={`sort-${v}`} variant={v === n.sort ? 'primary' : 'secondary'} onPress={() => idiNa($, { sort: v, strana: 0 })}>{l}</Button>)}
+    </Box>
+  ) : (
+    <Select key="sort" label="Redosled" value={n.sort} options={SORT_OPC.map(([value, label]) => ({ value, label }))}
+      onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
+  )
+
   // ===== traka na dnu: najjeftinije svuda =====
   const jf = await read($, jeftino)
   const traka = (w: number) => {
@@ -768,24 +779,20 @@ async function crtaj($: any, e: any) {
     let naslov: any
     let prazno = 'Nema ponuda.'
     if (n.view === 'zemlja') {
-      ture = grupisi(await read($, lista), n.sort)
+      ture = grupisi(await read($, lista), n.sort === 'preporuka' ? 'cena' : n.sort)
       naslov = (
         <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
           <Text><Text bold>{n.zemlja}</Text><Text color={C.dim}>  {ture.length} {ture.length === 1 ? 'aranžman' : 'aranžmana'}</Text></Text>
           <Box flexDirection="row" gap={2}>
             {izborPutnika}
-            {telefon ? null : (
-              <Select key="sort" label="Redosled" value={n.sort}
-                options={[{ value: 'cena', label: 'Najjeftinije' }, { value: 'datum', label: 'Po datumu' }, { value: 'popust', label: 'Najveći popust' }]}
-                onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
-            )}
+            {izborSorta}
           </Box>
         </Box>
       )
     } else if (n.view === 'kontinent') {
       const sve = Object.entries(z[n.kontinent] ?? {}).sort((a, b) => b[1] - a[1])
       const t = (await read($, top)).filter(p => p.kontinent === n.kontinent)
-      ture = grupisi(t, 'cena')
+      ture = grupisi(t, n.sort)
       prazno = 'Izaberi zemlju levo.'
       naslov = (
         <Box flexDirection="column" paddingX={1}>
@@ -799,21 +806,14 @@ async function crtaj($: any, e: any) {
         </Box>
       )
     } else {
-      ture = grupisi(await read($, top), n.kriterijum === 'jeftino' ? 'cena' : 'datum')
-      if (n.kriterijum !== 'jeftino' && n.kriterijum !== 'uskoro') {
-        const red = new Map((await read($, top)).map((p, i) => [p.id, i]))
-        ture.sort((a, b) => (red.get(a.glavna.id) ?? 0) - (red.get(b.glavna.id) ?? 0))
-      }
+      ture = grupisi(await read($, top), n.sort)
       prazno = 'Baza je prazna. Klikni „Skeniraj ponovo“ desno, ili napiši Claude-u: „uradi sken agencija“.'
       naslov = (
         <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
-          <Text bold>Najbolje sada</Text>
+          <Text bold>Preporučeno za tebe</Text>
           <Box flexDirection="row" gap={2}>
             {izborPutnika}
-            {telefon ? null : (
-              <Select key="kriterijum" label="Prikaži" value={n.kriterijum} options={KRITERIJUMI.map(([value, label]) => ({ value, label }))}
-                onSelect={async (v: string) => { await idiNa($, { kriterijum: v, strana: 0 }); await ucitajTop($, v) }} />
-            )}
+            {izborSorta}
           </Box>
         </Box>
       )

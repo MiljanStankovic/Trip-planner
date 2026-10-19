@@ -94,7 +94,7 @@ export type Nav = {
   ponudaId: string
   kriterijum: string
   strana: number
-  sort: 'datum' | 'cena' | 'popust'
+  sort: 'preporuka' | 'datum' | 'cena' | 'popust'
   mesec: string
   kalStrana: number
   diy: Diy
