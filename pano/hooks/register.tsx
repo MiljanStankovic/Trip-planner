@@ -259,7 +259,7 @@ async function crtaj($: any, e: any) {
           const c = cena(p)
           const w = sirina - 6
           return (
-            <Box key={`tb-${p.id}`} flexDirection="column" marginTop={1} hover={{ backgroundColor: 'subtle' }}>
+            <Box flexDirection="column" marginTop={1}>
               <Box flexDirection="row" justifyContent="space-between">
                 <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
                   {IKONA[p.transport ?? ''] ?? '•'} <Text bold>{kratko(ime(p), Math.max(10, w - c.length - 4))}</Text>
@@ -310,7 +310,7 @@ async function crtaj($: any, e: any) {
           const ukK = Object.values(c).reduce((a, b) => a + b, 0)
           const zem = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([x]) => x).join(', ')
           return (
-            <Box key={`kb-${k}`} borderStyle="round" borderColor="subtle" hover={{ borderColor: 'claude' }}
+            <Box borderStyle="round" borderColor="subtle"
               paddingX={1} flexDirection="column">
               <Box flexDirection="row" justifyContent="space-between">
                 <Button plain key={`k-${k}`} hotkey={i < 9 ? String(i + 1) : undefined}
@@ -340,8 +340,7 @@ async function crtaj($: any, e: any) {
         <Box paddingX={1} marginTop={1}><Text bold>{KONT_IKONA[n.kontinent] ?? '🧭'} {n.kontinent}</Text><Text dimColor>  ·  {lista.length} zemalja</Text></Box>
         <Box flexDirection="row" flexWrap="wrap">
           {lista.map(([zemlja, c]) => (
-            <Box key={`zb-${zemlja}`} width={telefon ? undefined : plocica} borderStyle="round" borderColor="subtle"
-              hover={{ borderColor: 'claude' }} paddingX={1} flexDirection="column">
+            <Box width={telefon ? undefined : plocica} borderStyle="round" borderColor="subtle" paddingX={1} flexDirection="column">
               <Button plain key={`z-${zemlja}`} onPress={() => otvoriZemlju($, zemlja)}>
                 <Text bold>{kratko(zemlja, plocica - 4)}</Text>
               </Button>
@@ -398,7 +397,7 @@ async function crtaj($: any, e: any) {
               : cena(p)
             const pp = Math.max(...t.svi.map(popust))
             return (
-              <Box key={`r-${p.id}`} flexDirection="row" hover={{ backgroundColor: 'subtle' }}>
+              <Box flexDirection="row">
                 <Box width={wDatum}>
                   <Text>{datum(p.date_from).slice(0, 6)}{termini > 1 ? <Text color="suggestion"> +{termini - 1}</Text> : ''}</Text>
                 </Box>
@@ -452,7 +451,7 @@ async function crtaj($: any, e: any) {
     if (d.provereno) md.push(`\n_Sa sajta agencije, provereno ${d.provereno}_`)
   }
   const cinjenica = (k: string, oznaka: string, vrednost: string, boja?: string) => (
-    <Box key={k} borderStyle="round" borderColor="subtle" paddingX={1} flexDirection="column" flexGrow={1}>
+    <Box borderStyle="round" borderColor="subtle" paddingX={1} flexDirection="column" flexGrow={1}>
       <Text dimColor>{oznaka}</Text>
       <Text bold color={boja}>{vrednost}</Text>
     </Box>
