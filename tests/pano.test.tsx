@@ -33,7 +33,7 @@ const ok = (argv: readonly string[]) => ({ value: { exitCode: 0, stdout: odgovor
 
 const PANE = { component: 'Pane', requestId: 'putovanja', props: { title: 'Putovanja', isFocused: true, bodyColumns: 150 } } as const
 
-test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno; klik na red otvara ponudu', async ($, on) => {
+test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na red otvara ponudu', async ($, on) => {
   mock.store(on)
   on('process.run', async (_$, e: any) => ok(e.argv))
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
@@ -48,14 +48,18 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     expect(await ui.find({ key: 'nk-Azija' })).toBeDefined()
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ key: `b2-${PONUDA.id}` })).toBeDefined()
-    expect(await ui.find({ text: /14|1 agencija u redu/ })).toBeDefined()
-    expect(await ui.find({ text: /Odeon: stranica/ })).toBeDefined()
-    expect(await ui.find({ text: /Konektori/i })).toBeDefined()
-    expect(await ui.find({ text: /Najjeftinije svuda/ })).toBeDefined()
+    expect(await ui.find({ text: /agencij[ae] sa greškom/ })).toBeDefined() // podnožje: stanje izvora u jednom redu
+    expect(await ui.find({ text: /✈ avion/ })).toBeDefined() // prevoz se uvek vidi
+    expect(await ui.find({ text: /≈ .* za 2/ })).toBeDefined() // ukupno za putnike
 
     expect(await ui.find({ text: /Preporučeno za tebe/ })).toBeDefined()
     expect(await ui.find({ key: 'nz-Španija' })).toBeDefined() // prvi kontinent je otvoren, zemlje se vide odmah
-    await ui.select({ plugin: 'putovanja', key: 'sort', value: 'cena' } as any)
+    await ui.press({ key: 'm-putnici' }) // izbor putnika radi mišem: dugme pa čipovi
+    await ui.press({ key: 'put-2+1' })
+    await ui.advance(20)
+    expect(await ui.find({ text: /≈ .* za 3/ })).toBeDefined() // promena putnika menja ukupno na tabli
+    await ui.press({ key: 'm-sort' })
+    await ui.press({ key: 'sort-cena' })
     await ui.press({ key: 'nk-Azija' })
     await ui.advance(50)
     expect(await ui.find({ key: 'nz-Tajland' })).toBeDefined()
@@ -65,7 +69,7 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ key: 'b1-zzz1' })).toBeUndefined() // isti aranžman: jedan red, 2 polaska
     expect(await ui.find({ text: /deca do 12 god/ })).toBeDefined() // popusti stižu u pozadini
-    expect(JSON.stringify(await ui.find({ key: 'sort' }))).toContain('"cena"') // isti redosled kao na početnoj
+    expect(await ui.find({ text: /Najjeftinije/ })).toBeDefined() // isti redosled kao na početnoj
 
     await ui.press({ key: `b2-${PONUDA.id}` }) // i drugi red reda otvara ponudu
     await ui.advance(50)
@@ -76,13 +80,18 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
 
     await ui.press({ key: 'nazad' })
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
+    await ui.press({ key: 't-izv' }) // izvori i konektori su poseban ekran
+    expect(await ui.find({ text: /Odeon/ })).toBeDefined()
+    expect(await ui.find({ text: /Konektori/i })).toBeDefined()
     await ui.press({ key: 't-ag' })
+    await ui.press({ key: 'm-putnici' })
+    await ui.press({ key: 'put-2+0' })
     await ui.press({ key: 'nk-Evropa' }) // sledeća površina kreće od istog stanja
     await ui.unmount()
   }
 })
 
-test('usko (fullscreen sa strane, 80 kolona): bez bočne kolone, kratak red sa izvorima i konektorima', async ($, on) => {
+test('usko (80 kolona): destinacije levo, stanje izvora u podnožju', async ($, on) => {
   mock.store(on)
   on('process.run', async (_$, e: any) => ok(e.argv))
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
@@ -90,8 +99,7 @@ test('usko (fullscreen sa strane, 80 kolona): bez bočne kolone, kratak red sa i
   const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE, props: { ...PANE.props, bodyColumns: 80 } })
   await ui.advance(50)
   expect(await ui.find({ key: 'nk-Azija' })).toBeDefined()
-  expect(await ui.find({ text: /Odeon: stranica/ })).toBeUndefined()
-  expect(await ui.find({ text: /Konektori 0\/4/ })).toBeDefined()
+  expect(await ui.find({ text: /konektori 0\/4/ })).toBeDefined()
   await ui.unmount()
 })
 
@@ -131,7 +139,7 @@ test('ponuda: opseg cena na tabli, klik na datum otvara taj polazak', async ($, 
   await $.command.run({ command: 'putovanja', args: '' } as any)
   const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
   await ui.advance(50)
-  expect(await ui.find({ text: /1\.549–1\.649 €/ })).toBeDefined()
+  expect(await ui.find({ text: /od 1\.549 €/ })).toBeDefined()
   await ui.press({ key: `b1-${PONUDA.id}` })
   await ui.advance(50)
   await ui.press({ key: 'pd-zzz1-2026-12-02-1' })

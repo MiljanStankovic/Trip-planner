@@ -85,7 +85,7 @@ export type Detalji = {
 
 export type ZemljeMapa = { [kontinent: string]: { [zemlja: string]: number } }
 
-export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda' | 'kalendar' | 'pracenje' | 'diy'
+export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda' | 'kalendar' | 'pracenje' | 'diy' | 'izvori'
 
 export type Nav = {
   view: Pogled
@@ -100,6 +100,7 @@ export type Nav = {
   diy: Diy
   putnici: string
   izvoriOtvoreni: boolean
+  meni?: '' | 'putnici' | 'sort'
 }
 
 export type Kalendar = {

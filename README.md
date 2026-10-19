@@ -7,13 +7,14 @@ i **ukupno za tvoje putnike** (odrasli i deca). Ispod svake ponude stoje **popus
 kad ih agencija navodi (treća osoba, deca, jednokrevetna soba, rani booking). Sa Claude-om se normalno dopisuješ.
 
 ```
-┌ Putovanja  [Agencije]  Uradi sam  Praćeno ─────────────────────────────── Destinacije  Kalendar ┐
-│ ‹ Evropa      │ Španija  59 aranžmana        Putnika: 2 odrasla ▾ │ Izvori          sken pre 2 h │
-│▌Španija    78 │ Polazak Odredište        Noći Agencija   Po osobi │ ! Odeon: 1 stranica nije …   │
-│ Italija    75 │ 22.10.  Barselona           3 Travelland 299–429 €│ ✓ 14 agencija u redu         │
-│ Francuska  33 │         10 polazaka   + 1/1 soba: +130 €   −25%   │ Konektori              2 od 4│
-│ …             │ 30.10.  Madrid              3 Travelland    299 € │ ✓ Expedia   ✗ eDreams Poveži │
-└───────────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Putovanja  [Agencije]  Uradi sam  Praćeno ─────────────── Destinacije  Kalendar  Izvori ┐
+│▌★ Preporučeno  │ Španija  63 aranžmana          👥 2 odrasla ▾   ↕ Najjeftinije ▾     │
+│ DESTINACIJE    │ sre 22.10.  Barselona                                       od 299 € │
+│▾ Evropa    386 │             ✈ avion · 3 noći · Travelland · 10 polazaka  −25%  ≈ 598 € za 2 │
+│ ▌Španija    78 │ čet 30.10.  Madrid                                             299 € │
+│  Italija    75 │             ✈ avion · 3 noći · Travelland   + 1/1 soba +140 €  ≈ 598 € za 2 │
+│ …              │ ✓ 14 agencija · sken pre 2 h · konektori 2/4 · poveži                │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 Ispod panoa radi mali Python alat **`putovanja`** (skraćeno **`pt`**): skida ponude 15 agencija, čuva istoriju cena
@@ -166,7 +167,9 @@ Delovi workflow-a (sedam faza planiranja, provera pre polaska, "tri opcije sa st
 
 ## Pano: odeljci
 
-- **Agencije**: zemlje levo, tabla polazaka u sredini, izvori i konektori desno, traka "Najjeftinije svuda" na dnu.
+- **Agencije**: destinacije levo, tabla desno. Svaki aranžman: kad, šta i cena po osobi u prvom redu; prevoz, noći,
+  agencija, popusti i ukupno za izabrane putnike u drugom. Putnici i redosled se biraju klikom (i u terminalu).
+  Stanje izvora je jedan red na dnu; ceo spisak agencija i konektora je na ekranu **Izvori**.
   Kalendar polazaka (sa praznicima) je drugi prikaz. Ponuda: svi polasci, popusti za više osoba i ukupna cena za
   izabrane putnike (aranžman + takse i obavezne doplate; osiguranje kao preporučeno; fakultativno posebno).
 - **Uradi sam**: upišeš kuda i datume, dobiješ linkove za avion, autobus, voz, auto, Booking, Trivago, Airbnb i
