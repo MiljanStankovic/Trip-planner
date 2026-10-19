@@ -158,7 +158,7 @@ export const register: Register = on => {
       return { text: `Putanja do alata pt sačuvana: ${args.slice(3).trim()}` }
     }
     // Telefon i uski ekrani ne otvaraju bočni pano: tada se aplikacija crta u razgovoru (CommandOutput ispod).
-    const otvoren = await $.ui.open({ id: PANE, title: 'Putešestvije', focus: true, columns: 72 } as any)
+    const otvoren = await $.ui.open({ id: PANE, title: 'Putešestvije', focus: true, columns: 104 } as any)
     const uPanou = !!otvoren?.isPlaced
     if (args) void otvoriZemlju($, args)
     else {
@@ -187,203 +187,306 @@ export const register: Register = on => {
   })
 }
 
+const KONT_IKONA: Record<string, string> = {
+  Evropa: '🏰', Azija: '🏯', Afrika: '🐘', 'Severna Amerika': '🗽', 'Južna Amerika': '🦜',
+  'Karibi i Centralna Amerika': '🏝', Okeanija: '🦘', Ostalo: '🧭',
+}
+
 async function crtaj($: any, e: any) {
-  {
-    const { Box, Text, Button, Select, Link, Markdown } = $.ui.resolve(e) as any
-    const n = await read($, nav)
-    const st = await read($, status)
-    const cols = (e.props as any)?.bodyColumns ?? e.viewport?.columns ?? 70
-    const rows = Math.max(10, (e.viewport?.rows ?? 30) - 6)
-    const kratko = (s: string, k: number) => (s.length > k ? s.slice(0, k - 1) + '…' : s)
-    const telefon = e.surface === 'mobile' // telefon nema Select: tamo su izbori dugmići
+  const { Box, Text, Button, Select, Link, Markdown } = $.ui.resolve(e) as any
+  const n = await read($, nav)
+  const st = await read($, status)
+  const z = await read($, zemlje)
+  const cols: number = (e.props as any)?.bodyColumns ?? e.viewport?.columns ?? 70
+  const rows = Math.max(12, (e.viewport?.rows ?? 34) - 4)
+  const kratko = (s: string, k: number) => (s.length > k ? s.slice(0, Math.max(1, k - 1)) + '…' : s)
+  const telefon = e.surface === 'mobile' // telefon nema Select: tamo su izbori dugmići
+  const siroko = !telefon && cols >= 84 // dve kolone: levo navigacija, desno najbolje ponude
+  const ukupno = Object.values(z).reduce((a, c) => a + Object.values(c).reduce((x, y) => x + y, 0), 0)
 
-    const izaberiKriterijum = async (v: string) => {
-      await idiNa($, { kriterijum: v })
-      const r = await pt($, ['top', v, '--limit', '12'])
-      if (r) await update($, top, () => r.ponude as Ponuda[])
-    }
-    const SORTOVI: [Nav['sort'], string][] = [['datum', 'datum'], ['cena', 'cena'], ['popust', 'popust']]
+  const izaberiKriterijum = async (v: string) => {
+    await idiNa($, { kriterijum: v })
+    const r = await pt($, ['top', v, '--limit', '12'])
+    if (r) await update($, top, () => r.ponude as Ponuda[])
+  }
+  const SORTOVI: [Nav['sort'], string][] = [['datum', '📅 datum'], ['cena', '💶 cena'], ['popust', '💸 popust']]
 
-    const zaglavlje = (
+  const bedz = (pp: number) => (pp ? <Text backgroundColor="success" color="inverseText" bold> -{pp}% </Text> : null)
+
+  // ----- zaglavlje: naziv aplikacije + putanja -----
+  const zaglavlje = (
+    <Box borderStyle="round" borderColor="claude" paddingX={1} flexDirection="row" justifyContent="space-between">
       <Box flexDirection="row" gap={1}>
-        <Button plain key="home" onPress={() => { void idiNa($, { view: 'pocetna' }); void ucitajPocetnu($) }}>🏠 Početna</Button>
+        <Text bold color="claude">✈ PUTEŠESTVIJE</Text>
+        <Button plain dimColor={n.view !== 'pocetna'} key="home" onPress={() => { void idiNa($, { view: 'pocetna' }); void ucitajPocetnu($) }}>
+          🏠 Početna
+        </Button>
         {n.kontinent && n.view !== 'pocetna' && (
-          <Button plain dimColor key="nav-kont" onPress={() => idiNa($, { view: 'kontinent' })}>› {n.kontinent}</Button>
+          <Button plain dimColor={n.view !== 'kontinent'} key="nav-kont" onPress={() => idiNa($, { view: 'kontinent' })}>› {n.kontinent}</Button>
         )}
         {n.zemlja && (n.view === 'zemlja' || n.view === 'ponuda') && (
-          <Button plain dimColor key="nav-zemlja" onPress={() => idiNa($, { view: 'zemlja' })}>› {n.zemlja}</Button>
+          <Button plain dimColor={n.view !== 'zemlja'} key="nav-zemlja" onPress={() => idiNa($, { view: 'zemlja' })}>› {n.zemlja}</Button>
         )}
       </Box>
-    )
-    const statusRed = st ? <Text color="yellow">{st}</Text> : null
+      {!telefon && ukupno > 0 && <Text dimColor>{ukupno} ponuda</Text>}
+    </Box>
+  )
+  const statusRed = st ? <Box paddingX={1}><Text color="warning">{st}</Text></Box> : null
 
-    // ----- početna: kontinenti + najbolje ponude -----
-    if (n.view === 'pocetna') {
-      const z = await read($, zemlje)
-      const t = await read($, top)
-      const kontinenti = Object.entries(z)
-      return (
-        <Box flexDirection="column" gap={1}>
-          {zaglavlje}
-          {statusRed}
-          <Box flexDirection="column">
-            <Text bold>🌍 Kontinenti</Text>
-            {kontinenti.map(([k, c], i) => (
-              <Button plain key={`k-${k}`} hotkey={i < 9 ? String(i + 1) : undefined}
-                onPress={() => idiNa($, { view: 'kontinent', kontinent: k })}>
-                {k} <Text dimColor>({Object.values(c).reduce((a, b) => a + b, 0)})</Text>
-              </Button>
-            ))}
-          </Box>
-          <Box flexDirection="column">
-            {telefon ? (
-              <Box flexDirection="column">
-                <Text bold>Najbolje ponude</Text>
-                <Box flexDirection="row" flexWrap="wrap" gap={1}>
-                  {KRITERIJUMI.map(([v, label]) => (
-                    <Button key={`kr-${v}`} variant={v === n.kriterijum ? 'primary' : 'secondary'}
-                      onPress={() => izaberiKriterijum(v)}>{label}</Button>
-                  ))}
-                </Box>
-              </Box>
-            ) : (
-              <Select key="kriterijum" label="Najbolje ponude: " value={n.kriterijum}
-                options={KRITERIJUMI.map(([value, label]) => ({ value, label }))}
-                onSelect={izaberiKriterijum} />
-            )}
-            {t.slice(0, Math.max(3, rows - kontinenti.length - 6)).map(p => (
-              <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
-                {kratko(`${ime(p)} · ${p.zemlja}`, Math.max(20, cols - 34))} <Text dimColor>{kratko(`${p.agencija} · ${p.zasto ?? cena(p)}`, 32)}</Text>
-              </Button>
-            ))}
-          </Box>
-          <Text dimColor>Klikni, ili piši Claude-u normalno ispod (npr. „nešto jeftino za decembar?“).</Text>
-        </Box>
-      )
-    }
-
-    // ----- kontinent: zemlje -----
-    if (n.view === 'kontinent') {
-      const z = (await read($, zemlje))[n.kontinent] ?? {}
-      return (
-        <Box flexDirection="column" gap={1}>
-          {zaglavlje}
-          {statusRed}
-          <Text bold>{n.kontinent}: izaberi zemlju</Text>
-          <Box flexDirection="column">
-            {Object.entries(z).sort((a, b) => b[1] - a[1]).map(([zemlja, c]) => (
-              <Button plain key={`z-${zemlja}`} onPress={() => otvoriZemlju($, zemlja)}>
-                {zemlja} <Text dimColor>({c})</Text>
-              </Button>
-            ))}
-          </Box>
-        </Box>
-      )
-    }
-
-    // ----- zemlja: ture -----
-    if (n.view === 'zemlja') {
-      const ture = grupisi(await read($, lista), n.sort)
-      const odStr = n.strana * NA_STRANI
-      const vidljive = ture.slice(odStr, odStr + NA_STRANI)
-      return (
-        <Box flexDirection="column" gap={1}>
-          {zaglavlje}
-          {statusRed}
-          <Box flexDirection={telefon ? 'column' : 'row'} gap={telefon ? 0 : 2}>
-            <Text bold>{n.zemlja}: {ture.length} ponuda</Text>
-            {telefon ? (
-              <Box flexDirection="row" gap={1}>
-                {SORTOVI.map(([v, label]) => (
-                  <Button key={`sort-${v}`} variant={v === n.sort ? 'primary' : 'secondary'}
-                    onPress={() => idiNa($, { sort: v, strana: 0 })}>{label}</Button>
-                ))}
-              </Box>
-            ) : (
-              <Select key="sort" label="Sortiraj: " value={n.sort}
-                options={SORTOVI.map(([value, label]) => ({ value, label }))}
-                onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
-            )}
-          </Box>
-          <Box flexDirection="column">
-            {vidljive.map(t => {
-              const p = t.glavna
-              const termini = new Set(t.svi.flatMap(x => x.svi_datumi)).size
-              const cene = t.svi.map(x => x.price).filter(Boolean) as number[]
-              const c = cene.length > 1 && Math.min(...cene) !== Math.max(...cene)
-                ? `od ${Math.round(Math.min(...cene)).toLocaleString('de-DE')} ${p.currency === 'RSD' ? 'din' : '€'}`
-                : cena(p)
-              const pp = Math.max(...t.svi.map(popust))
-              return (
-                <Button plain key={`p-${p.id}`} onPress={() => otvoriPonudu($, p)}>
-                  {datum(p.date_from)}{termini > 1 ? ` +${termini - 1}` : ''} {IKONA[p.transport ?? ''] ?? ''} {kratko(ime(p), Math.max(14, cols - 46))}{' '}
-                  <Text bold>{c}</Text>{pp ? <Text color="green"> -{pp}%</Text> : ''} <Text dimColor>{p.agencija}</Text>
-                </Button>
-              )
-            })}
-          </Box>
-          <Box flexDirection="row" gap={2}>
-            {n.strana > 0 && <Button key="prev" onPress={() => idiNa($, { strana: n.strana - 1 })}>‹ Prethodne</Button>}
-            {odStr + NA_STRANI < ture.length && <Button key="next" onPress={() => idiNa($, { strana: n.strana + 1 })}>Sledeće ›</Button>}
-            <Button key="ask-z" variant="primary"
-              onPress={() => pitaj($, `Šta je najbolje od ponuda za ${n.zemlja}? Pogledaj pt --json zemlja "${n.zemlja}", proveri i Filip Travel, Ponte i Plana, i preporuči mi 3 sa kompromisima.`)}>
-              💬 Pitaj Claude-a za {n.zemlja}
-            </Button>
-          </Box>
-        </Box>
-      )
-    }
-
-    // ----- ponuda: detalji -----
-    const p = await read($, ponuda)
-    const d = await read($, detalji)
-    if (!p) return <Box flexDirection="column">{zaglavlje}<Text dimColor>Izaberi ponudu.</Text></Box>
-    const iste = (await read($, lista)).filter(x => x.agencija === p.agencija && baseUrl(x.url) === baseUrl(p.url) && x.title === p.title)
-    const termini = (iste.length ? iste : [p]).flatMap(x => x.svi_datumi.map(dt => ({ dt, x })))
-      .sort((a, b) => a.dt.localeCompare(b.dt))
-    const md: string[] = []
-    md.push(`**${p.title}**`)
-    md.push(`${p.zemlja} · ${p.kontinent} · **${p.agencija}**`)
-    md.push('')
-    md.push(`- **Polazak:** ${datum(p.date_from)}${p.date_to ? ` → ${datum(p.date_to)}` : ''}`)
-    md.push(`- **Noći:** ${p.nights === 0 ? 'jednodnevni izlet' : p.nights ?? 'na sajtu'} · **Prevoz:** ${p.transport ?? 'na sajtu'}`)
-    md.push(`- **Cena:** ${cena(p)} po osobi${popust(p) ? ` (bilo ${Math.round(p.old_price!)}, -${popust(p)}%)` : ''}`)
-    if (p.note) md.push(`- **Napomena:** ${p.note}`)
-    if (termini.length > 1) {
-      md.push(`\n**Svi termini (${termini.length})**\n`)
-      md.push('| Polazak | Noći | Cena |\n|---|---|---|')
-      for (const { dt, x } of termini.slice(0, 20)) md.push(`| ${datum(dt)} | ${x.nights ?? ''} | ${cena(x)} |`)
-    }
-    if (d) {
-      if (d.greska) md.push(`\n> ⚠️ ${d.greska}`)
-      const sekcije: [keyof Detalji, string][] = [['opis', 'Ukratko'], ['obuhvata', 'Cena obuhvata'],
-        ['ne_obuhvata', 'Cena ne obuhvata / doplate'], ['program', 'Program'], ['termini', 'Termini i cene sa sajta'],
-        ['napomene', 'Napomene'], ['tekst', 'Sa stranice']]
-      for (const [k, naslov] of sekcije) {
-        const v = d[k]
-        if (v) md.push(`\n**${naslov}**\n\n${k === 'opis' ? v : '- ' + String(v).split('\n').join('\n- ')}`)
-      }
-      if (d.provereno) md.push(`\n_Sa sajta agencije, provereno ${d.provereno}_`)
-    }
+  // ----- bočna kolona: najbolje ponude -----
+  const najbolje = async (sirina: number, visina: number) => {
+    const t = await read($, top)
+    const kolikoStane = Math.max(3, Math.floor((visina - 4) / 2))
     return (
-      <Box flexDirection="column" gap={1}>
-        {zaglavlje}
-        {statusRed}
-        <Text bold>{ime(p)}</Text>
-        <Box flexDirection="row" gap={1}>
-          <Button key="trello" variant="primary" hotkey="t"
-            onPress={() => pitaj($, `Stavi ponudu ${p.id.slice(0, 8)} (${ime(p)}, ${p.agencija}, polazak ${datum(p.date_from)}, ${cena(p)}) u Trello listu 📬 Predlozi.`)}>
-            📌 Stavi u Trello
-          </Button>
-          <Button key="uporedi" hotkey="u"
-            onPress={() => pitaj($, `Uporedi ponudu ${p.id.slice(0, 8)} (${ime(p)}, ${p.agencija}, ${datum(p.date_from)}, ${cena(p)}) sa sličnim ponudama drugih agencija i sa "uradi sam" varijantom (let + smeštaj). Reci da li se isplati.`)}>
-            🔍 Uporedi
-          </Button>
-          <Button key="nazad" hotkey="b" onPress={() => idiNa($, { view: n.zemlja ? 'zemlja' : 'pocetna' })}>↩ Nazad</Button>
-        </Box>
-        <Link href={p.url} label="🔗 Otvori na sajtu agencije" />
-        <Markdown text={md.join('\n')} />
+      <Box flexDirection="column" borderStyle="round" borderColor="subtle" paddingX={1} width={telefon ? undefined : sirina}>
+        {telefon ? (
+          <Box flexDirection="column">
+            <Text bold>⭐ Najbolje ponude</Text>
+            <Box flexDirection="row" flexWrap="wrap" gap={1}>
+              {KRITERIJUMI.map(([v, label]) => (
+                <Button key={`kr-${v}`} variant={v === n.kriterijum ? 'primary' : 'secondary'}
+                  onPress={() => izaberiKriterijum(v)}>{label}</Button>
+              ))}
+            </Box>
+          </Box>
+        ) : (
+          <Select key="kriterijum" label="Najbolje" value={n.kriterijum}
+            options={KRITERIJUMI.map(([value, label]) => ({ value, label }))}
+            onSelect={izaberiKriterijum} />
+        )}
+        {t.length === 0 && <Text dimColor>Nema ponuda za ovaj kriterijum.</Text>}
+        {t.slice(0, kolikoStane).map(p => {
+          const c = cena(p)
+          const w = sirina - 6
+          return (
+            <Box key={`tb-${p.id}`} flexDirection="column" marginTop={1} hover={{ backgroundColor: 'subtle' }}>
+              <Box flexDirection="row" justifyContent="space-between">
+                <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
+                  {IKONA[p.transport ?? ''] ?? '•'} <Text bold>{kratko(ime(p), Math.max(10, w - c.length - 4))}</Text>
+                </Button>
+                <Text bold color="success">{c}</Text>
+              </Box>
+              <Box flexDirection="row" gap={1}>
+                {bedz(popust(p))}
+                <Text dimColor>{kratko(`${p.zemlja} · ${p.agencija}${p.date_from ? ' · ' + datum(p.date_from) : ''}`, Math.max(10, w - (popust(p) ? 7 : 0)))}</Text>
+              </Box>
+            </Box>
+          )
+        })}
       </Box>
     )
   }
+
+  const okvir = async (glavno: any, sa: boolean) => {
+    const strana = sa ? await najbolje(siroko ? Math.min(46, Math.floor(cols * 0.45)) : cols, siroko ? rows : Math.min(rows, 18)) : null
+    return (
+    <Box flexDirection="column">
+      {zaglavlje}
+      {statusRed}
+      {sa && siroko ? (
+        <Box flexDirection="row" gap={1}>
+          <Box flexDirection="column" flexGrow={1}>{glavno}</Box>
+          {strana}
+        </Box>
+      ) : (
+        <Box flexDirection="column" gap={1}>
+          {glavno}
+          {strana}
+        </Box>
+      )}
+    </Box>
+    )
+  }
+
+  // ----- početna: kontinenti kao pločice -----
+  if (n.view === 'pocetna') {
+    const kontinenti = Object.entries(z)
+    const sirinaLevo = siroko ? cols - Math.min(46, Math.floor(cols * 0.45)) - 1 : cols
+    return okvir(
+      <Box flexDirection="column">
+        <Box paddingX={1} marginTop={1}><Text bold>🌍 Gde idemo?</Text></Box>
+        {kontinenti.length === 0 && !st && <Box paddingX={1}><Text dimColor>Baza je prazna. Napiši Claude-u: „uradi sken agencija“.</Text></Box>}
+        {kontinenti.map(([k, c], i) => {
+          const ukK = Object.values(c).reduce((a, b) => a + b, 0)
+          const zem = Object.entries(c).sort((a, b) => b[1] - a[1]).map(([x]) => x).join(', ')
+          return (
+            <Box key={`kb-${k}`} borderStyle="round" borderColor="subtle" hover={{ borderColor: 'claude' }}
+              paddingX={1} flexDirection="column">
+              <Box flexDirection="row" justifyContent="space-between">
+                <Button plain key={`k-${k}`} hotkey={i < 9 ? String(i + 1) : undefined}
+                  onPress={() => idiNa($, { view: 'kontinent', kontinent: k })}>
+                  {KONT_IKONA[k] ?? '🧭'} <Text bold>{k}</Text>
+                </Button>
+                <Text color="claude">{ukK} ponuda</Text>
+              </Box>
+              <Text dimColor>{kratko(zem, Math.max(10, sirinaLevo - 6))}</Text>
+            </Box>
+          )
+        })}
+        <Box paddingX={1} marginTop={1}><Text dimColor italic>Klikni ili piši Claude-u ispod: „nešto jeftino za decembar?“</Text></Box>
+      </Box>,
+      true,
+    )
+  }
+
+  // ----- kontinent: zemlje kao mreža pločica -----
+  if (n.view === 'kontinent') {
+    const zk = z[n.kontinent] ?? {}
+    const lista = Object.entries(zk).sort((a, b) => b[1] - a[1])
+    const sirinaLevo = siroko ? cols - Math.min(46, Math.floor(cols * 0.45)) - 1 : cols
+    const plocica = Math.max(18, Math.floor((sirinaLevo - 1) / Math.max(1, Math.floor(sirinaLevo / 22))))
+    return okvir(
+      <Box flexDirection="column">
+        <Box paddingX={1} marginTop={1}><Text bold>{KONT_IKONA[n.kontinent] ?? '🧭'} {n.kontinent}</Text><Text dimColor>  ·  {lista.length} zemalja</Text></Box>
+        <Box flexDirection="row" flexWrap="wrap">
+          {lista.map(([zemlja, c]) => (
+            <Box key={`zb-${zemlja}`} width={telefon ? undefined : plocica} borderStyle="round" borderColor="subtle"
+              hover={{ borderColor: 'claude' }} paddingX={1} flexDirection="column">
+              <Button plain key={`z-${zemlja}`} onPress={() => otvoriZemlju($, zemlja)}>
+                <Text bold>{kratko(zemlja, plocica - 4)}</Text>
+              </Button>
+              <Text color="claude">{c} {c === 1 ? 'ponuda' : 'ponuda'}</Text>
+            </Box>
+          ))}
+        </Box>
+      </Box>,
+      true,
+    )
+  }
+
+  // ----- zemlja: tabela tura -----
+  if (n.view === 'zemlja') {
+    const ture = grupisi(await read($, lista), n.sort)
+    const naStr = Math.max(6, Math.min(NA_STRANI + 6, rows - 12))
+    const odStr = n.strana * naStr
+    const vidljive = ture.slice(odStr, odStr + naStr)
+    const wDatum = 14, wCena = 12, wAg = telefon ? 0 : 13
+    const wIme = Math.max(12, cols - wDatum - wCena - wAg - 10)
+    return okvir(
+      <Box flexDirection="column">
+        <Box flexDirection={telefon ? 'column' : 'row'} justifyContent="space-between" paddingX={1} marginTop={1}>
+          <Text><Text bold>📍 {n.zemlja}</Text><Text dimColor>  ·  {ture.length} aranžmana</Text></Text>
+          {telefon ? (
+            <Box flexDirection="row" gap={1}>
+              {SORTOVI.map(([v, label]) => (
+                <Button key={`sort-${v}`} variant={v === n.sort ? 'primary' : 'secondary'}
+                  onPress={() => idiNa($, { sort: v, strana: 0 })}>{label}</Button>
+              ))}
+            </Box>
+          ) : (
+            <Select key="sort" label="Sortiraj" value={n.sort}
+              options={SORTOVI.map(([value, label]) => ({ value, label }))}
+              onSelect={(v: string) => idiNa($, { sort: v as Nav['sort'], strana: 0 })} />
+          )}
+        </Box>
+        <Box flexDirection="column" borderStyle="round" borderColor="subtle" paddingX={1}>
+          {!telefon && (
+            <Box flexDirection="row">
+              <Box width={wDatum}><Text dimColor bold>POLAZAK</Text></Box>
+              <Box flexGrow={1}><Text dimColor bold>ARANŽMAN</Text></Box>
+              <Box width={wCena} justifyContent="flex-end"><Text dimColor bold>CENA</Text></Box>
+              <Box width={wAg} paddingLeft={2}><Text dimColor bold>AGENCIJA</Text></Box>
+            </Box>
+          )}
+          {vidljive.length === 0 && <Text dimColor>{st ? '…' : 'Nema ponuda.'}</Text>}
+          {vidljive.map(t => {
+            const p = t.glavna
+            const termini = new Set(t.svi.flatMap(x => x.svi_datumi)).size
+            const cene = t.svi.map(x => x.price).filter(Boolean) as number[]
+            const c = cene.length > 1 && Math.min(...cene) !== Math.max(...cene)
+              ? `od ${Math.round(Math.min(...cene)).toLocaleString('de-DE')} ${p.currency === 'RSD' ? 'din' : '€'}`
+              : cena(p)
+            const pp = Math.max(...t.svi.map(popust))
+            return (
+              <Box key={`r-${p.id}`} flexDirection="row" hover={{ backgroundColor: 'subtle' }}>
+                <Box width={wDatum}>
+                  <Text>{datum(p.date_from).slice(0, 6)}{termini > 1 ? <Text color="suggestion"> +{termini - 1}</Text> : ''}</Text>
+                </Box>
+                <Box flexGrow={1}>
+                  <Button plain key={`p-${p.id}`} onPress={() => otvoriPonudu($, p)}>
+                    {IKONA[p.transport ?? ''] ?? '•'} {kratko(ime(p), wIme - (pp ? 6 : 0))}{pp ? <Text color="success"> -{pp}%</Text> : ''}
+                  </Button>
+                </Box>
+                <Box width={wCena} justifyContent="flex-end"><Text bold color="success">{c}</Text></Box>
+                {!telefon && <Box width={wAg} paddingLeft={2}><Text dimColor>{kratko(p.agencija, wAg - 2)}</Text></Box>}
+              </Box>
+            )
+          })}
+        </Box>
+        <Box flexDirection="row" gap={2} paddingX={1}>
+          {n.strana > 0 && <Button key="prev" onPress={() => idiNa($, { strana: n.strana - 1 })}>‹ Prethodne</Button>}
+          {ture.length > naStr && <Text dimColor>strana {n.strana + 1}/{Math.ceil(ture.length / naStr)}</Text>}
+          {odStr + naStr < ture.length && <Button key="next" onPress={() => idiNa($, { strana: n.strana + 1 })}>Sledeće ›</Button>}
+          <Button key="ask-z" variant="primary"
+            onPress={() => pitaj($, `Šta je najbolje od ponuda za ${n.zemlja}? Pogledaj pt --json zemlja "${n.zemlja}", proveri i Filip Travel, Ponte i Plana, i preporuči mi 3 sa kompromisima.`)}>
+            💬 Pitaj Claude-a
+          </Button>
+        </Box>
+      </Box>,
+      false,
+    )
+  }
+
+  // ----- ponuda: kartica sa detaljima -----
+  const p = await read($, ponuda)
+  const d = await read($, detalji)
+  if (!p) return okvir(<Text dimColor>Izaberi ponudu.</Text>, true)
+  const iste = (await read($, lista)).filter(x => x.agencija === p.agencija && baseUrl(x.url) === baseUrl(p.url) && x.title === p.title)
+  const termini = (iste.length ? iste : [p]).flatMap(x => x.svi_datumi.map(dt => ({ dt, x })))
+    .sort((a, b) => a.dt.localeCompare(b.dt))
+  const md: string[] = []
+  if (termini.length > 1) {
+    md.push(`**Svi termini (${termini.length})**\n`)
+    md.push('| Polazak | Noći | Cena |\n|---|---|---|')
+    for (const { dt, x } of termini.slice(0, 20)) md.push(`| ${datum(dt)} | ${x.nights ?? ''} | ${cena(x)} |`)
+  }
+  if (d) {
+    if (d.greska) md.push(`\n> ⚠️ ${d.greska}`)
+    const sekcije: [keyof Detalji, string][] = [['opis', 'Ukratko'], ['obuhvata', 'Cena obuhvata'],
+      ['ne_obuhvata', 'Cena ne obuhvata / doplate'], ['program', 'Program'], ['termini', 'Termini i cene sa sajta'],
+      ['napomene', 'Napomene'], ['tekst', 'Sa stranice']]
+    for (const [k, naslov] of sekcije) {
+      const v = d[k]
+      if (v) md.push(`\n**${naslov}**\n\n${k === 'opis' ? v : '- ' + String(v).split('\n').join('\n- ')}`)
+    }
+    if (d.provereno) md.push(`\n_Sa sajta agencije, provereno ${d.provereno}_`)
+  }
+  const cinjenica = (k: string, oznaka: string, vrednost: string, boja?: string) => (
+    <Box key={k} borderStyle="round" borderColor="subtle" paddingX={1} flexDirection="column" flexGrow={1}>
+      <Text dimColor>{oznaka}</Text>
+      <Text bold color={boja}>{vrednost}</Text>
+    </Box>
+  )
+  return okvir(
+    <Box flexDirection="column">
+      <Box borderStyle="round" borderColor="claude" paddingX={1} flexDirection="column" marginTop={1}>
+        <Box flexDirection="row" justifyContent="space-between">
+          <Text bold>{IKONA[p.transport ?? ''] ?? '•'} {kratko(p.title, cols - 20)}</Text>
+          {bedz(popust(p))}
+        </Box>
+        <Text dimColor>{KONT_IKONA[p.kontinent] ?? ''} {p.zemlja} · {p.kontinent} · <Text color="claude">{p.agencija}</Text></Text>
+        {p.note ? <Text color="warning">🔥 {p.note}</Text> : null}
+      </Box>
+      <Box flexDirection={telefon ? 'column' : 'row'} gap={telefon ? 0 : 1}>
+        {cinjenica('f-polazak', 'Polazak', `${datum(p.date_from)}${p.date_to ? ' → ' + datum(p.date_to) : ''}`)}
+        {cinjenica('f-noci', 'Noći', p.nights === 0 ? 'izlet' : String(p.nights ?? '?'))}
+        {cinjenica('f-prevoz', 'Prevoz', p.transport ?? '?')}
+        {cinjenica('f-cena', popust(p) ? `Cena (bilo ${Math.round(p.old_price!)})` : 'Cena po osobi', cena(p), 'success')}
+      </Box>
+      <Box flexDirection="row" gap={1} marginY={1}>
+        <Button key="trello" variant="primary" hotkey="t"
+          onPress={() => pitaj($, `Stavi ponudu ${p.id.slice(0, 8)} (${ime(p)}, ${p.agencija}, polazak ${datum(p.date_from)}, ${cena(p)}) u Trello listu 📬 Predlozi.`)}>
+          📌 Stavi u Trello
+        </Button>
+        <Button key="uporedi" hotkey="u"
+          onPress={() => pitaj($, `Uporedi ponudu ${p.id.slice(0, 8)} (${ime(p)}, ${p.agencija}, ${datum(p.date_from)}, ${cena(p)}) sa sličnim ponudama drugih agencija i sa "uradi sam" varijantom (let + smeštaj). Reci da li se isplati.`)}>
+          🔍 Uporedi
+        </Button>
+        <Button key="nazad" hotkey="b" onPress={() => idiNa($, { view: n.zemlja ? 'zemlja' : 'pocetna' })}>↩ Nazad</Button>
+        <Link href={p.url} label="🔗 Sajt agencije" />
+      </Box>
+      {md.length > 0 && <Box paddingX={1}><Markdown text={md.join('\n')} /></Box>}
+    </Box>,
+    false,
+  )
 }
