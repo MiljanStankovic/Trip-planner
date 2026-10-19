@@ -22,7 +22,21 @@ kad ih agencija navodi (treća osoba, deca, jednokrevetna soba, rani booking). S
 Ispod panoa radi mali Python alat **`putovanja`** (skraćeno **`pt`**): skida ponude 15 agencija, čuva istoriju cena
 i odgovara panou i Claude-u.
 
-## Instalacija (jedna komanda)
+## Putovanja u običnom Claude chatu (bez Claude Code-a)
+
+Za porodicu i prijatelje: radi u Claude desktop aplikaciji, u običnom razgovoru, bez terminala.
+
+1. Skini **[Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/releases/latest/download/Putovanja.mcpb)**.
+2. Dvoklik na fajl (ili prevuci ga u Claude aplikaciju), pa **Install**. Python ne treba, Claude ga sam namesti.
+3. Potpuno zatvori i ponovo otvori Claude, pa u novom razgovoru napiši: **pokaži mi putovanja**.
+
+Otvara se cela aplikacija preko prozora: ponude po zemljama (cena po osobi i ukupno za putnike), detalj ponude
+sa sajta agencije, kalendar polazaka, praćenje cena, uradi sam (prevoz + smeštaj) i izvori. Prvi put klikni
+„Skeniraj sada“ (1–3 min). Podaci ostaju na računaru, u istoj bazi koju koristi i terminal.
+
+Ažuriranje: skini noviji `Putovanja.mcpb` sa istog linka i instaliraj preko starog. Detalji u [mcp/README.md](mcp/README.md).
+
+## Instalacija za Claude Code (jedna komanda)
 
 Treba samo [Claude Code](https://code.claude.com/docs/en/setup) (Pro plan ili jači). Python ne moraš da instaliraš:
 skripta instalira [uv](https://docs.astral.sh/uv/), a on sam donese Python.
