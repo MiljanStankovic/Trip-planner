@@ -1,9 +1,9 @@
 from datetime import date
 
-from putesestvije.models import parse_dates, parse_price
-from putesestvije.scrapers.bigblue import BigBlue
-from putesestvije.scrapers.odeon import Odeon
-from putesestvije.scrapers.travelland import Travelland
+from putovanja.models import parse_dates, parse_price
+from putovanja.scrapers.bigblue import BigBlue
+from putovanja.scrapers.odeon import Odeon
+from putovanja.scrapers.travelland import Travelland
 
 TRAVELLAND = """
 <a href="/putovanja/barselona/putovanje-barselona-4-noci/1009/?dateFrom=2026-10-21&amp;dateTo=2026-10-25#x" class="card-list-item">
@@ -68,11 +68,11 @@ def test_helpers():
     assert parse_dates("05.01.", today=date(2026, 10, 18)) == ["2027-01-05"]
 
 
-from putesestvije.models import upcoming
-from putesestvije.scrapers.argus import Argus
-from putesestvije.scrapers.felix import Felix
-from putesestvije.scrapers.grandtours import GrandTours
-from putesestvije.scrapers.kontiki import Kontiki
+from putovanja.models import upcoming
+from putovanja.scrapers.argus import Argus
+from putovanja.scrapers.felix import Felix
+from putovanja.scrapers.grandtours import GrandTours
+from putovanja.scrapers.kontiki import Kontiki
 
 ARGUS = """
 <a class="promo-elements-standard" href="/aranzmani/dan-primirja"><h5 class="naslov">DAN PRIMIRJA</h5>
@@ -123,9 +123,9 @@ def test_kontiki():
     assert o.source == "kontiki" and o.destination == "Andaluzijska tura" and o.date_from == "2027-12-27"
 
 
-from putesestvije.models import parse_month_words
-from putesestvije.scrapers.halotours import HaloTours
-from putesestvije.scrapers.jungletribe import JungleTribe
+from putovanja.models import parse_month_words
+from putovanja.scrapers.halotours import HaloTours
+from putovanja.scrapers.jungletribe import JungleTribe
 
 HALO = """<div class="gdl-package-grid2"><h2 class="package-title"><a href="https://www.halotours.rs/aranzman/advent-u-budimpesti/">Budimpešta</a></h2>
 <span class="package-price">3999 dinara</span><div class="package-date">04 dec 2027 - 06 dec 2027</div></div>"""
@@ -148,7 +148,7 @@ def test_jungletribe():
     assert o.url == "https://www.jungletribe.rs/destinacije/azija/tajland/hotel-x"
 
 
-from putesestvije.geo import classify
+from putovanja.geo import classify
 
 
 def test_geo():
@@ -161,7 +161,7 @@ def test_geo():
 
 
 def test_details_polasci_i_sobe():
-    from putesestvije.details import extract
+    from putovanja.details import extract
     html = """<html><body><h1>Milano</h1>
     <div class="departure" data-dateFrom="2026-10-22" data-dateTo="2026-10-26">22.10.</div>
     <div class="departure" data-dateFrom="2026-11-11" data-dateTo="2026-11-15">11.11.</div>
@@ -177,7 +177,7 @@ def test_details_polasci_i_sobe():
 
 def test_lemax_kartice_viva_i_rapsody():
     import json
-    from putesestvije.scrapers.lemax import VivaTravel, Rapsody
+    from putovanja.scrapers.lemax import VivaTravel, Rapsody
     viva = """<a class="card card-travel" href="/putovanja/malta/putovanje-malta-3-noci-avion-2026/1190/">
       <h4 class="title">Putovanje Malta 3 noći - AVION 2099</h4><div class="col small">4 dana | 3 noći</div>
       <div class="departure" data-dateFrom="2099-10-23" data-dateTo="2099-10-26">23.10.</div>
@@ -197,8 +197,8 @@ def test_lemax_kartice_viva_i_rapsody():
 
 def test_itravel_mesec_i_jumbo():
     from datetime import date
-    from putesestvije.scrapers.itravel import mesec_u_datum
-    from putesestvije.scrapers.jumbo import Jumbo
+    from putovanja.scrapers.itravel import mesec_u_datum
+    from putovanja.scrapers.jumbo import Jumbo
     t = date(2026, 10, 19)
     assert mesec_u_datum("Oktobar 2026.", t) == "2026-10-19"
     assert mesec_u_datum("Decembar 2026.", t) == "2026-12-01"
@@ -211,9 +211,9 @@ def test_itravel_mesec_i_jumbo():
 
 def test_pracenje_pad_cene_i_nove_po_zeljama(tmp_path):
     import time
-    from putesestvije import catalog, db, watch
-    from putesestvije.config import Config
-    from putesestvije.models import Offer
+    from putovanja import catalog, db, watch
+    from putovanja.config import Config
+    from putovanja.models import Offer
     conn = db.connect(tmp_path / "t.db")
     o = Offer(source="viva", title="Budimpešta advent", url="https://x.rs/putovanja/b/1/", destination="Budimpešta",
               date_from="2099-12-05", price=120.0)
@@ -236,7 +236,7 @@ def test_pracenje_pad_cene_i_nove_po_zeljama(tmp_path):
 
 
 def test_ukupno_za_dvoje():
-    from putesestvije.ukupno import proceni
+    from putovanja.ukupno import proceni
     offer = {"price": 99.0, "currency": "EUR", "nights": 2, "date_from": "2099-10-21", "date_to": None}
     det = {"termini": "21.10.2099. – 25.10.2099.",
            "ne_obuhvata": "* putno osiguranje u iznosu od 1,5€ po osobi/ dnevno (17-74.99g)\n"
@@ -254,7 +254,7 @@ def test_ukupno_za_dvoje():
 
 
 def test_naziv_aranzmana():
-    from putesestvije.catalog import naziv
+    from putovanja.catalog import naziv
     assert naziv("Putovanje Budimpešta 2 noći, 2026 - autobus") == "Budimpešta"
     assert naziv("DAN PRIMIRJA SIGURNI: BUDIMPEŠTA - 10.11. od 119€") == "Dan Primirja Sigurni: Budimpešta"
     assert naziv("Budimpešta-Advent / Hit cena: 4.500din") == "Budimpešta-Advent"
@@ -264,7 +264,7 @@ def test_naziv_aranzmana():
 
 
 def test_praznici_srbija():
-    from putesestvije.watch import praznici, pravoslavni_uskrs
+    from putovanja.watch import praznici, pravoslavni_uskrs
     assert pravoslavni_uskrs(2026).isoformat() == "2026-04-12"
     assert pravoslavni_uskrs(2027).isoformat() == "2027-05-02"
     p = praznici(2026)

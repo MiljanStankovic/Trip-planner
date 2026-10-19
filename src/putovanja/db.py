@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS runs (
 
 
 def connect(path: Path | None = None) -> sqlite3.Connection:
-    conn = sqlite3.connect(path or data_dir() / "putesestvije.db")
+    conn = sqlite3.connect(path or data_dir() / "putovanja.db")
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
     return conn

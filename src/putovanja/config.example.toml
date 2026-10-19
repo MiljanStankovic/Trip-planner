@@ -1,5 +1,5 @@
-# Putešestvije — podešavanja
-# Kopija ide u ~/.config/putesestvije/config.toml (komanda: pt init)
+# Putovanja — podešavanja
+# Kopija ide u ~/.config/putovanja/config.toml (komanda: pt init)
 # ili postavi PT_CONFIG=/putanja/do/config.toml
 
 [profil]
@@ -12,10 +12,12 @@ min_days_ahead = 5                     # ne predlaži polaske ranije od ovoga
 max_days_ahead = 180
 min_nights = 1
 max_nights = 10
-likes = ["advent", "budimpešta", "segedin", "divčibare"]   # sa naše table; dopuni
+likes = []                             # šta volite, npr. ["advent", "budimpešta", "wellness"]
 dislikes = []
 rsd_per_eur = 117                      # kurs za poređenje cena u dinarima sa budžetom
-putnika = 2                            # koliko vas putuje (za "ukupno za sve")
+odraslih = 2                           # koliko odraslih putuje
+dece = 0                               # koliko dece putuje
+uzrast_dece = []                       # godine dece, npr. [5, 9] (za popuste za decu)
 
 [agencije]
 # Python čita sve agencije koje alat zna (i nove, kad se dodaju). Filip Travel, Ponte i Plana čita Claude.
@@ -23,16 +25,10 @@ putnika = 2                            # koliko vas putuje (za "ukupno za sve")
 iskljucene = []
 
 [trello]
-board_id = "6ad4cd042c7e038b9e1d453a"   # Putešestvije
+# Samo uz plugin putovanja-trello. Upiši ID svoje table i lista (Claude to uradi za tebe kad uključiš plugin).
 # Ključ i token NE upisuj ovde; stavi ih u okruženje: TRELLO_KEY, TRELLO_TOKEN
+board_id = ""
 
 [trello.lists]
-predlozi   = "6ad4ddb45b18aa1da56cf30c"
-izleti     = "6ad4cd052c7e038b9e1d4540"
-hrana      = "6ad4cd88c023955397f0020b"
-aktivnosti = "6ad4cd72dcd94f45f11d6fc3"
-kod_kuce   = "6ad4cdc023bd8ce7ee5b57a1"
-kupovina   = "6ad4d798709bba5c7617e093"
-planirano  = "6ad4d799dd62ee3c9ce31628"
-zavrseno   = "6ad4d79bfae47066fd4417ae"
-bucketlist = "6ad4cf4c5fff27c26a3fff07"
+# predlozi = "<id liste>"
+# planirano = "<id liste>"

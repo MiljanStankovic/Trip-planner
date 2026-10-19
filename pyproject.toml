@@ -1,6 +1,6 @@
 [project]
-name = "putesestvije"
-version = "0.1.0"
+name = "putovanja"
+version = "0.5.0"
 description = "Pregledač ponuda domaćih turističkih agencija po kontinentima i zemljama, sa detaljima i slanjem u Trello"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -14,14 +14,15 @@ dependencies = [
 dev = ["pytest>=8"]
 
 [project.scripts]
-pt = "putesestvije.cli:main"
+putovanja = "putovanja.cli:main"
+pt = "putovanja.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/putesestvije"]
+packages = ["src/putovanja"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

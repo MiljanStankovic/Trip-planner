@@ -1,18 +1,20 @@
 {
-  "name": "putesestvije",
+  "name": "putovanja",
   "owner": {
     "name": "Miljan Stanković"
   },
+  "description": "Putovanja: planer putovanja sa ponudama domaćih agencija, za Claude Code",
   "plugins": [
     {
-      "name": "putesestvije",
+      "name": "putovanja",
       "source": "./",
-      "description": "Planer putovanja: agencije, preporuke, Trello"
+      "description": "Planer putovanja: ponude domaćih agencija, kalendar, praćenje cena, Uradi sam i pano /putovanja"
     },
     {
-      "name": "putesestvije-pano",
-      "source": "./pano",
-      "description": "Pano Putešestvije u Claude Code-u: ponude po kontinentima i zemljama, detalji, Trello"
+      "name": "putovanja-trello",
+      "source": "./plugins/putovanja-trello",
+      "description": "Dodatak: Trello tabla za ideje i planirana putovanja (podrazumevano isključen)",
+      "defaultEnabled": false
     }
   ]
 }

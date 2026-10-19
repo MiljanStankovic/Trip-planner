@@ -74,7 +74,7 @@ def cmd_scan(cfg: Config, args) -> int:
     if not args.json:
         for k, v in SKIPPED.items():
             console.print(f"[dim]{v}[/]")
-        console.print("[dim]Filip Travel, Ponte i Plana čita Claude komandom /putesestvije:agencije[/]")
+        console.print("[dim]Filip Travel, Ponte i Plana čita Claude komandom /putovanja:agencije[/]")
     _out(summary, args.json)
     return 0
 
@@ -192,14 +192,14 @@ def cmd_add(cfg: Config, args) -> int:
 
 def cmd_profile(cfg: Config, args) -> int:
     data = {"config": str(cfg.path) if cfg.path else "(podrazumevano, nema config.toml)",
-            "profil": cfg.profile.__dict__, "agencije": cfg.agencies, "trello_board": cfg.trello.board_id,
+            "profil": {**cfg.profile.__dict__, "putnika": cfg.profile.putnika}, "agencije": cfg.agencies, "trello_board": cfg.trello.board_id,
             "trello_kljuc": bool(cfg.trello.key and cfg.trello.token)}
     _out(data, args.json, lambda: console.print_json(data=data))
     return 0
 
 
 def cmd_init(cfg: Config, args) -> int:
-    target = Path.home() / ".config" / "putesestvije" / "config.toml"
+    target = Path.home() / ".config" / "putovanja" / "config.toml"
     src = Path(__file__).resolve().parent / "config.example.toml"
     if target.exists() and not args.force:
         console.print(f"Već postoji: {target} (dodaj --force za prepis)")
@@ -367,7 +367,7 @@ def cmd_alerts(cfg: Config, args) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="pt", description="Putešestvije: planer putovanja")
+    p = argparse.ArgumentParser(prog="pt", description="Putovanja: planer putovanja")
     p.add_argument("--json", action="store_true", help="mašinski izlaz")
     sub = p.add_subparsers(dest="cmd")
 

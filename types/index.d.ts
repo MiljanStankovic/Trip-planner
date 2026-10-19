@@ -118,7 +118,7 @@ export type Obavestenja = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'putesestvije-pano': {
+    'putovanja': {
       nav: Nav
       zemlje: ZemljeMapa
       top: Ponuda[]

@@ -5,4 +5,4 @@ Set-Location (Join-Path $PSScriptRoot "..")
 New-Item -ItemType Directory -Force izvestaji, logs | Out-Null
 if (Test-Path .venv\Scripts\Activate.ps1) { . .venv\Scripts\Activate.ps1 }
 $log = "logs\pregled-$(Get-Date -Format yyyy-MM-dd).log"
-claude -p "/putesestvije:pregled auto" --allowedTools "Bash(pt:*)" "WebFetch" "WebSearch" "Read" "Write(izvestaji/**)" "mcp__trello" *>> $log
+claude -p "/putovanja:pregled auto" --allowedTools "Bash(pt:*)" "WebFetch" "WebSearch" "Read" "Write(izvestaji/**)" "mcp__trello" *>> $log

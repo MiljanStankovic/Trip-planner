@@ -16,7 +16,7 @@ function odgovor(argv: readonly string[]): string {
   return '{}'
 }
 
-const PANE = { component: 'Pane', requestId: 'putesestvije', props: { title: 'Putešestvije', isFocused: true, bodyColumns: 70 } } as const
+const PANE = { component: 'Pane', requestId: 'putovanja', props: { title: 'Putovanja', isFocused: true, bodyColumns: 70 } } as const
 
 test('pano: početna → kontinent → zemlja → ponuda → Trello', async ($, on) => {
   const poslato: string[] = []
@@ -31,10 +31,10 @@ test('pano: početna → kontinent → zemlja → ponuda → Trello', async ($, 
   })
 
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
-  expect(r.text).toContain('Putešestvije')
+  expect(r.text).toContain('Putovanja')
 
   for (const surface of ['terminal', 'desktop', 'mobile'] as const) {
-    const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface, ...PANE })
+    const ui = await $.ui.mount({ plugin: 'putovanja', surface, ...PANE })
     const sacekaj = () => (surface === 'mobile' ? ui.redraw() : ui.advance(50))
     await sacekaj()
     expect(await ui.find({ key: 'k-Azija' })).toBeDefined()
@@ -76,11 +76,11 @@ test('telefon: bez bočnog panoa aplikacija se crta u razgovoru ispod /putovanja
   on('ui.open', async () => ({ value: { isPlaced: false } }) as any)
 
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
-  expect(r.text).toBe('Putešestvije')
+  expect(r.text).toBe('Putovanja')
 
   const ui = await $.ui.mount({
-    plugin: 'putesestvije-pano', surface: 'mobile', component: 'CommandOutput',
-    props: { command: 'putovanja', args: '', text: 'Putešestvije', isErrored: false } as any,
+    plugin: 'putovanja', surface: 'mobile', component: 'CommandOutput',
+    props: { command: 'putovanja', args: '', text: 'Putovanja', isErrored: false } as any,
   })
   await ui.redraw()
   expect(await ui.find({ key: 'k-Azija' })).toBeDefined()
@@ -106,7 +106,7 @@ test('preporučeno: opseg cena, datumi sa cenom, klik na datum otvara taj polaza
   })
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   await $.command.run({ command: 'putovanja', args: '' } as any)
-  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE, props: { ...PANE.props, bodyColumns: 110 } })
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE, props: { ...PANE.props, bodyColumns: 110 } })
   await ui.advance(50)
   expect(await ui.find({ text: /1\.549–1\.649 €/ })).toBeDefined()
   const d = await ui.find({ key: 'td-zzz1-2026-12-02-1' })
@@ -132,7 +132,7 @@ test('kalendar i praćenje', async ($, on) => {
   })
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   await $.command.run({ command: 'putovanja', args: '' } as any)
-  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
   await ui.advance(50)
   await ui.press({ key: 'kal' })
   await ui.advance(50)
@@ -167,7 +167,7 @@ test('uradi sam: forma, linkovi, zahtev Claude-u; ponuda: ukupno za dvoje', asyn
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   on('prompt.submit', async (_$, e) => { poslato.push(e.text); return { drop: 't' } as any })
   await $.command.run({ command: 'putovanja', args: '' } as any)
-  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
   await ui.advance(50)
   await ui.press({ key: 'diy' })
   await ui.input({ key: 'diy-kuda', text: 'Budimpešta' })
@@ -197,7 +197,7 @@ test('putanja do pt iz podešavanja plugina (upisuje je install skripta)', { opt
   })
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   await $.command.run({ command: 'putovanja', args: '' } as any)
-  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
   await ui.advance(50)
   expect(pokrenuto.length).toBeGreaterThan(0)
   expect(pokrenuto.every(b => b === 'C:/Putesestvije/.venv/Scripts/pt.exe')).toBe(true)

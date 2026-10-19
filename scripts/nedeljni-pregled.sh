@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nedeljni pregled agencija i table Putešestvije (macOS / Linux).
+# Nedeljni pregled agencija i table Putovanja (macOS / Linux).
 # Pokreće Claude Code bez interfejsa i čuva izveštaj u izvestaji/.
 #
 # cron (svake nedelje u 09:47):
@@ -16,7 +16,7 @@ fi
 mkdir -p izvestaji logs
 [[ -f .venv/bin/activate ]] && source .venv/bin/activate
 
-claude -p "/putesestvije:pregled auto" \
+claude -p "/putovanja:pregled auto" \
   --allowedTools "Bash(pt:*)" "WebFetch" "WebSearch" "Read" "Write(izvestaji/**)" "mcp__trello" \
   >> "logs/pregled-$(date +%F).log" 2>&1
 

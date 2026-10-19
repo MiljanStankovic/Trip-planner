@@ -3,7 +3,7 @@ description: Šta agencije nude za zemlju ili grad — pregled, najbolji termini
 argument-hint: "<zemlja ili grad, npr. 'Tajland', 'Budimpešta', 'Egipat'>"
 ---
 
-Koristi skill `putesestvije-planer`. Zemlja ili grad: **$ARGUMENTS**
+Koristi skill `putovanja-planer`. Zemlja ili grad: **$ARGUMENTS**
 
 1. `pt --json zemlja $ARGUMENTS`. Ako je baza starija od 3 dana (polje `last_seen`), prvo `pt --json agencije skeniraj`.
 2. Proveri i agencije koje Python ne čita (Filip Travel, Ponte, Plana Tours): `pt --json agencije skeniraj --samo nista` vraća njihove stranice u `za_claude`. Otvori ih `WebFetch`-om i potraži ponude za ovu zemlju ili grad; nađene ubaci sa `pt --json agencije ubaci <fajl>` (polja kao u skillu agencije-pregled), da se vide i u panou /putovanja.

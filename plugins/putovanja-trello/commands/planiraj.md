@@ -3,7 +3,7 @@ description: Isplaniraj izabranu karticu i prebaci je u Planirano (opis, datum, 
 argument-hint: "<naziv kartice, npr. 'Segedin'>"
 ---
 
-Koristi skill `putesestvije-planer`. Kartica: **$ARGUMENTS**
+Koristi skill `trello-tabla` (i `putovanja:putovanja-planer` za istraživanje). Kartica: **$ARGUMENTS**
 
 1. Nađi karticu na tabli (`trelloSearch`). Ako ih ima više, pitaj koju.
 2. Ako datum nije poznat, pitaj kada (ili predloži 2–3 termina; kalendar proveri ako je Google Calendar povezan).

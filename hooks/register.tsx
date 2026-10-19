@@ -3,26 +3,26 @@ import type { Register } from 'claude-code'
 
 import type { Detalji, Diy, Kalendar, Kombinacija, Nav, Obavestenja, Ponuda, Pracena, Stanje, Termin, ZemljeMapa } from '../types'
 
-const PLUGIN = 'putesestvije-pano'
-const PANE = 'putesestvije'
+const PLUGIN = 'putovanja'
+const PANE = 'putovanja'
 
-const nav = atom({ plugin: 'putesestvije-pano', key: 'nav' } as const, {
+const nav = atom({ plugin: 'putovanja', key: 'nav' } as const, {
   view: 'pocetna', kontinent: '', zemlja: '', ponudaId: '', kriterijum: 'preporuka', strana: 0, sort: 'datum',
   mesec: '', kalStrana: 0,
   diy: { odakle: 'Beograd', kuda: '', od: '', do: '', osoba: '2' },
 } as Nav)
-const zemlje = atom({ plugin: 'putesestvije-pano', key: 'zemlje' } as const, {} as ZemljeMapa)
-const top = atom({ plugin: 'putesestvije-pano', key: 'top' } as const, [] as Ponuda[])
-const lista = atom({ plugin: 'putesestvije-pano', key: 'lista' } as const, [] as Ponuda[])
-const ponuda = atom({ plugin: 'putesestvije-pano', key: 'ponuda' } as const, null as Ponuda | null)
-const detalji = atom({ plugin: 'putesestvije-pano', key: 'detalji' } as const, null as Detalji | null)
-const status = atom({ plugin: 'putesestvije-pano', key: 'status' } as const, '')
-const kal = atom({ plugin: 'putesestvije-pano', key: 'kal' } as const, null as Kalendar | null)
-const prac = atom({ plugin: 'putesestvije-pano', key: 'prac' } as const, [] as Pracena[])
-const obav = atom({ plugin: 'putesestvije-pano', key: 'obav' } as const, null as Obavestenja | null)
-const stanje = atom({ plugin: 'putesestvije-pano', key: 'stanje' } as const, null as Stanje | null)
-const diyLista = atom({ plugin: 'putesestvije-pano', key: 'diyLista' } as const, [] as Kombinacija[])
-const diyAgencije = atom({ plugin: 'putesestvije-pano', key: 'diyAgencije' } as const, [] as Ponuda[])
+const zemlje = atom({ plugin: 'putovanja', key: 'zemlje' } as const, {} as ZemljeMapa)
+const top = atom({ plugin: 'putovanja', key: 'top' } as const, [] as Ponuda[])
+const lista = atom({ plugin: 'putovanja', key: 'lista' } as const, [] as Ponuda[])
+const ponuda = atom({ plugin: 'putovanja', key: 'ponuda' } as const, null as Ponuda | null)
+const detalji = atom({ plugin: 'putovanja', key: 'detalji' } as const, null as Detalji | null)
+const status = atom({ plugin: 'putovanja', key: 'status' } as const, '')
+const kal = atom({ plugin: 'putovanja', key: 'kal' } as const, null as Kalendar | null)
+const prac = atom({ plugin: 'putovanja', key: 'prac' } as const, [] as Pracena[])
+const obav = atom({ plugin: 'putovanja', key: 'obav' } as const, null as Obavestenja | null)
+const stanje = atom({ plugin: 'putovanja', key: 'stanje' } as const, null as Stanje | null)
+const diyLista = atom({ plugin: 'putovanja', key: 'diyLista' } as const, [] as Kombinacija[])
+const diyAgencije = atom({ plugin: 'putovanja', key: 'diyAgencije' } as const, [] as Ponuda[])
 
 const KRITERIJUMI: [string, string][] = [
   ['preporuka', '⭐ Preporučeno za vas'],
@@ -250,7 +250,7 @@ async function ucitajPocetnu($: any) {
         o.nestali.length ? `${o.nestali.length} nestalo` : '',
         o.nove_po_zeljama.length ? `${o.nove_po_zeljama.length} novo po vašim željama` : '',
       ].filter(Boolean)
-      void $.ui.toast(`🔔 Putešestvije: ${delovi.join(', ')}. Otvori 👁 Praćenje.`)
+      void $.ui.toast(`🔔 Putovanja: ${delovi.join(', ')}. Otvori 👁 Praćenje.`)
     }
   }
 }
@@ -331,7 +331,7 @@ export const register: Register = (on, options) => {
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'putovanja',
-      description: 'Otvori Putešestvije: ponude agencija po zemljama, kalendar, praćenje cena i Uradi sam (prevoz + smeštaj).',
+      description: 'Otvori Putovanja: ponude agencija po zemljama, kalendar, praćenje cena i Uradi sam (prevoz + smeštaj).',
       argumentHint: '[zemlja | pt <putanja>]',
     })
     return next(e)
@@ -344,7 +344,7 @@ export const register: Register = (on, options) => {
       return { text: `Putanja do alata pt sačuvana: ${args.slice(3).trim()}` }
     }
     // Telefon i uski ekrani ne otvaraju bočni pano: tada se aplikacija crta u razgovoru (CommandOutput ispod).
-    const otvoren = await $.ui.open({ id: PANE, title: 'Putešestvije', focus: true, columns: 104 } as any)
+    const otvoren = await $.ui.open({ id: PANE, title: 'Putovanja', focus: true, columns: 104 } as any)
     const uPanou = !!otvoren?.isPlaced
     if (args) void otvoriZemlju($, args)
     else {
@@ -353,11 +353,11 @@ export const register: Register = (on, options) => {
     }
     return {
       text: uPanou
-        ? (args ? `Otvoren pano Putešestvije: ${args}.` : 'Otvoren pano Putešestvije.')
-        : 'Putešestvije',
+        ? (args ? `Otvoren pano Putovanja: ${args}.` : 'Otvoren pano Putovanja.')
+        : 'Putovanja',
       context: [
-        'Korisnik je otvorio pano Putešestvije (ponude domaćih turističkih agencija po kontinentima i zemljama).',
-        'Iz panoa stižu poruke kao "Stavi ponudu <ID> u Trello" ili "Uporedi ponudu <ID>". Radi ih po skillu putesestvije-planer:',
+        'Korisnik je otvorio pano Putovanja (ponude domaćih turističkih agencija po kontinentima i zemljama).',
+        'Iz panoa stižu poruke kao "Stavi ponudu <ID> u Trello" ili "Uporedi ponudu <ID>". Radi ih po skillu putovanja-planer:',
         'podaci iz `pt --json ponuda <ID> --detalji`, `pt --json zemlja <naziv>`, `pt --json top <kriterijum>`; Trello preko Trello MCP (lista 📬 Predlozi iz `pt --json profil`).',
         'Iz odeljka "🧭 Uradi sam" stiže zahtev za prevoz + smeštaj: radi ga po skillu uradi-sam i sačuvaj kombinacije sa `pt --json uradisam sacuvaj`.',
         'Klik na "Stavi u Trello" u panou je potvrda. Odgovaraj kratko, srpski latinica.',
@@ -369,7 +369,7 @@ export const register: Register = (on, options) => {
 
   // Gde nema bočnog panoa (telefon): ista aplikacija u redu ispod komande /putovanja.
   on('ui.render', { component: 'CommandOutput', props: { command: 'putovanja' } } as any, async ($, e: any, next: any) => {
-    if (e.props?.text && e.props.text !== 'Putešestvije') return next(e)
+    if (e.props?.text && e.props.text !== 'Putovanja') return next(e)
     return crtaj($, e)
   })
 }

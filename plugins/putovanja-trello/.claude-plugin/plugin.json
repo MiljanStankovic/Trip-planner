@@ -1,0 +1,10 @@
+{
+  "name": "putovanja-trello",
+  "displayName": "Putovanja · Trello",
+  "version": "0.5.0",
+  "description": "Dodatak za Putovanja: Trello tabla sa idejama, predlozima iz pregleda agencija i planiranim putovanjima",
+  "author": { "name": "Miljan Stanković" },
+  "license": "MIT",
+  "defaultEnabled": false,
+  "dependencies": ["putovanja"]
+}

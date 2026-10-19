@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Putešestvije: instalacija i ažuriranje jednom komandom (macOS / Linux)
+# Putovanja: instalacija i ažuriranje jednom komandom (macOS / Linux)
 #
 #   Prvi put:   git clone https://github.com/MiljanStankovic/Trip-planner.git ~/Putesestvije && ~/Putesestvije/install.sh
 #   Ažuriranje: ~/Putesestvije/install.sh
@@ -41,21 +41,21 @@ korak "Python okruženje i alat pt"
 .venv/bin/python -m pip install --quiet -e .
 PT="$FOLDER/.venv/bin/pt"
 echo "   pt: $PT"
-CFG="${PT_CONFIG:-$HOME/.config/putesestvije/config.toml}"
+CFG="${PT_CONFIG:-$HOME/.config/putovanja/config.toml}"
 if [[ ! -f "$CFG" ]]; then "$PT" init >/dev/null; echo "   podešavanja: $CFG"; fi
 mkdir -p "$HOME/.local/bin" && ln -sf "$PT" "$HOME/.local/bin/pt"
 case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo "   dodaj ~/.local/bin u PATH da bi 'pt' radio iz bilo kog foldera";; esac
 
 korak "Claude Code: marketplace i pluginovi"
 claude plugin marketplace add "$FOLDER" >/dev/null 2>&1 || true
-claude plugin marketplace update putesestvije >/dev/null
-for p in putesestvije putesestvije-pano; do
-  claude plugin install "$p@putesestvije" >/dev/null 2>&1 || true
-  claude plugin update "$p@putesestvije" >/dev/null 2>&1 || true
-  claude plugin list 2>/dev/null | grep -q "$p@putesestvije" || greska "Plugin $p se nije instalirao (probaj u Claude Code-u: /plugin)"
+claude plugin marketplace update putovanja >/dev/null
+for p in putovanja putovanja; do
+  claude plugin install "$p@putovanja" >/dev/null 2>&1 || true
+  claude plugin update "$p@putovanja" >/dev/null 2>&1 || true
+  claude plugin list 2>/dev/null | grep -q "$p@putovanja" || greska "Plugin $p se nije instalirao (probaj u Claude Code-u: /plugin)"
   echo "   $p OK"
 done
-printf '{"ptPath":"%s"}' "$PT" | claude plugin configure "putesestvije-pano@putesestvije" --values-stdin >/dev/null
+printf '{"ptPath":"%s"}' "$PT" | claude plugin configure "putovanja@putovanja" --values-stdin >/dev/null
 echo "   pano podešen: ptPath = $PT"
 
 if [[ $BEZ_SKENA -eq 0 ]]; then

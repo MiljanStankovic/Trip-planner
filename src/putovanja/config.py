@@ -10,12 +10,12 @@ from pathlib import Path
 DEFAULT_CONFIG_PATHS = [
     Path(os.environ["PT_CONFIG"]) if os.environ.get("PT_CONFIG") else None,
     Path.cwd() / "config.toml",
-    Path.home() / ".config" / "putesestvije" / "config.toml",
+    Path.home() / ".config" / "putovanja" / "config.toml",
 ]
 
 
 def data_dir() -> Path:
-    d = Path(os.environ.get("PT_DATA", Path.home() / ".local" / "share" / "putesestvije"))
+    d = Path(os.environ.get("PT_DATA", Path.home() / ".local" / "share" / "putovanja"))
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -34,25 +34,19 @@ class Profile:
     likes: list[str] = field(default_factory=list)  # ključne reči: "pariz", "wellness", "advent"
     dislikes: list[str] = field(default_factory=list)  # "krstarenje", "daleka putovanja"
     rsd_per_eur: float = 117.0  # za poređenje dinarskih cena sa budžetom u EUR
-    putnika: int = 2  # koliko vas putuje; za ukupnu cenu
+    odraslih: int = 2  # koliko odraslih putuje
+    dece: int = 0  # koliko dece putuje
+    uzrast_dece: list[int] = field(default_factory=list)  # godine dece, za popuste
+
+    @property
+    def putnika(self) -> int:
+        return max(1, self.odraslih + self.dece)
 
 
 @dataclass
 class TrelloCfg:
-    board_id: str = "6ad4cd042c7e038b9e1d453a"
-    lists: dict[str, str] = field(
-        default_factory=lambda: {
-            "predlozi": "6ad4ddb45b18aa1da56cf30c",
-            "izleti": "6ad4cd052c7e038b9e1d4540",
-            "hrana": "6ad4cd88c023955397f0020b",
-            "aktivnosti": "6ad4cd72dcd94f45f11d6fc3",
-            "kod_kuce": "6ad4cdc023bd8ce7ee5b57a1",
-            "kupovina": "6ad4d798709bba5c7617e093",
-            "planirano": "6ad4d799dd62ee3c9ce31628",
-            "zavrseno": "6ad4d79bfae47066fd4417ae",
-            "bucketlist": "6ad4cf4c5fff27c26a3fff07",
-        }
-    )
+    board_id: str = ""
+    lists: dict[str, str] = field(default_factory=dict)
     # Ključ i token se čitaju iz okruženja: TRELLO_KEY, TRELLO_TOKEN
     @property
     def key(self) -> str | None:
@@ -83,7 +77,9 @@ def load() -> Config:
             raw = tomllib.loads(p.read_text(encoding="utf-8-sig"))
             cfg = Config(path=p)
             for k, v in raw.get("profil", {}).items():
-                if hasattr(cfg.profile, k):
+                if k == "putnika":  # stari ključ: broj odraslih
+                    cfg.profile.odraslih = int(v)
+                elif hasattr(cfg.profile, k) and k != "putnika":
                     setattr(cfg.profile, k, v)
             t = raw.get("trello", {})
             if "board_id" in t:

@@ -11,7 +11,7 @@ import requests
 
 from ..models import Offer
 
-USER_AGENT = "Mozilla/5.0 (putesestvije-cli; licni planer putovanja)"
+USER_AGENT = "Mozilla/5.0 (putovanja-cli; licni planer putovanja)"
 _robots_cache: dict[str, robotparser.RobotFileParser | None] = {}
 
 

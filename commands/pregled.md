@@ -1,8 +1,8 @@
 ---
-description: Nedeljni pregled — agencije + tabla, sažetak u izvestaji/ i predlozi u Trello
+description: Nedeljni pregled agencija, sažetak u izvestaji/
 argument-hint: "[auto]"
 ---
 
 Pokreni skill `agencije-pregled` u celosti.
 
-Ako je argument `auto` (**$ARGUMENTS**), ovo je zakazano pokretanje: niko ne gleda, ne postavljaj pitanja, upiši do 5 predloga u **📬 Predlozi** bez potvrde i završi izveštajem u `izvestaji/`. Inače pitaj pre upisa u Trello.
+Ako je argument `auto` (**$ARGUMENTS**), ovo je zakazano pokretanje: niko ne gleda, ne postavljaj pitanja i završi izveštajem u `izvestaji/`. Ako je uključen dodatak putovanja-trello, upiši do 5 predloga na tablu bez potvrde. Inače pitaj pre svakog upisa.

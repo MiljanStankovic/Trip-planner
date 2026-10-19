@@ -1,14 +1,19 @@
 {
-  "name": "putesestvije",
-  "version": "0.4.0",
-  "description": "Planer putovanja za dvoje: ponude domaćih agencija, istraživanje letova i smeštaja, preporuke i Trello tabla Putešestvije",
-  "author": {
-    "name": "Miljan Stanković"
-  },
-  "keywords": [
-    "travel",
-    "trello",
-    "putovanja",
-    "agencije"
-  ]
+  "name": "putovanja",
+  "displayName": "Putovanja",
+  "version": "0.5.0",
+  "description": "Planer putovanja u Claude Code-u: ponude domaćih agencija po zemljama, kalendar polazaka, praćenje cena, Uradi sam (prevoz + smeštaj) i pano /putovanja",
+  "author": { "name": "Miljan Stanković" },
+  "repository": "https://github.com/MiljanStankovic/Trip-planner",
+  "license": "MIT",
+  "keywords": ["travel", "putovanja", "agencije", "srbija"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "ptPath": {
+      "type": "string",
+      "title": "Putanja do alata putovanja",
+      "description": "Prazno (preporučeno): pano sam pokreće alat preko uv-a. Upiši punu putanju samo ako alat instaliraš na svoj način.",
+      "default": ""
+    }
+  }
 }

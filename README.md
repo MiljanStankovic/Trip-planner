@@ -1,9 +1,9 @@
-# Putešestvije · ponude agencija u Claude Code-u
+# Putovanja · ponude agencija u Claude Code-u
 
-U Claude Code-u ukucaš **`/putovanja`** i pored razgovora se otvori **pano**: kontinenti → zemlje → ponude → detalji ponude (svi termini, cene, šta cena obuhvata, doplate, program, link). Klikćeš kroz pano, a sa Claude-om se normalno dopisuješ ispod. Dugmići u panou šalju Claude-u poruku: **📌 Stavi u Trello** (kartica u 📬 Predlozi na tabli Putešestvije), **🔍 Uporedi** (druge agencije i "uradi sam" let + smeštaj), **💬 Pitaj Claude-a za zemlju**.
+U Claude Code-u ukucaš **`/putovanja`** i pored razgovora se otvori **pano**: kontinenti → zemlje → ponude → detalji ponude (svi termini, cene, šta cena obuhvata, doplate, program, link). Klikćeš kroz pano, a sa Claude-om se normalno dopisuješ ispod. Dugmići u panou šalju Claude-u poruku: **📌 Stavi u Trello** (kartica u 📬 Predlozi na tabli Putovanja), **🔍 Uporedi** (druge agencije i "uradi sam" let + smeštaj), **💬 Pitaj Claude-a za zemlju**.
 
 ```
-┌ razgovor sa Claude-om ─────────────────┐┌ Putešestvije ─────────────────────────────┐
+┌ razgovor sa Claude-om ─────────────────┐┌ Putovanja ─────────────────────────────┐
 │ > nešto jeftinije u decembru?          ││ 🏠 Početna › Azija › Tajland              │
 │ Claude: Za decembar su najbolji…       ││ Tajland: 18 ponuda   Sortiraj: datum ▾    │
 │                                        ││ 08.11. +24 ✈ Bangkok, Krabi  1.549 € -18% │
@@ -34,8 +34,8 @@ git clone https://github.com/MiljanStankovic/Trip-planner.git ~/Putesestvije && 
 ```
 
 Skripta sama: napravi Python okruženje i instalira alat `pt`, napravi podešavanja
-(`~/.config/putesestvije/config.toml`), doda `pt` u PATH, instalira oba Claude Code plugina
-(`putesestvije` i pano `/putovanja`), upiše panou putanju do `pt` i skenira agencije (~1–2 min).
+(`~/.config/putovanja/config.toml`), doda `pt` u PATH, instalira oba Claude Code plugina
+(`putovanja` i pano `/putovanja`), upiše panou putanju do `pt` i skenira agencije (~1–2 min).
 Zatim otvori Claude Code i ukucaj **`/putovanja`**.
 
 **Ažuriranje:** ista skripta još jednom (`install.ps1` / `install.sh`): povuče izmene i osveži sve. Posle toga restartuj Claude Code.
@@ -51,8 +51,8 @@ git clone https://github.com/MiljanStankovic/Trip-planner.git && cd Trip-planner
 python3 -m venv .venv && .venv/bin/pip install -e .      # Windows: .venv\Scripts\pip install -e .
 .venv/bin/pt init && .venv/bin/pt agencije skeniraj
 claude plugin marketplace add "$(pwd)"
-claude plugin install putesestvije@putesestvije
-claude plugin install putesestvije-pano@putesestvije
+claude plugin install putovanja@putovanja
+claude plugin install putovanja@putovanja
 ```
 U Claude Code-u, ako pano ne nađe `pt`: `/putovanja pt <puna putanja do pt>`.
 </details>
@@ -63,15 +63,15 @@ Glavna je **`/putovanja`** (pano). `/putovanja Tajland` otvara pano odmah na Taj
 
 | Komanda | Šta radi |
 |---|---|
-| `/putovanja [zemlja]` | Pano Putešestvije pored razgovora |
-| `/putesestvije:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
-| `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
-| `/putesestvije:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
-| `/putesestvije:uradi-sam <kuda> <od> <do>` | Prevoz + smeštaj u sopstvenoj režiji, ukupna cena, poređenje sa agencijama |
-| `/putesestvije:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
-| `/putesestvije:agencije` | Sveže skeniranje (i agencije koje čita Claude) |
-| `/putesestvije:pregled [auto]` | Nedeljni pregled: izveštaj + predlozi u Trello |
-| `/putesestvije:profil` | Profil: budžet, šta volite, aerodrom |
+| `/putovanja [zemlja]` | Pano Putovanja pored razgovora |
+| `/putovanja:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
+| `/putovanja:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
+| `/putovanja:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
+| `/putovanja:uradi-sam <kuda> <od> <do>` | Prevoz + smeštaj u sopstvenoj režiji, ukupna cena, poređenje sa agencijama |
+| `/putovanja:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
+| `/putovanja:agencije` | Sveže skeniranje (i agencije koje čita Claude) |
+| `/putovanja:pregled [auto]` | Nedeljni pregled: izveštaj + predlozi u Trello |
+| `/putovanja:profil` | Profil: budžet, šta volite, aerodrom |
 
 ## Komande `pt`
 
@@ -124,9 +124,9 @@ Bez ključa sve radi; Claude komande koriste Trello MCP.
 | I Travel | `pt` | daleke destinacije, primer ponude po mesecu |
 | Jumbo Travel | `pt` | tropski paketi let + hotel, bez fiksnog datuma |
 | Play Travel | preskočeno | sajtu je istekao HTTPS sertifikat |
-| Filip Travel, Ponte, Plana Tours | Claude, samo kad pozoveš `/putesestvije:agencije` ili `/putesestvije:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
+| Filip Travel, Ponte, Plana Tours | Claude, samo kad pozoveš `/putovanja:agencije` ili `/putovanja:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
 
-Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putesestvije/scrapers/` i dodaj je u `scrapers/__init__.py`.
+Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putovanja/scrapers/` i dodaj je u `scrapers/__init__.py`.
 
 Skripte poštuju robots.txt i prave pauzu između stranica. Preporuke imaju najviše 3 ponude po agenciji (`--po-agenciji`), da ne bi jedna agencija zauzela ceo spisak. Sajtovi agencija se menjaju; kad parser prestane da vraća ponude, `pt agencije skeniraj` to pokaže (0 ponuda), a parser je jedan mali fajl.
 
@@ -142,12 +142,12 @@ Na dve nedelje: `47 9 * * 0  PT_SVAKE_DVE=1 /putanja/do/Trip-planner/scripts/ned
 
 Windows: vidi komentar na vrhu `scripts/nedeljni-pregled.ps1` (schtasks).
 
-Prvi put pokreni `/putesestvije:pregled` ručno u Claude Code-u i dozvoli Trello alate ("Always allow"), da bi zakazano pokretanje radilo bez pitanja. Izveštaji idu u `izvestaji/YYYY-MM-DD.md`, logovi u `logs/`.
+Prvi put pokreni `/putovanja:pregled` ručno u Claude Code-u i dozvoli Trello alate ("Always allow"), da bi zakazano pokretanje radilo bez pitanja. Izveštaji idu u `izvestaji/YYYY-MM-DD.md`, logovi u `logs/`.
 
 ## Podaci
 
-- Baza: `~/.local/share/putesestvije/putesestvije.db` (menja se sa `PT_DATA`)
-- Profil: `~/.config/putesestvije/config.toml` (menja se sa `PT_CONFIG`)
+- Baza: `~/.local/share/putovanja/putovanja.db` (menja se sa `PT_DATA`)
+- Profil: `~/.config/putovanja/config.toml` (menja se sa `PT_CONFIG`)
 
 ## Razvoj
 

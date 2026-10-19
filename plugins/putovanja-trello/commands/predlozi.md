@@ -3,7 +3,7 @@ description: Šta da radimo — predlozi za vikend, mesec ili putovanje, sa tabl
 argument-hint: "[vikend | ovaj mesec | putovanje | <tema>]"
 ---
 
-Koristi skill `putesestvije-planer`. Zahtev: **$ARGUMENTS** (ako je prazno, podrazumevaj "ovaj vikend i naredne 2 nedelje").
+Koristi skill `trello-tabla` (i `putovanja:putovanja-planer` za istraživanje). Zahtev: **$ARGUMENTS** (ako je prazno, podrazumevaj "ovaj vikend i naredne 2 nedelje").
 
 1. Pročitaj Trello tablu (MCP) i `pt --json profil`.
 2. Za izlaske i izlete (vikend): izaberi 3 ideje sa table koje sada imaju smisla — sezona, vreme (prognoza za te dane), radno vreme i cene proveri pretragom. Dodaj 1 novu ideju koje nema na tabli (događaj u Beogradu ili okolini tih dana, sa izvorom).

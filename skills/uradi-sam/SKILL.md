@@ -1,6 +1,6 @@
 ---
 name: uradi-sam
-description: Putovanje u sopstvenoj režiji za Miljana i devojku - prevoz (avion, autobus, voz, auto) i smeštaj (Booking, Trivago, Airbnb, hoteli) za zadatu destinaciju i datume, sa ukupnom cenom za sve i poređenjem sa agencijama. Koristi kad stigne poruka iz panoa "Uradi sam" ili kad pitaju koliko košta da odu sami.
+description: Putovanje u sopstvenoj režiji: prevoz (avion, autobus, voz, auto) i smeštaj (Booking, Trivago, Airbnb, hoteli) za zadatu destinaciju i datume, sa ukupnom cenom za sve i poređenjem sa agencijama. Koristi kad stigne poruka iz panoa "Uradi sam" ili kad pitaju koliko košta da odu sami.
 ---
 
 # Uradi sam
@@ -8,7 +8,7 @@ description: Putovanje u sopstvenoj režiji za Miljana i devojku - prevoz (avion
 Cilj: 2–3 realne kombinacije **prevoz + smeštaj** sa ukupnom cenom za sve putnike, sačuvane u alat `pt` da se vide u panou (odeljak 🧭 Uradi sam), i kratko poređenje sa ponudama agencija za istu destinaciju.
 
 ## Ulaz
-Odakle (podrazumevano Beograd), kuda, datum polaska i povratka, broj osoba (`pt --json stanje` → `putnika`, podrazumevano 2). Ako fali datum, pitaj jednom; ako fali broj noći, uzmi vikend (pet–ned).
+Odakle (podrazumevano Beograd), kuda, datum polaska i povratka, broj osoba (`pt --json stanje` → `putnika`, `odraslih`, `dece`). Ako fali datum, pitaj jednom; ako fali broj noći, uzmi vikend (pet–ned).
 
 ## Koraci
 
@@ -18,8 +18,8 @@ Odakle (podrazumevano Beograd), kuda, datum polaska i povratka, broj osoba (`pt 
    - **Voz:** Srbijavoz, MÁV, ÖBB i sl. (npr. Beograd–Subotica–Budimpešta). Cena i trajanje.
    - **Auto:** km, gorivo (~7 l/100 km, cena goriva u Srbiji), putarine i vinjete, parking na destinaciji.
 2. **Smeštaj.** Alati za hotele ako su povezani (SlickTrip `search_hotels`, Expedia `search_hotels`), inače WebSearch. Booking i Trivago ne mogu da se čitaju direktno: daj link za pretragu sa datumima i broj osoba (pano ih već ima), a cene uzmi iz alata ili pretrage. Traži centar ili dobru vezu javnim prevozom, ocena 8+, doručak kad ima smisla.
-3. **Kombinacije.** Napravi 2–3 različite: najjeftinija, najudobnija, najbolji odnos. Sve cene su **ukupne za sve putnike** u EUR (dinare preračunaj po `rsd_per_eur` iz profila ili ostavi `"valuta": "RSD"`). Dodaj `ostalo` za ono što se plaća sigurno (gradski prevoz, boravišna taksa ako nije u ceni).
-4. **Sačuvaj** u `pt` (JSON lista, oblik je opisan u `src/putesestvije/diy.py`):
+3. **Kombinacije.** Napravi 2–3 različite: najjeftinija, najudobnija, najbolji odnos. Sve cene su **ukupne za sve putnike** u EUR (pano prikazuje i cenu po osobi) (dinare preračunaj po `rsd_per_eur` iz profila ili ostavi `"valuta": "RSD"`). Dodaj `ostalo` za ono što se plaća sigurno (gradski prevoz, boravišna taksa ako nije u ceni).
+4. **Sačuvaj** u `pt` (JSON lista, oblik je opisan u `src/putovanja/diy.py`):
    ```bash
    pt --json uradisam sacuvaj kombinacije.json     # ili: ... | pt --json uradisam sacuvaj -
    ```

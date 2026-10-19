@@ -1,4 +1,4 @@
-# Putešestvije: instalacija i ažuriranje jednom komandom (Windows / PowerShell)
+# Putovanja: instalacija i ažuriranje jednom komandom (Windows / PowerShell)
 #
 #   Prvi put:   git clone https://github.com/MiljanStankovic/Trip-planner.git $HOME\Putesestvije
 #               powershell -ExecutionPolicy Bypass -File $HOME\Putesestvije\install.ps1
@@ -6,7 +6,7 @@
 #
 # Šta radi: povuče najnoviji kod, napravi Python okruženje i instalira alat pt, napravi
 # podešavanja (ako ih nema), doda pt u PATH, instalira oba Claude Code plugina
-# (putesestvije + pano /putovanja) i upiše im putanju do pt, pa skenira agencije.
+# (putovanja + pano /putovanja) i upiše im putanju do pt, pa skenira agencije.
 param(
     [switch]$BezSkena,                                   # preskoči prvo skeniranje agencija
     [string]$Folder = "$HOME\Putesestvije",              # gde da klonira ako se skripta ne pokreće iz repoa
@@ -64,7 +64,7 @@ $pt = Join-Path $venvBin $(if ($naWindows) { "pt.exe" } else { "pt" })
 if (-not (Test-Path $pt)) { Greska "Nema $pt posle instalacije" }
 Write-Host "   pt: $pt"
 
-$cfg = Join-Path $HOME ".config\putesestvije\config.toml"
+$cfg = Join-Path $HOME ".config\putovanja\config.toml"
 if (-not (Test-Path $cfg)) { & $pt init | Out-Null; Write-Host "   podešavanja: $cfg (otvori i upiši šta volite, budžet...)" }
 
 # pt u PATH (za nove terminale), da radi i "pt ..." iz bilo kog foldera
@@ -78,17 +78,17 @@ if ($naWindows -and -not ($userPath -split ";" | Where-Object { $_ -eq $bin })) 
 # --- 3. Claude Code pluginovi ---
 Korak "Claude Code: marketplace i pluginovi"
 claude plugin marketplace add $Folder 2>$null | Out-Null
-claude plugin marketplace update putesestvije 2>$null | Out-Null
+claude plugin marketplace update putovanja 2>$null | Out-Null
 if ($LASTEXITCODE) { Greska "Ne mogu da dodam marketplace iz $Folder (claude plugin marketplace add)" }
-foreach ($p in @("putesestvije", "putesestvije-pano")) {
-    claude plugin install "$p@putesestvije" 2>$null | Out-Null
-    claude plugin update "$p@putesestvije" 2>$null | Out-Null
+foreach ($p in @("putovanja", "putovanja")) {
+    claude plugin install "$p@putovanja" 2>$null | Out-Null
+    claude plugin update "$p@putovanja" 2>$null | Out-Null
     $lista = claude plugin list 2>$null | Out-String
-    if ($lista -notmatch [regex]::Escape("$p@putesestvije")) { Greska "Plugin $p se nije instalirao (probaj u Claude Code-u: /plugin)" }
+    if ($lista -notmatch [regex]::Escape("$p@putovanja")) { Greska "Plugin $p se nije instalirao (probaj u Claude Code-u: /plugin)" }
     Write-Host "   $p OK"
 }
 # pano zna gde je pt (bez obzira na PATH)
-@{ ptPath = $pt } | ConvertTo-Json -Compress | claude plugin configure "putesestvije-pano@putesestvije" --values-stdin 2>$null | Out-Null
+@{ ptPath = $pt } | ConvertTo-Json -Compress | claude plugin configure "putovanja@putovanja" --values-stdin 2>$null | Out-Null
 if ($LASTEXITCODE) { Write-Host "   (nisam upisao ptPath; u Claude Code-u ukucaj: /putovanja pt $pt)" -ForegroundColor Yellow }
 Write-Host "   pano podešen: ptPath = $pt"
 
