@@ -49,6 +49,7 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     expect(await ui.find({ text: /14|1 agencija u redu/ })).toBeDefined()
     expect(await ui.find({ text: /Odeon: stranica/ })).toBeDefined()
     expect(await ui.find({ text: /Konektori/ })).toBeDefined()
+    expect(await ui.find({ text: /Najjeftinije svuda/ })).toBeDefined()
 
     await ui.press({ key: 'nk-Azija' })
     await ui.advance(50)

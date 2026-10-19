@@ -438,8 +438,10 @@ async function otvoriZemlju($: any, zemlja: string) {
   // popusti za više osoba: čitaju se sa stranica ponuda u pozadini
   const ture = grupisi(l, 'cena').filter(t => !t.glavna.popusti_provereni).slice(0, 30)
   if (ture.length) {
-    const m = await pt($, ['popusti', ...ture.map(t => t.glavna.id.slice(0, 12))], 120000)
-    if (m) await update($, popustiMapa, x => ({ ...x, ...(m as { [id: string]: string[] }) }))
+    void (async () => {
+      const m = await pt($, ['popusti', ...ture.map(t => t.glavna.id.slice(0, 12))], 120000)
+      if (m) await update($, popustiMapa, x => ({ ...x, ...(m as { [id: string]: string[] }) }))
+    })()
   }
 }
 
@@ -494,7 +496,7 @@ export const register: Register = (on, options) => {
     const otvoren = await $.ui.open({
       id: PANE, title: 'Putovanja', focus: true,
       rows: Math.max(18, Math.round((VISINA || 40) * 0.6)),
-      columns: Math.max(70, Math.round((pr?.columns ?? 160) * 0.62)),
+      columns: Math.max(70, Math.round((pr?.columns ?? 160) * 0.7)),
     } as any)
     const uPanou = !!otvoren?.isPlaced
     if (args) void (async () => { await ucitajPocetnu($); await otvoriZemlju($, args) })()
@@ -563,16 +565,16 @@ async function crtaj($: any, e: any) {
     <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
       <Box flexDirection="row" gap={2} alignItems="center" flexWrap="wrap">
         <Text bold color={C.amb}>Putovanja</Text>
-        {tab('t-ag', 'Agencije', odeljak === 'agencije', () => { void idiNa($, { view: 'pocetna' }); void ucitajPocetnu($) }, 'a')}
-        {tab('t-diy', 'Uradi sam', odeljak === 'diy', () => otvoriDiy($), 'd')}
-        {tab('t-pr', <Text>Praćeno{brojObav ? <Text color={C.cor} bold> {brojObav} nova</Text> : ''}</Text>, odeljak === 'prac', () => otvoriPracenje($), 'p')}
+        {tab('t-ag', 'Agencije', odeljak === 'agencije', () => { void idiNa($, { view: 'pocetna' }); void ucitajPocetnu($) })}
+        {tab('t-diy', 'Uradi sam', odeljak === 'diy', () => otvoriDiy($))}
+        {tab('t-pr', <Text>Praćeno{brojObav ? <Text color={C.cor} bold> {brojObav} nova</Text> : ''}</Text>, odeljak === 'prac', () => otvoriPracenje($))}
       </Box>
       {odeljak === 'agencije' && (
         <Box flexDirection="row" gap={3}>
           <Button plain key="t-dest" onPress={() => idiNa($, { view: n.zemlja ? 'zemlja' : 'pocetna' })}>
             <Text bold={n.view !== 'kalendar'} underline={n.view !== 'kalendar'} color={n.view !== 'kalendar' ? C.sky : C.dim}>Destinacije</Text>
           </Button>
-          <Button plain key="t-kal" hotkey="k" onPress={() => otvoriKalendar($)}>
+          <Button plain key="t-kal" onPress={() => otvoriKalendar($)}>
             <Text bold={n.view === 'kalendar'} underline={n.view === 'kalendar'} color={n.view === 'kalendar' ? C.sky : C.dim}>Kalendar</Text>
           </Button>
         </Box>
@@ -667,9 +669,9 @@ async function crtaj($: any, e: any) {
   // ===== tabla polazaka =====
   const pm = await read($, popustiMapa)
   const tabla = (ture: Tura[], w: number, vis: number, naslov: any, prazno: string) => {
-    const wD = 8, wN = 6, wP = w >= 82 ? 12 : 0, wA = w >= 66 ? 14 : 0, wC = 15
+    const wD = 8, wN = 7, wP = w >= 90 ? 11 : 0, wA = w >= 62 ? 14 : 0, wC = 15
     const wIme = Math.max(10, w - 1 - wD - wN - wP - wA - wC - 1)
-    const mesta = Math.max(2, Math.floor((vis - 4) / 2))
+    const mesta = Math.max(2, Math.floor((vis - 6) / 2))
     const strane = Math.max(1, Math.ceil(ture.length / mesta))
     const sp = Math.min(n.strana, strane - 1)
     const vidljive = ture.slice(sp * mesta, sp * mesta + mesta)
@@ -687,8 +689,10 @@ async function crtaj($: any, e: any) {
           const vise = ts.length > 1 ? `${ts.length} polazaka${cenaVarira(ts) ? '' : ''}` : '1 polazak'
           const kraj = ts.length > 1 ? ` do ${kratakDatum(ts[ts.length - 1]!.datum)}` : ''
           const red2 = [vise + kraj, ...(p.zemlja && n.view !== 'zemlja' ? [p.zemlja] : [])].join(' · ')
-          const nap2 = nap.slice(0, 3).map(x => `   + ${x}`).join('')
           const pp2 = pop ? `   −${pop}%` : ''
+          const mestoZaNap = w - 1 - wD - Math.min(len(red2), 22) - len(pp2)
+          let nap2 = ''
+          for (const x of nap.slice(0, 3)) if (len(nap2) + len(x) + 5 <= mestoZaNap) nap2 += `   + ${x}`
           const ostatak = Math.max(0, w - 1 - wD - len(red2) - len(nap2) - len(pp2))
           return (
             <Box flexDirection="column" key={`b-${p.id}`}>
@@ -747,7 +751,7 @@ async function crtaj($: any, e: any) {
       )
     }
     return (
-      <Box flexDirection="row" gap={3} paddingX={1} backgroundColor={C.strip} width={w}>
+      <Box flexDirection="row" gap={3} paddingX={1} backgroundColor={C.strip}>
         <Text color={C.dim}>Najjeftinije svuda</Text>
         {delovi}
       </Box>
@@ -758,7 +762,7 @@ async function crtaj($: any, e: any) {
   if (n.view === 'pocetna' || n.view === 'kontinent' || n.view === 'zemlja') {
     const saStranom = !telefon && cols >= 110
     const saNav = !telefon && cols >= 76
-    const vis = rows - 3
+    const vis = rows - 4 - (statusRed ? 1 : 0) - (!saStranom && !telefon ? 1 : 0)
     const wTabla = cols - (saNav ? sirinaNav + 1 : 0) - (saStranom ? sirinaStrane + 1 : 0)
     let ture: Tura[]
     let naslov: any
@@ -837,7 +841,7 @@ async function crtaj($: any, e: any) {
       )
     })() : null
     return (
-      <Box flexDirection="column" backgroundColor={C.pane}>
+      <Box flexDirection="column">
         {zaglavlje}
         {crta(cols)}
         {statusRed}
@@ -859,7 +863,7 @@ async function crtaj($: any, e: any) {
 
   // ===== ostali ekrani: isti okvir, bez bočnih kolona =====
   const okvir = (glavno: any) => (
-    <Box flexDirection="column" backgroundColor={C.pane}>
+    <Box flexDirection="column">
       {zaglavlje}
       {crta(cols)}
       {statusRed}
