@@ -8,7 +8,7 @@
 
 import PROZOR_HTML from './prozor.html';
 
-const VERZIJA = '0.4.3';
+const VERZIJA = '0.4.4';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const PODACI = 'https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/podaci';
