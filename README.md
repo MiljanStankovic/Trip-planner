@@ -1,61 +1,66 @@
 # Putovanja · ponude agencija u Claude Code-u
 
-U Claude Code-u ukucaš **`/putovanja`** i pored razgovora se otvori **pano**: kontinenti → zemlje → ponude → detalji ponude (svi termini, cene, šta cena obuhvata, doplate, program, link). Klikćeš kroz pano, a sa Claude-om se normalno dopisuješ ispod. Dugmići u panou šalju Claude-u poruku: **📌 Stavi u Trello** (kartica u 📬 Predlozi na tabli Putovanja), **🔍 Uporedi** (druge agencije i "uradi sam" let + smeštaj), **💬 Pitaj Claude-a za zemlju**.
+U Claude Code-u ukucaš **`/putovanja`** i otvori se **pano**: levo kontinenti i zemlje, u sredini **tabla polazaka**
+(polazak, odredište, noći, prevoz, agencija, cena po osobi), desno **izvori podataka** i **konektori**.
+Ceo red na tabli je klikabilan i otvara ponudu: svi polasci, šta cena obuhvata, doplate, program, link
+i **ukupno za tvoje putnike** (odrasli i deca). Ispod svake ponude stoje **popusti za više osoba**
+kad ih agencija navodi (treća osoba, deca, jednokrevetna soba, rani booking). Sa Claude-om se normalno dopisuješ.
 
 ```
-┌ razgovor sa Claude-om ─────────────────┐┌ Putovanja ─────────────────────────────┐
-│ > nešto jeftinije u decembru?          ││ 🏠 Početna › Azija › Tajland              │
-│ Claude: Za decembar su najbolji…       ││ Tajland: 18 ponuda   Sortiraj: datum ▾    │
-│                                        ││ 08.11. +24 ✈ Bangkok, Krabi  1.549 € -18% │
-│                                        ││ 11.01. +6  ✈ Indokina        1.849 € -23% │
-│                                        ││ [💬 Pitaj Claude-a za Tajland]            │
-└────────────────────────────────────────┘└───────────────────────────────────────────┘
+┌ Putovanja  [Agencije]  Uradi sam  Praćeno ─────────────────────────────── Destinacije  Kalendar ┐
+│ ‹ Evropa      │ Španija  59 aranžmana        Putnika: 2 odrasla ▾ │ Izvori          sken pre 2 h │
+│▌Španija    78 │ Polazak Odredište        Noći Agencija   Po osobi │ ! Odeon: 1 stranica nije …   │
+│ Italija    75 │ 22.10.  Barselona           3 Travelland 299–429 €│ ✓ 14 agencija u redu         │
+│ Francuska  33 │         10 polazaka   + 1/1 soba: +130 €   −25%   │ Konektori              2 od 4│
+│ …             │ 30.10.  Madrid              3 Travelland    299 € │ ✓ Expedia   ✗ eDreams Poveži │
+└───────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Na početnoj su i **najbolje ponude** sa izborom kriterijuma: preporučeno za vas, najveći popust, najjeftinije, specijalne i poslednja mesta, polazi uskoro, izleti i vikendi.
-
-Ispod panoa radi mali Python alat **`pt`**: skida ponude 15 agencija, čuva istoriju cena i odgovara panou i Claude-u. Trello ostaje tabla za vaše ideje.
+Ispod panoa radi mali Python alat **`putovanja`** (skraćeno **`pt`**): skida ponude 15 agencija, čuva istoriju cena
+i odgovara panou i Claude-u.
 
 ## Instalacija (jedna komanda)
 
-Treba: [git](https://git-scm.com), Python 3.11+, [Claude Code](https://docs.claude.com/en/docs/claude-code/overview).
-Na Windows-u, ako nešto fali: `winget install Git.Git Python.Python.3.12`.
+Treba samo [Claude Code](https://code.claude.com/docs/en/setup) (Pro plan ili jači). Python ne moraš da instaliraš:
+skripta instalira [uv](https://docs.astral.sh/uv/), a on sam donese Python.
 
 **Windows (PowerShell):**
 
 ```powershell
-git clone https://github.com/MiljanStankovic/Trip-planner.git $HOME\Putesestvije; powershell -ExecutionPolicy Bypass -File $HOME\Putesestvije\install.ps1
+irm https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/main/install.ps1 | iex
 ```
 
 **macOS / Linux:**
 
 ```bash
-git clone https://github.com/MiljanStankovic/Trip-planner.git ~/Putesestvije && ~/Putesestvije/install.sh
+curl -fsSL https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/main/install.sh | bash
 ```
 
-Skripta sama: napravi Python okruženje i instalira alat `pt`, napravi podešavanja
-(`~/.config/putovanja/config.toml`), doda `pt` u PATH, instalira oba Claude Code plugina
-(`putovanja` i pano `/putovanja`), upiše panou putanju do `pt` i skenira agencije (~1–2 min).
-Zatim otvori Claude Code i ukucaj **`/putovanja`**.
+Zatim otvori novi terminal, pokreni `claude` i ukucaj **`/putovanja`**. **Ažuriranje:** ista komanda.
 
-**Ažuriranje:** ista skripta još jednom (`install.ps1` / `install.sh`): povuče izmene i osveži sve. Posle toga restartuj Claude Code.
+Bez terminala, u Claude Code-u (ako već imaš uv): `/plugin marketplace add MiljanStankovic/Trip-planner`,
+pa `/plugin install putovanja@putovanja`. Pano pri prvom otvaranju sam pripremi alat.
 
-Opcije: `-BezSkena` / `--bez-skena` preskače skeniranje.
+Opcije (pre komande): `$env:PUTOVANJA_BEZ_SKENA="1"` / `PUTOVANJA_BEZ_SKENA=1` preskače prvo skeniranje,
+`PUTOVANJA_TRELLO=1` uključuje dodatak za Trello, `PUTOVANJA_GRANA=ime-grane` instalira probnu granu.
 
-> Repo je javan: instalacija ne traži GitHub nalog. Izmene (push) mogu da šalju samo vlasnik i dodati saradnici; ostali mogu da predlože izmenu preko fork-a i pull request-a.
+**Pano najbolje radi u Windows Terminal-u.** Klik mišem radi kad je Claude Code preko celog prozora (fullscreen,
+pano je tada sa strane). U običnom režimu (pano iznad polja za kucanje) koristi tastaturu: `ctrl+x tab` prelazi u pano,
+`Tab` i strelice biraju, `Enter` otvara.
 
-<details><summary>Ručna instalacija (ako skripta ne može)</summary>
+### Konektori (letovi, smeštaj, izleti)
 
-```bash
-git clone https://github.com/MiljanStankovic/Trip-planner.git && cd Trip-planner
-python3 -m venv .venv && .venv/bin/pip install -e .      # Windows: .venv\Scripts\pip install -e .
-.venv/bin/pt init && .venv/bin/pt agencije skeniraj
-claude plugin marketplace add "$(pwd)"
-claude plugin install putovanja@putovanja
-claude plugin install putovanja@putovanja
-```
-U Claude Code-u, ako pano ne nađe `pt`: `/putovanja pt <puna putanja do pt>`.
-</details>
+Pano desno pokazuje koje konektore imaš: Expedia, SlickTrip, eDreams, Civitatis. Dodaju se jednom, na claude.ai
+(Settings → Connectors), i Claude Code ih posle sam vidi. Bez njih sve radi, samo Claude za letove i smeštaj koristi
+pretragu i linkove.
+
+### Trello (opciono, podrazumevano isključen)
+
+Dodatak **putovanja-trello** donosi Trello tablu za ideje i planirana putovanja. Uključuje se jednom i to se pamti:
+`claude plugin install putovanja-trello@putovanja` (ili `/plugin` u Claude Code-u). Isključivanje: `/plugin disable putovanja-trello`.
+Tablu povezuješ preko Trello konektora na claude.ai; Claude te pita koju tablu koristiš i upiše je u podešavanja.
+
+> Repo je javan: instalacija ne traži GitHub nalog. Izmene (push) mogu da šalju samo vlasnik i dodati saradnici.
 
 ## Claude Code komande
 
@@ -66,12 +71,11 @@ Glavna je **`/putovanja`** (pano). `/putovanja Tajland` otvara pano odmah na Taj
 | `/putovanja [zemlja]` | Pano Putovanja pored razgovora |
 | `/putovanja:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
 | `/putovanja:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
-| `/putovanja:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
 | `/putovanja:uradi-sam <kuda> <od> <do>` | Prevoz + smeštaj u sopstvenoj režiji, ukupna cena, poređenje sa agencijama |
-| `/putovanja:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
 | `/putovanja:agencije` | Sveže skeniranje (i agencije koje čita Claude) |
-| `/putovanja:pregled [auto]` | Nedeljni pregled: izveštaj + predlozi u Trello |
-| `/putovanja:profil` | Profil: budžet, šta volite, aerodrom |
+| `/putovanja:pregled [auto]` | Nedeljni pregled: izveštaj (uz Trello dodatak i predlozi na tabli) |
+| `/putovanja-trello:predlozi`, `/putovanja-trello:planiraj` | Samo uz Trello dodatak: ideje sa table, kartica u Planirano |
+| `/putovanja:profil` | Profil: putnici (odrasli, deca), budžet, šta voliš, aerodrom |
 
 ## Komande `pt`
 
@@ -89,6 +93,8 @@ pt preporuke [--limit 10]
 pt trello tabla
 pt trello predlog <ID>              ponuda → kartica u 📬 Predlozi
 pt trello dodaj --lista izleti --naslov "Segedin" --rok 2026-11-08 [--opis ...] [--link ...]
+pt izvori                           agencije: broj ponuda, poslednji sken, greške
+pt popusti <ID> [<ID> ...]          popusti za više osoba sa stranica ponuda
 pt profil
 ```
 
@@ -159,13 +165,9 @@ Delovi workflow-a (sedam faza planiranja, provera pre polaska, "tri opcije sa st
 
 ## Pano: odeljci
 
-`/putovanja` u Claude Code-u otvara pano sa tri odeljka:
-
-- **🏢 Agencije**: destinacije po kontinentima i zemljama, 📅 kalendar polazaka (sa praznicima), detalji ponude sa
-  **💶 ukupnom cenom za vas dvoje** (aranžman + takse i obavezne doplate, osiguranje kao preporučeno, fakultativno posebno).
-  Desno stoje najbolje ponude po kriterijumu.
-- **🧭 Uradi sam**: upišeš kuda i datume, dobiješ linkove za avion, autobus, voz, auto, Booking, Trivago, Airbnb i
-  dugme da Claude nađe i sačuva 2–3 kombinacije prevoz + smeštaj sa ukupnom cenom, uporedo sa agencijama za istu destinaciju.
-- **👁 Praćeno**: praćene cene i obaveštenja (pojeftinilo, nestalo, novo po vašim željama).
-
-U zaglavlju piše kad je bio poslednji sken (žuto kad je stariji od 7 dana).
+- **Agencije**: zemlje levo, tabla polazaka u sredini, izvori i konektori desno, traka "Najjeftinije svuda" na dnu.
+  Kalendar polazaka (sa praznicima) je drugi prikaz. Ponuda: svi polasci, popusti za više osoba i ukupna cena za
+  izabrane putnike (aranžman + takse i obavezne doplate; osiguranje kao preporučeno; fakultativno posebno).
+- **Uradi sam**: upišeš kuda i datume, dobiješ linkove za avion, autobus, voz, auto, Booking, Trivago, Airbnb i
+  dugme da Claude nađe i sačuva 2–3 kombinacije prevoz + smeštaj, uporedo sa agencijama.
+- **Praćeno**: praćene cene i obaveštenja (pojeftinilo, nestalo, novo po tvojim željama).
