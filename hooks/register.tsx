@@ -5,7 +5,7 @@ import type { Detalji, Diy, Izvori, Kalendar, Kombinacija, Konektor, Nav, Obaves
 
 const PANE = 'putovanja'
 const VERZIJA_ALATA = '0.5.1' // isto kao version u pyproject.toml; kad se razlikuje, pano osveži alat
-const KONEKTORI_STRANA = 'https://claude.ai/settings/connectors'
+const KONEKTORI_STRANA = 'https://claude.ai/customize/connectors'
 
 const nav = atom({ plugin: 'putovanja', key: 'nav' } as const, {
   view: 'pocetna', kontinent: '', zemlja: '', ponudaId: '', kriterijum: 'preporuka', strana: 0, sort: 'preporuka',

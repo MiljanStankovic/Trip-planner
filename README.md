@@ -54,7 +54,7 @@ pano je tada sa strane). U običnom režimu (pano iznad polja za kucanje) korist
 ### Konektori (letovi, smeštaj, izleti)
 
 Pano desno pokazuje koje konektore imaš: Expedia, SlickTrip, eDreams, Civitatis. Dodaju se jednom, na claude.ai
-(Settings → Connectors), i Claude Code ih posle sam vidi. Bez njih sve radi, samo Claude za letove i smeštaj koristi
+(Customize → Connectors, claude.ai/customize/connectors), i Claude Code ih posle sam vidi. Bez njih sve radi, samo Claude za letove i smeštaj koristi
 pretragu i linkove.
 
 ### Trello (opciono, podrazumevano isključen)
