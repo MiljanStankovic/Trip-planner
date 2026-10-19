@@ -173,6 +173,7 @@
   .filter-panel { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--l1); border-top: 0; border-radius: 0 0 var(--r) var(--r); margin-top: -6px; }
   .filter-panel .cipovi .cip, .sve-zemlje .cipovi .cip, .mob .traka-putnici .cip { min-height: 44px; padding: 0 15px; font-size: 14px; }
   ol.kartice { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+  @media (min-width: 700px) { .mob ol.kartice { grid-template-columns: 1fr 1fr; } .mob .app { padding: 10px 12px; } }
   .kartica { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding: 12px 14px; border: 1px solid var(--l1); border-radius: var(--r); background: var(--poz); cursor: pointer; }
   .kartica:active { background: var(--poz2); }
   .kartica .naziv { white-space: normal; font-size: 15.5px; line-height: 1.3; }
@@ -283,7 +284,11 @@ const S = {
   prikaz: 'inline', modovi: [], filteri: false, sveZemlje: false, koliko: 8,
 };
 let VERZIJA = '0.3.2';
-const mob = () => window.innerWidth < 600;
+// telefon: uzak prozor; tablet (ekran na dodir): uspravno kao telefon, položeno kao računar.
+// Orijentacija se čita sa ekrana, ne iz prozora: prozor u razgovoru raste u visinu sa sadržajem.
+const naDodir = () => { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } };
+const uspravno = () => { const t = screen.orientation?.type; return t ? t.startsWith('portrait') : screen.height > screen.width; };
+const mob = () => window.innerWidth < 600 || (naDodir() && uspravno() && window.innerWidth < 1100);
 const siroko = () => S.prikaz === 'fullscreen' && !mob();
 const poStrani = () => siroko() ? 10 : 6;
 
@@ -632,6 +637,9 @@ $('bocno').addEventListener('click', (e) => {
   if (b('[data-prikaz]')) return promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen');
 });
 window.addEventListener('resize', () => crtaj());
+// okretanje tableta: odmah drugi raspored
+try { screen.orientation?.addEventListener('change', () => setTimeout(crtaj, 50)); } catch {}
+window.addEventListener('orientationchange', () => setTimeout(crtaj, 50));
 $('sadrzaj').addEventListener('click', (e) => {
   const t = e.target;
   const b = (sel) => t.closest(sel);
