@@ -29,6 +29,7 @@ class Item:
     country: str
     continent: str
     haystack: str = field(repr=False, default="")
+    tour: list = field(repr=False, default_factory=list)  # svi polasci istog aranžmana (isti sajt i naziv)
 
     def __getitem__(self, k):
         return self.row[k]
@@ -55,8 +56,22 @@ class Item:
 
     def to_dict(self) -> dict:
         d = dict(self.row)
-        d.update(zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates)
+        d.update(zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates,
+                 termini=self.termini())
         return d
+
+    def termini(self) -> list[dict]:
+        """Svi polasci ovog aranžmana sa cenom za taj datum, po datumu."""
+        out, seen = [], set()
+        for it in self.tour or [self]:
+            r = it.row
+            for dt in it.dates or [None]:
+                if (dt, r["price"]) in seen:
+                    continue
+                seen.add((dt, r["price"]))
+                out.append({"id": r["id"], "datum": dt, "noci": r["nights"], "cena": r["price"],
+                            "stara": r["old_price"], "valuta": r["currency"] or "EUR"})
+        return sorted(out, key=lambda t: t["datum"] or "9999")
 
 
 def load(conn: sqlite3.Connection, seen_within_days: int = 21) -> list[Item]:
@@ -66,7 +81,16 @@ def load(conn: sqlite3.Connection, seen_within_days: int = 21) -> list[Item]:
         hay = fold(" ".join(str(x) for x in (r["destination"], r["title"], r["source"], country, cont,
                                                AGENCY_NAMES.get(r["source"], ""))))
         items.append(Item(r, country, cont, hay))
+    groups: dict[tuple, list[Item]] = defaultdict(list)
+    for it in items:
+        groups[tour_key(it)].append(it)
+    for it in items:
+        it.tour = groups[tour_key(it)]
     return items
+
+
+def tour_key(it: "Item") -> tuple:
+    return (it.row["source"], (it.row["url"] or "").split("?")[0].rstrip("/"), (it.row["title"] or "").lower())
 
 
 def tree(items: list[Item]) -> dict[str, Counter]:

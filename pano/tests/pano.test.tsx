@@ -91,3 +91,28 @@ test('telefon: bez bočnog panoa aplikacija se crta u razgovoru ispod /putovanja
   expect(await ui.find({ key: `p-${PONUDA.id}` })).toBeDefined()
   await ui.unmount()
 })
+
+test('preporučeno: opseg cena, datumi sa cenom, klik na datum otvara taj polazak', async ($, on) => {
+  const T = [
+    { id: 'abcdef1234567890', datum: '2026-11-08', noci: 12, cena: 1549, stara: 1899, valuta: 'EUR' },
+    { id: 'zzz1', datum: '2026-12-02', noci: 12, cena: 1649, stara: null, valuta: 'EUR' },
+  ]
+  mock.store(on)
+  on('process.run', async (_$, e: any) => {
+    const a = e.argv.slice(2)
+    const out = a[0] === 'top' ? JSON.stringify({ ponude: [{ ...PONUDA, termini: T, zasto: 'x' }] })
+      : a[0] === 'ponuda' ? JSON.stringify({ ...PONUDA, id: 'zzz1', sa_sajta: {} }) : odgovor(e.argv)
+    return { value: { exitCode: 0, stdout: out, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+  })
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE, props: { ...PANE.props, bodyColumns: 110 } })
+  await ui.advance(50)
+  expect(await ui.find({ text: /1\.549–1\.649 €/ })).toBeDefined()
+  const d = await ui.find({ key: 'td-zzz1-2026-12-02-1' })
+  expect(d).toBeDefined()
+  await ui.press({ key: 'td-zzz1-2026-12-02-1' })
+  await ui.advance(50)
+  expect(await ui.find({ type: 'Markdown', text: /→ 02\.12\.2026\./ })).toBeDefined()
+  await ui.unmount()
+})

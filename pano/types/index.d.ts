@@ -1,3 +1,5 @@
+export type Termin = { id: string; datum: string | null; noci: number | null; cena: number | null; stara: number | null; valuta: string }
+
 export type Ponuda = {
   id: string
   destination: string
@@ -16,6 +18,7 @@ export type Ponuda = {
   url: string
   note: string
   zasto?: string
+  termini?: Termin[]
 }
 
 export type Detalji = {

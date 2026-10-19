@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
-import type { Detalji, Nav, Ponuda, ZemljeMapa } from '../types'
+import type { Detalji, Nav, Ponuda, Termin, ZemljeMapa } from '../types'
 
 const PLUGIN = 'putesestvije-pano'
 const PANE = 'putesestvije'
@@ -52,6 +52,47 @@ function eur(p: Ponuda): number {
 
 function ime(p: Ponuda): string {
   return !p.destination || p.destination === p.zemlja ? p.title || p.destination : p.destination
+}
+
+function termini(p: Ponuda): Termin[] {
+  if (p.termini?.length) return p.termini
+  const d = p.svi_datumi.length ? p.svi_datumi : [p.date_from]
+  return d.map(datum => ({ id: p.id, datum, noci: p.nights, cena: p.price, stara: p.old_price, valuta: p.currency }))
+}
+
+function iznos(v: number | null, valuta: string): string {
+  if (!v) return 'na sajtu'
+  return `${Math.round(v).toLocaleString('de-DE')} ${valuta === 'RSD' ? 'din' : '€'}`
+}
+
+// "1.799 €" ili "1.799–1.999 €" kad cena zavisi od datuma
+function opseg(ts: Termin[]): string {
+  const c = ts.map(t => t.cena).filter((x): x is number => !!x)
+  if (!c.length) return 'na sajtu'
+  const v = ts.find(t => t.cena)?.valuta ?? 'EUR'
+  const lo = Math.min(...c), hi = Math.max(...c)
+  if (lo === hi) return iznos(lo, v)
+  return `${Math.round(lo).toLocaleString('de-DE')}–${iznos(hi, v)}`
+}
+
+function cenaVarira(ts: Termin[]): boolean {
+  return new Set(ts.map(t => t.cena).filter(Boolean)).size > 1
+}
+
+function kratakDatum(d: string | null): string {
+  if (!d) return '—'
+  const [, m, dd] = d.split('-')
+  return `${dd}.${m}.`
+}
+
+function polazak(p: Ponuda, t: Termin): Ponuda {
+  return { ...p, id: t.id, date_from: t.datum, date_to: t.id === p.id ? p.date_to : null, nights: t.noci ?? p.nights,
+    price: t.cena, old_price: t.stara, currency: t.valuta }
+}
+
+// koliko dugmića-datuma staje u širinu (sa cenom ~16 znakova, bez ~7)
+function varijaDatuma(ts: Termin[], sirina: number): number {
+  return Math.max(2, Math.floor((sirina - 3) / (cenaVarira(ts) ? 16 : 7)))
 }
 
 type Tura = { glavna: Ponuda; svi: Ponuda[] }
@@ -211,6 +252,23 @@ async function crtaj($: any, e: any) {
   }
   const SORTOVI: [Nav['sort'], string][] = [['datum', '📅 datum'], ['cena', '💶 cena'], ['popust', '💸 popust']]
 
+  // red dugmića-datuma: klik otvara baš taj polazak; cena pored datuma kad se menja po datumu
+  const datumiDugmad = (p: Ponuda, pre: string, max: number) => {
+    const ts = termini(p)
+    const varira = cenaVarira(ts)
+    return (
+      <Box flexDirection="row" flexWrap="wrap" columnGap={1}>
+        <Text dimColor>📅</Text>
+        {ts.slice(0, max).map((t, i) => (
+          <Button plain dimColor key={`${pre}-${t.id}-${t.datum ?? 'x'}-${i}`} onPress={() => otvoriPonudu($, polazak(p, t))}>
+            {kratakDatum(t.datum)}{varira ? <Text color="success"> {iznos(t.cena, t.valuta)}</Text> : ''}
+          </Button>
+        ))}
+        {ts.length > max && <Text dimColor>+{ts.length - max} još</Text>}
+      </Box>
+    )
+  }
+
   const bedz = (pp: number) => (pp ? <Text backgroundColor="success" color="inverseText" bold> -{pp}% </Text> : null)
 
   // ----- zaglavlje: naziv aplikacije + putanja -----
@@ -236,7 +294,7 @@ async function crtaj($: any, e: any) {
   // ----- bočna kolona: najbolje ponude -----
   const najbolje = async (sirina: number, visina: number) => {
     const t = await read($, top)
-    const kolikoStane = Math.max(3, Math.floor((visina - 4) / 2))
+    const kolikoStane = Math.max(3, Math.floor((visina - 4) / 4))
     return (
       <Box flexDirection="column" borderStyle="round" borderColor="subtle" paddingX={1} width={telefon ? undefined : sirina}>
         {telefon ? (
@@ -256,8 +314,10 @@ async function crtaj($: any, e: any) {
         )}
         {t.length === 0 && <Text dimColor>Nema ponuda za ovaj kriterijum.</Text>}
         {t.slice(0, kolikoStane).map(p => {
-          const c = cena(p)
+          const ts = termini(p)
+          const c = opseg(ts)
           const w = sirina - 6
+          const pp = Math.max(0, ...ts.map(x => (x.stara && x.cena && x.stara > x.cena ? Math.round((100 * (x.stara - x.cena)) / x.stara) : 0)))
           return (
             <Box flexDirection="column" marginTop={1}>
               <Box flexDirection="row" justifyContent="space-between">
@@ -267,9 +327,10 @@ async function crtaj($: any, e: any) {
                 <Text bold color="success">{c}</Text>
               </Box>
               <Box flexDirection="row" gap={1}>
-                {bedz(popust(p))}
-                <Text dimColor>{kratko(`${p.zemlja} · ${p.agencija}${p.date_from ? ' · ' + datum(p.date_from) : ''}`, Math.max(10, w - (popust(p) ? 7 : 0)))}</Text>
+                {bedz(pp)}
+                <Text dimColor>{kratko(`${p.zemlja} · ${p.agencija}${p.nights ? ` · ${p.nights} noći` : ''}`, Math.max(10, w - (pp ? 7 : 0)))}</Text>
               </Box>
+              {datumiDugmad(p, 'td', varijaDatuma(ts, w))}
             </Box>
           )
         })}
@@ -356,10 +417,10 @@ async function crtaj($: any, e: any) {
   // ----- zemlja: tabela tura -----
   if (n.view === 'zemlja') {
     const ture = grupisi(await read($, lista), n.sort)
-    const naStr = Math.max(6, Math.min(NA_STRANI + 6, rows - 12))
+    const naStr = Math.max(4, Math.min(NA_STRANI, Math.floor((rows - 10) / 3)))
     const odStr = n.strana * naStr
     const vidljive = ture.slice(odStr, odStr + naStr)
-    const wDatum = 14, wCena = 12, wAg = telefon ? 0 : 13
+    const wDatum = 11, wCena = 18, wAg = telefon ? 0 : 13
     const wIme = Math.max(12, cols - wDatum - wCena - wAg - 10)
     return okvir(
       <Box flexDirection="column">
@@ -390,24 +451,24 @@ async function crtaj($: any, e: any) {
           {vidljive.length === 0 && <Text dimColor>{st ? '…' : 'Nema ponuda.'}</Text>}
           {vidljive.map(t => {
             const p = t.glavna
-            const termini = new Set(t.svi.flatMap(x => x.svi_datumi)).size
-            const cene = t.svi.map(x => x.price).filter(Boolean) as number[]
-            const c = cene.length > 1 && Math.min(...cene) !== Math.max(...cene)
-              ? `od ${Math.round(Math.min(...cene)).toLocaleString('de-DE')} ${p.currency === 'RSD' ? 'din' : '€'}`
-              : cena(p)
+            const ts = termini(p)
+            const c = opseg(ts)
             const pp = Math.max(...t.svi.map(popust))
             return (
-              <Box flexDirection="row">
-                <Box width={wDatum}>
-                  <Text>{datum(p.date_from).slice(0, 6)}{termini > 1 ? <Text color="suggestion"> +{termini - 1}</Text> : ''}</Text>
+              <Box flexDirection="column" marginTop={1}>
+                <Box flexDirection="row">
+                  <Box width={wDatum}>
+                    <Text>{datum(p.date_from).slice(0, 6)}{ts.length > 1 ? <Text color="suggestion"> +{ts.length - 1}</Text> : ''}</Text>
+                  </Box>
+                  <Box flexGrow={1}>
+                    <Button plain key={`p-${p.id}`} onPress={() => otvoriPonudu($, p)}>
+                      {IKONA[p.transport ?? ''] ?? '•'} <Text bold>{kratko(ime(p), wIme - (pp ? 6 : 0))}</Text>{pp ? <Text color="success"> -{pp}%</Text> : ''}
+                    </Button>
+                  </Box>
+                  <Box width={wCena} justifyContent="flex-end"><Text bold color="success">{c}</Text></Box>
+                  {!telefon && <Box width={wAg} paddingLeft={2}><Text dimColor>{kratko(p.agencija, wAg - 2)}</Text></Box>}
                 </Box>
-                <Box flexGrow={1}>
-                  <Button plain key={`p-${p.id}`} onPress={() => otvoriPonudu($, p)}>
-                    {IKONA[p.transport ?? ''] ?? '•'} {kratko(ime(p), wIme - (pp ? 6 : 0))}{pp ? <Text color="success"> -{pp}%</Text> : ''}
-                  </Button>
-                </Box>
-                <Box width={wCena} justifyContent="flex-end"><Text bold color="success">{c}</Text></Box>
-                {!telefon && <Box width={wAg} paddingLeft={2}><Text dimColor>{kratko(p.agencija, wAg - 2)}</Text></Box>}
+                {ts.length > 1 && <Box paddingLeft={telefon ? 0 : wDatum}>{datumiDugmad(p, 'zd', varijaDatuma(ts, cols - wDatum - 6) * 2)}</Box>}
               </Box>
             )
           })}
@@ -431,13 +492,17 @@ async function crtaj($: any, e: any) {
   const d = await read($, detalji)
   if (!p) return okvir(<Text dimColor>Izaberi ponudu.</Text>, true)
   const iste = (await read($, lista)).filter(x => x.agencija === p.agencija && baseUrl(x.url) === baseUrl(p.url) && x.title === p.title)
-  const termini = (iste.length ? iste : [p]).flatMap(x => x.svi_datumi.map(dt => ({ dt, x })))
-    .sort((a, b) => a.dt.localeCompare(b.dt))
+  const sviT: Termin[] = p.termini?.length ? p.termini : (iste.length ? iste : [p]).flatMap(termini)
+    .sort((a, b) => (a.datum ?? '9999').localeCompare(b.datum ?? '9999'))
   const md: string[] = []
-  if (termini.length > 1) {
-    md.push(`**Svi termini (${termini.length})**\n`)
-    md.push('| Polazak | Noći | Cena |\n|---|---|---|')
-    for (const { dt, x } of termini.slice(0, 20)) md.push(`| ${datum(dt)} | ${x.nights ?? ''} | ${cena(x)} |`)
+  if (sviT.length > 1) {
+    md.push(`**Svi termini (${sviT.length})** · ${opseg(sviT)}\n`)
+    md.push('| Polazak | Noći | Cena | |\n|---|---|---|---|')
+    for (const t of sviT.slice(0, 30)) {
+      const ovaj = t.datum === p.date_from && t.cena === p.price
+      const pp = t.stara && t.cena && t.stara > t.cena ? ` ~~${Math.round(t.stara)}~~` : ''
+      md.push(`| ${ovaj ? '**→ ' + datum(t.datum) + '**' : datum(t.datum)} | ${t.noci ?? ''} | ${iznos(t.cena, t.valuta)}${pp} | ${ovaj ? 'izabran' : ''} |`)
+    }
   }
   if (d) {
     if (d.greska) md.push(`\n> ⚠️ ${d.greska}`)
@@ -472,6 +537,7 @@ async function crtaj($: any, e: any) {
         {cinjenica('f-prevoz', 'Prevoz', p.transport ?? '?')}
         {cinjenica('f-cena', popust(p) ? `Cena (bilo ${Math.round(p.old_price!)})` : 'Cena po osobi', cena(p), 'success')}
       </Box>
+      {sviT.length > 1 && <Box paddingX={1}>{datumiDugmad({ ...p, termini: sviT }, 'pd', 16)}</Box>}
       <Box flexDirection="row" gap={1} marginY={1}>
         <Button key="trello" variant="primary" hotkey="t"
           onPress={() => pitaj($, `Stavi ponudu ${p.id.slice(0, 8)} (${ime(p)}, ${p.agencija}, polazak ${datum(p.date_from)}, ${cena(p)}) u Trello listu 📬 Predlozi.`)}>
