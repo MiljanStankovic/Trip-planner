@@ -42,7 +42,7 @@ Zatim otvori Claude Code i ukucaj **`/putovanja`**.
 
 Opcije: `-BezSkena` / `--bez-skena` preskače skeniranje.
 
-> Repo je privatan: ko instalira mora imati pristup na GitHub-u (Settings → Collaborators), a `git clone` će tražiti prijavu.
+> Repo je javan: instalacija ne traži GitHub nalog. Izmene (push) mogu da šalju samo vlasnik i dodati saradnici; ostali mogu da predlože izmenu preko fork-a i pull request-a.
 
 <details><summary>Ručna instalacija (ako skripta ne može)</summary>
 
