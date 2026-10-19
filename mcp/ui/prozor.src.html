@@ -37,13 +37,42 @@
   :focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
   [hidden] { display: none !important; }
   .app { padding: 10px 4px 6px; }
+  .app.siroko { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 24px; padding: 14px 18px; min-height: 100vh; align-items: start; }
+  .glavno { min-width: 0; }
+  svg.ik { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* bočna traka (proširen prikaz): odeljci gore, destinacije ispod */
+  .bocno { position: sticky; top: 14px; display: flex; flex-direction: column; gap: 2px; max-height: calc(100vh - 28px); overflow: auto; padding-right: 4px; }
+  .marka { display: flex; align-items: center; gap: 10px; padding: 2px 8px 14px; }
+  .marka .znak { width: 30px; height: 30px; border-radius: 9px; background: var(--cena); color: var(--poz); display: grid; place-items: center; }
+  .marka .znak svg { width: 18px; height: 18px; stroke-width: 1.8; }
+  .marka b { font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
+  .marka small { display: block; color: var(--t3); font-size: 12px; }
+  .stavka-nav { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: transparent; padding: 7px 10px; border-radius: var(--r); color: var(--t2); text-align: left; font-size: 14px; }
+  .stavka-nav:hover { background: var(--poz2); color: var(--t1); }
+  .stavka-nav[aria-current="true"] { background: var(--poz2); color: var(--t1); font-weight: 600; }
+  .stavka-nav .broj, .tab .broj { margin-left: auto; min-width: 20px; text-align: center; padding: 0 6px; border-radius: 999px; background: var(--upozp); color: var(--upoz); font-size: 11.5px; font-weight: 600; }
+  .deo { color: var(--t3); font-size: 12px; padding: 16px 10px 4px; }
+  .kont { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: transparent; padding: 5px 10px; border-radius: var(--rs); color: var(--t1); text-align: left; font-size: 13.5px; }
+  .kont:hover { background: var(--poz2); }
+  .kont .str { width: 12px; color: var(--t3); transition: transform .15s; }
+  .kont[aria-expanded="true"] .str { transform: rotate(90deg); }
+  .kont small, .zem small { margin-left: auto; color: var(--t3); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .zem { display: flex; width: 100%; border: 0; background: transparent; padding: 4px 10px 4px 28px; border-radius: var(--rs); color: var(--t2); text-align: left; font-size: 13px; }
+  .zem:hover { background: var(--poz2); color: var(--t1); }
+  .zem[aria-pressed="true"] { background: var(--poz2); color: var(--t1); font-weight: 600; box-shadow: inset 2px 0 0 var(--cena); }
+  .dno-bocno { margin-top: 14px; padding: 10px; border-top: 1px solid var(--l1); color: var(--t3); font-size: 12px; display: grid; gap: 8px; }
+  .siroko .vrh { display: none; }
+  .zag-glavno { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; margin: 2px 0 8px; }
+  .zag-glavno h2 { margin: 0; font-size: 22px; }
+  .tab { display: inline-flex; align-items: center; gap: 6px; }
+  .malo { display: inline-flex; align-items: center; gap: 6px; }
 
   /* zaglavlje: odeljci levo, prikaz desno */
   .vrh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
   .tabovi { display: flex; gap: 2px; flex-wrap: wrap; }
   .tab { border: 0; background: transparent; padding: 6px 10px; border-radius: var(--rs); color: var(--t2); }
   .tab[aria-current="true"] { background: var(--poz2); color: var(--t1); font-weight: 600; }
-  .tab .broj { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: var(--upozp); color: var(--upoz); font-size: 11.5px; font-weight: 600; }
   .malo { border: 1px solid var(--l1); background: transparent; border-radius: var(--rs); padding: 4px 10px; font-size: 13px; color: var(--t2); }
 
   .red-kontrola { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; }
@@ -134,18 +163,15 @@
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="vrh">
-    <nav class="tabovi" id="tabovi" aria-label="Odeljci">
-      <button class="tab" data-v="ponude">Ponude</button>
-      <button class="tab" data-v="kalendar">Kalendar</button>
-      <button class="tab" data-v="praceno">Praćeno</button>
-      <button class="tab" data-v="uradisam">Uradi sam</button>
-      <button class="tab" data-v="izvori">Izvori</button>
-    </nav>
-    <button class="malo" id="prosiri" hidden>Proširi</button>
-  </div>
-  <div id="sadrzaj"></div>
+<div class="app" id="app">
+  <aside class="bocno" id="bocno" hidden></aside>
+  <main class="glavno">
+    <div class="vrh" id="vrh">
+      <nav class="tabovi" id="tabovi" aria-label="Odeljci"></nav>
+      <button class="malo" id="prosiri" hidden><svg class="ik" viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg><span>Proširi</span></button>
+    </div>
+    <div id="sadrzaj"></div>
+  </main>
 </div>
 
 <script type="module">
@@ -163,6 +189,9 @@ const PUTNICI = [['1+0', '1 osoba'], ['2+0', '2 odrasla'], ['2+1', '2 + dete'], 
 const SORT = [['preporuka', 'Preporučeno'], ['cena', 'Najjeftinije'], ['datum', 'Najranije'], ['popust', 'Popust']];
 
 const $ = (id) => document.getElementById(id);
+const IKONE = {"ponude": "<rect x=\"3\" y=\"7\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18\"/>", "kalendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M8 3v4M16 3v4M3 10h18\"/>", "praceno": "<path d=\"M6 9a6 6 0 0 1 12 0c0 6 3 7 3 7H3s3-1 3-7\"/><path d=\"M10 20a2 2 0 0 0 4 0\"/>", "uradisam": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m15.5 8.5-2 5-5 2 2-5z\"/>", "izvori": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18\"/>"};
+const ikona = (k) => `<svg class="ik" viewBox="0 0 24 24" aria-hidden="true">${IKONE[k] ?? ''}</svg>`;
+const ODELJCI = [['ponude', 'Ponude'], ['kalendar', 'Kalendar'], ['praceno', 'Praćeno'], ['uradisam', 'Uradi sam'], ['izvori', 'Izvori']];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const iznos = (v, val) => v ? `${Math.round(v).toLocaleString('de-DE')} ${val === 'RSD' ? 'din' : '€'}` : '';
 const noci = (n) => n === 0 ? 'izlet' : !n ? '' : (n % 10 === 1 && n !== 11) ? `${n} noć` : `${n} noći`;
@@ -204,10 +233,11 @@ const S = {
   kal: null, prac: [], obav: null, izvori: null, sken: null, diy: procitaj('diy', { odakle: 'Beograd', kuda: '', od: '', do: '' }), diyLista: [], diyAg: [],
   prikaz: 'inline', modovi: [],
 };
-const poStrani = () => S.prikaz === 'fullscreen' ? 12 : 6;
+const siroko = () => S.prikaz === 'fullscreen';
+const poStrani = () => siroko() ? 10 : 6;
 
 // ---------- veza sa Claude-om ----------
-const app = new App({ name: 'Putovanja', version: '0.2.0' }, { availableDisplayModes: ['inline', 'fullscreen'] });
+const app = new App({ name: 'Putovanja', version: '0.3.0' }, { availableDisplayModes: ['inline', 'fullscreen'] });
 async function pozovi(name, args = {}) {
   const r = await app.callServerTool({ name, arguments: args });
   const d = r?.structuredContent ?? (() => { try { return JSON.parse(r?.content?.[0]?.text ?? '{}'); } catch { return {}; } })();
@@ -321,10 +351,12 @@ function crtajPonude() {
   const vid = TURE.slice(S.strana * ps, S.strana * ps + ps);
   const prazna = !S.stanje?.ponuda;
   return `
-    ${cipoviZemalja()}
-    <h2>${S.zemlja ? esc(S.zemlja) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
+    ${siroko() ? '' : cipoviZemalja()}
+    <div class="zag-glavno">
+      <h2>${S.zemlja ? esc(S.zemlja) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
+    </div>
     <div class="red-kontrola">
-      <div class="seg" id="sort">${SORT.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === S.sort}">${l}</button>`).join('')}</div>
+      <span class="oznaka">Redosled</span><div class="seg" id="sort">${SORT.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === S.sort}">${l}</button>`).join('')}</div>
       ${izborPutnika()}
     </div>
     ${prazna && !S.ucitava ? `<div class="poruka">Baza je prazna. Prvo skeniraj agencije (1–3 min). <button class="dugme" data-akcija="sken">Skeniraj sada</button></div>` : ''}
@@ -445,31 +477,61 @@ function crtajIzvore() {
     <div class="cipovi" style="margin-top:4px">${ag.filter((a) => a.stanje === 'ok').map((a) => `<button class="cip" data-url="${esc(a.sajt)}">${esc(a.naziv)}<small>${a.ponuda}</small></button>`).join('')}</div>
     ${iz?.cita_claude?.length ? `<p class="oznaka">Sajtove ${iz.cita_claude.map((c) => esc(c.naziv)).join(', ')} čita Claude kad ga pitaš.</p>` : ''}`;
 }
+function crtajBocno() {
+  const novo = S.obav?.ukupno ?? 0;
+  const kont = Object.entries(S.zemlje ?? {});
+  const otv = S.kontinent === '__' ? '' : S.kontinent && S.zemlje[S.kontinent] ? S.kontinent : (kont[0]?.[0] ?? '');
+  const sken = S.stanje?.pre_dana;
+  return `
+    <div class="marka"><span class="znak">${ikona('ponude')}</span><span><b>Putovanja</b><small>ponude domaćih agencija</small></span></div>
+    ${ODELJCI.map(([v, l]) => `<button class="stavka-nav" data-v="${v}" aria-current="${v === S.odeljak}">${ikona(v)}<span>${l}</span>${v === 'praceno' && novo ? `<span class="broj">${novo}</span>` : ''}</button>`).join('')}
+    ${S.odeljak === 'ponude' ? `
+      <div class="deo">Destinacije</div>
+      <button class="zem" style="padding-left:10px" data-z="" aria-pressed="${!S.zemlja && !S.ponuda}">★ Preporučeno za tebe</button>
+      ${kont.map(([k, z]) => `
+        <button class="kont" data-k="${esc(k)}" aria-expanded="${k === otv}"><span class="str">›</span>${esc(k)}<small>${Object.values(z).reduce((a, b) => a + b, 0)}</small></button>
+        ${k === otv ? Object.entries(z).sort((a, b) => b[1] - a[1]).map(([zz, c]) => `<button class="zem" data-z="${esc(zz)}" aria-pressed="${zz === S.zemlja}">${esc(zz)}<small>${c}</small></button>`).join('') : ''}`).join('')}` : ''}
+    <div class="dno-bocno">
+      <span>${S.stanje?.ponuda ?? 0} ponuda${sken != null ? `, sken ${sken === 0 ? 'danas' : `pre ${sken} d`}` : ''}</span>
+      ${S.modovi.includes('fullscreen') ? `<button class="malo" data-prikaz="1">${S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi'}</button>` : ''}
+    </div>`;
+}
 function crtaj() {
-  for (const b of $('tabovi').querySelectorAll('.tab')) b.setAttribute('aria-current', String(b.dataset.v === S.odeljak));
+  const sir = siroko();
+  $('app').classList.toggle('siroko', sir);
+  $('bocno').hidden = !sir;
+  if (sir) $('bocno').innerHTML = crtajBocno();
   const novo = (S.obav?.ukupno ?? 0);
-  $('tabovi').querySelector('[data-v="praceno"]').innerHTML = `Praćeno${novo ? `<span class="broj">${novo}</span>` : ''}`;
+  $('tabovi').innerHTML = ODELJCI.map(([v, l]) => `<button class="tab" data-v="${v}" aria-current="${v === S.odeljak}">${ikona(v)}${l}${v === 'praceno' && novo ? `<span class="broj">${novo}</span>` : ''}</button>`).join('');
   $('prosiri').hidden = !S.modovi.includes('fullscreen');
-  $('prosiri').textContent = S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi';
+  $('prosiri').querySelector('span').textContent = S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi';
   const telo = { ponude: crtajPonude, kalendar: crtajKalendar, praceno: crtajPraceno, uradisam: crtajDiy, izvori: crtajIzvore }[S.odeljak]();
   $('sadrzaj').innerHTML = (S.greska ? `<div class="poruka">${esc(S.greska)}</div>` : '') + (S.ucitava ? `<div class="oznaka">${esc(S.ucitava)}</div>` : '') + telo;
 }
 
 // ---------- klikovi ----------
-$('tabovi').addEventListener('click', (e) => {
-  const v = e.target.closest('.tab')?.dataset.v; if (!v) return;
+function idiNa(v) {
   S.strana = 0;
   if (v === 'ponude') { S.odeljak = 'ponude'; S.ponuda = null; crtaj(); }
   else if (v === 'kalendar') otvoriKalendar();
   else if (v === 'praceno') otvoriPraceno();
   else if (v === 'uradisam') otvoriDiy();
   else otvoriIzvore();
-});
-$('prosiri').addEventListener('click', async () => {
-  const cilj = S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen';
+}
+async function promeniPrikaz(cilj) {
   try { const r = await app.requestDisplayMode({ mode: cilj }); S.prikaz = r?.mode ?? cilj; } catch {}
   crtaj();
+}
+$('tabovi').addEventListener('click', (e) => { const v = e.target.closest('.tab')?.dataset.v; if (v) idiNa(v); });
+$('prosiri').addEventListener('click', () => promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen'));
+$('bocno').addEventListener('click', (e) => {
+  const b = (sel) => e.target.closest(sel);
+  if (b('[data-v]')) return idiNa(b('[data-v]').dataset.v);
+  if (b('[data-k]')) { const k = b('[data-k]').dataset.k; S.kontinent = S.kontinent === k ? '__' : k; return crtaj(); }
+  if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
+  if (b('[data-prikaz]')) return promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen');
 });
+window.addEventListener('resize', () => crtaj());
 $('sadrzaj').addEventListener('click', (e) => {
   const t = e.target;
   const b = (sel) => t.closest(sel);
@@ -529,6 +591,8 @@ crtaj();
 await app.connect();
 tema(app.getHostContext());
 crtaj();
+// odmah preko celog prozora, ako Claude to dozvoljava; ako ne, ostaje u razgovoru
+if (S.modovi.includes('fullscreen') && S.prikaz !== 'fullscreen') promeniPrikaz('fullscreen');
 }
 </script>
 </body>
