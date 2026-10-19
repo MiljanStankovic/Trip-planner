@@ -1,6 +1,6 @@
 [project]
 name = "putovanja-mcp"
-version = "0.3.1"
+version = "0.3.2"
 description = "Putovanja za običan Claude chat (MCP server sa prozorom)"
 requires-python = ">=3.10"
 dependencies = [

@@ -19,7 +19,9 @@ from typing import Any
 from mcp.server.mcpserver import MCPServer
 
 OVDE = Path(__file__).parent
-PROZOR = "ui://putovanja/prozor.html"
+VERZIJA = "0.3.2"
+# verzija je u adresi prozora: Claude pamti prozor po adresi, pa nova verzija mora imati novu adresu
+PROZOR = f"ui://putovanja/prozor-{VERZIJA}.html"
 MIME_PROZORA = "text/html;profile=mcp-app"
 SAMO_PROZOR = {"ui": {"visibility": ["app"]}}
 
@@ -112,6 +114,7 @@ def _pocetni_podaci(zemlja: str, prikaz: str) -> dict[str, Any]:
 def otvori_putovanja(zemlja: str = "", prikaz: str = "pocetna") -> dict[str, Any]:
     podaci = _pocetni_podaci(zemlja.strip(), prikaz)
     lista = podaci["lista"]
+    podaci["verzija"] = VERZIJA
     podaci["za_model"] = (
         f"Prozor je otvoren ({'zemlja ' + zemlja if zemlja else 'preporučeno'}, {len(lista)} ponuda). "
         + "Prvih pet: " + "; ".join(
