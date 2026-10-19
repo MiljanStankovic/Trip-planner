@@ -111,9 +111,11 @@
         <div class="polje"><code id="k2">/plugin install putovanja@putovanja</code><button class="kopiraj" data-kopiraj="k2">Kopiraj</button></div></li>
       <li><b>Ponovo otvori Claude Code i otkucaj</b>
         <div class="polje"><code id="k3">/putovanja</code><button class="kopiraj" data-kopiraj="k3">Kopiraj</button></div></li>
+      <li><b>Da pano prati isto što i telefon</b>
+        <p>Ako si konektor dodao sa ovog pregledača, ovo je tvoja komanda. Ako nisi, umesto adrese stavi onu iz Claude-a (Podešavanja → Konektori → putovanja).</p>
+        <div class="polje"><code id="k4">/putovanja adresa …</code><button class="kopiraj" data-kopiraj="k4">Kopiraj</button></div></li>
     </ol>
-    <p class="napomena">Za praćenje cena i u panou: u <code>/plugin</code> otvori Putovanja, podešavanja, i upiši svoju adresu iz izbora „Claude”.
-      Nemaš Claude Code? Windows (PowerShell): <code>irm https://claude.ai/install.ps1 | iex</code>, Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>
+    <p class="napomena">Nemaš Claude Code? Windows (PowerShell): <code>irm https://claude.ai/install.ps1 | iex</code>, Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>
   </section>
 
   <footer>Putovanja __VERZIJA__ · __PONUDA__ ponuda · poslednji sken __SKEN__<br>Ne rezerviše i ne plaća ništa: ponude otvaraš na sajtu agencije.</footer>
@@ -129,6 +131,7 @@
     try { localStorage.setItem('putovanja-kljuc', kljuc); } catch {}
   }
   document.getElementById('adresa').textContent = osnova + kljuc;
+  document.getElementById('k4').textContent = '/putovanja adresa ' + osnova + kljuc;
   const izaberi = (k) => {
     for (const x of ['claude', 'code']) {
       document.getElementById('t-' + x).setAttribute('aria-selected', String(x === k));

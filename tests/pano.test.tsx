@@ -275,3 +275,20 @@ test('podrazumevano: podaci sa servera, bez lokalnog alata; lična adresa iz pod
   expect(pokrenuto.length).toBe(0)
   await ui.unmount()
 })
+
+test('/putovanja adresa <adresa>: pano posle čita sa lične adrese; pogrešna adresa se odbija', async ($, on) => {
+  adrese.length = 0
+  mock.store(on)
+  obe(on, async (_$: any, e: any) => ok(e.argv))
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  const los = await $.command.run({ command: 'putovanja', args: 'adresa https://primer.rs/nesto' } as any)
+  expect(los.text).toContain('nije adresa')
+  const dobar = await $.command.run({ command: 'putovanja', args: 'adresa https://putovanja.miljan-stankovic99.workers.dev/mcp/mojkod12345678' } as any)
+  expect(dobar.text).toContain('sačuvana')
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  expect(adrese.length).toBeGreaterThan(0)
+  expect(adrese.every(a => a.endsWith('/mcp/mojkod12345678'))).toBe(true)
+  await ui.unmount()
+})

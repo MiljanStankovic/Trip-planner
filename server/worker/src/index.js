@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.5.1';
+const VERZIJA = '0.5.2';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -22,7 +22,7 @@ const UPUTSTVO =
   'otvori_putovanja (sa zemljom ako je navedena). Prozor je cela aplikacija: korisnik u njemu sam bira zemlje, ' +
   'otvara ponude i prati cene. Za pitanja o jednoj ponudi koristi detalji_ponude umesto pretrage weba. ' +
   'Ponude se osvežavaju svako jutro. Odgovaraj kratko, srpskom latinicom. ' +
-  'Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Za praćenje cena i u panou: u /plugin otvori Putovanja, podešavanja, i upiši istu adresu konektora koju vidi u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor.';
+  'Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Da pano prati isto što i telefon: u Claude Code otkucaj /putovanja adresa <adresa konektora>. Ako je korisnik u poruci dao svoju adresu konektora, napiši mu tu komandu sa njegovom adresom, spremnu za kopiranje; ako nije, reci da adresu nađe u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor.';
 
 const ALATI = [
   {
@@ -158,6 +158,7 @@ async function podaciZaProzor(env, korisnik, komanda, a = []) {
     case 'stanje': return fajl('stanje.json');
     case 'popusti': return {};
     case 'uradisam': return [];
+    case 'adresa': return { adresa: korisnik ? `${ADRESA_SAJTA}/mcp/${korisnik}` : null };
     case 'agencije': return { poruka: 'Sken radi automatski svako jutro.' };
     default: return { greska: `komanda ${komanda} nije podržana` };
   }

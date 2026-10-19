@@ -329,14 +329,22 @@ async function lokalno($: any): Promise<boolean> {
   try { return !!(await $.store.get('ptPath')) } catch { return false }
 }
 
-function adresaServera(): string {
-  const a = String(OPCIJE.adresa ?? '').trim()
-  return /^https:\/\/[^\s]+\/mcp(\/[A-Za-z0-9_-]{8,64})?\/?$/.test(a) ? a : SERVER
+const ISPRAVNA_ADRESA = /^https:\/\/[^\s]+\/mcp\/[A-Za-z0-9_-]{8,64}\/?$/
+let ADRESA = '' // lična adresa konektora (iz /putovanja adresa … ili iz podešavanja plugina)
+
+async function adresaServera($: any): Promise<string> {
+  if (!ADRESA) {
+    let a = ''
+    try { a = String((await $.store.get('adresa')) ?? '') } catch { /* nema */ }
+    if (!ISPRAVNA_ADRESA.test(a)) a = String(OPCIJE.adresa ?? '').trim()
+    ADRESA = ISPRAVNA_ADRESA.test(a) ? a : SERVER
+  }
+  return ADRESA
 }
 
 async function saServera($: any, args: string[]): Promise<any> {
   try {
-    const r = await $.http.fetch(adresaServera(), {
+    const r = await $.http.fetch(await adresaServera($), {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call',
@@ -574,7 +582,7 @@ export const register: Register = (on, options) => {
     await $.command.register({
       name: 'putovanja',
       description: 'Otvori Putovanja: ponude agencija po zemljama, kalendar, praćenje cena i Uradi sam (prevoz + smeštaj).',
-      argumentHint: '[zemlja | pt <putanja>]',
+      argumentHint: '[zemlja | adresa <adresa konektora>]',
     })
     return next(e)
   })
@@ -582,6 +590,15 @@ export const register: Register = (on, options) => {
   // /putovanja:pano je isti pano kao /putovanja, ali je i fajl u commands/, pa ga Claude aplikacija zna od starta
   on('command.run', { command: ['putovanja', 'putovanja:pano', 'pano'] } as any, async ($: any, e: any) => {
     const args = (e.args ?? '').trim()
+    if (args === 'adresa' || args.startsWith('adresa ')) {
+      const a = args.slice(6).trim()
+      if (!ISPRAVNA_ADRESA.test(a)) {
+        return { text: 'To nije adresa konektora. Kopiraj je iz Claude-a: Podešavanja → Konektori → putovanja (počinje sa https:// i završava se sa /mcp/ i tvojim kodom).' }
+      }
+      await $.store.set('adresa', a)
+      ADRESA = a
+      return { text: 'Adresa sačuvana. Pano sada prati isto što i Putovanja na telefonu i u Claude-u. Otkucaj /putovanja.' }
+    }
     if (args.startsWith('pt ')) {
       await $.store.set('ptPath', args.slice(3).trim())
       ALAT = ''

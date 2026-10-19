@@ -1,7 +1,7 @@
 {
   "name": "putovanja",
   "displayName": "Putovanja",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Planer putovanja u Claude Code-u: ponude domaćih agencija po zemljama, kalendar polazaka, praćenje cena, Uradi sam (prevoz + smeštaj) i pano /putovanja",
   "author": {
     "name": "Miljan Stanković"
@@ -19,7 +19,7 @@
     "adresa": {
       "type": "string",
       "title": "Lična adresa konektora (za praćenje cena)",
-      "description": "Prazno: pano prikazuje ponude, ali praćenje ne radi. Upiši istu adresu kao u konektoru Putovanja (https://…/mcp/…), pa pano i telefon prate iste ponude.",
+      "description": "Prazno: pano prikazuje ponude, a praćenje ne radi. Najlakše: u Claude Code otkucaj /putovanja adresa <adresa konektora>. Ili upiši ovde istu adresu kao u konektoru Putovanja (https://…/mcp/…).",
       "default": ""
     },
     "ptPath": {

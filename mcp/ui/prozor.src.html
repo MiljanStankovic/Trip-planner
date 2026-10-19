@@ -365,6 +365,12 @@ async function skeniraj() {
   }, 4000);
 }
 const PITANJE_CLAUDE_CODE = 'Kako da pokrenem Putovanja u Claude Code-u (pano pored razgovora, u aplikaciji ili terminalu)? Daj mi tačne korake.';
+async function pitajZaClaudeCode() {
+  // sa adresom konektora, da pano u Claude Code-u prati isto što i ovaj prozor
+  let adresa = null;
+  try { adresa = (await pt('adresa'))?.adresa ?? null; } catch {}
+  pitaj(adresa ? `${PITANJE_CLAUDE_CODE} Moja adresa konektora je ${adresa}, uključi je u korake da pano prati isto što i ovde.` : PITANJE_CLAUDE_CODE);
+}
 function pitaj(tekst) { app.sendMessage({ role: 'user', content: [{ type: 'text', text: tekst }] }).catch(() => {}); }
 function link(url) { app.openLink({ url }).catch(() => {}); }
 
@@ -645,7 +651,7 @@ $('bocno').addEventListener('click', (e) => {
   if (b('[data-k]')) { const k = b('[data-k]').dataset.k; S.kontinent = S.kontinent === k ? '__' : k; return crtaj(); }
   if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
   if (b('[data-prikaz]')) return promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen');
-  if (b('[data-akcija="claude-code"]')) return pitaj(PITANJE_CLAUDE_CODE);
+  if (b('[data-akcija="claude-code"]')) return pitajZaClaudeCode();
 });
 window.addEventListener('resize', () => crtaj());
 // okretanje tableta: odmah drugi raspored
@@ -679,7 +685,7 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (a === 'sajt') return link(p.url);
   if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id}.`);
   if (a === 'diy') { S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od: kratakDatum(p.date_from) }; sacuvaj('diy', S.diy); return otvoriDiy(); }
-  if (a === 'claude-code') return pitaj(PITANJE_CLAUDE_CODE);
+  if (a === 'claude-code') return pitajZaClaudeCode();
   if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${S.diy.od}–${S.diy.do}, ${n.ukupno} osobe. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
   if (a === 'pitaj-mesec') return pitaj(`Pogledaj polaske za ${MES_PUNO[Number(S.kal.mesec.slice(5)) - 1]} (kalendar u Putovanjima) i predloži 3 najbolje opcije za vikend ili praznik, sa cenom po osobi i ukupno za ${n.ukupno}.`);
   if (a === 'sken') return skeniraj();

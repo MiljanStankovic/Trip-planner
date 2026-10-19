@@ -31,8 +31,8 @@ Na računaru ne treba ništa da se instalira osim samog plugina.
    razgovoru na svim uređajima gde si prijavljen. Besplatan Claude dozvoljava jedan prilagođeni konektor.
 2. **Pano u Claude Code-u (opciono, na računaru).** U Claude Code pošalji
    `/plugin marketplace add MiljanStankovic/Trip-planner`, pa `/plugin install putovanja@putovanja`, ponovo otvori
-   Claude Code i otkucaj **`/putovanja`**. Za praćenje cena i u panou, u podešavanjima plugina upiši istu adresu
-   konektora. U prozoru Putovanja dugme **„Pokreni app u Claude Code”** pita Claude-a za ove korake.
+   Claude Code i otkucaj **`/putovanja`**. Da pano prati isto što i telefon, otkucaj
+   `/putovanja adresa <adresa konektora>` (adresa je u Claude-u: Podešavanja → Konektori → putovanja). U prozoru Putovanja dugme **„Pokreni app u Claude Code”** pita Claude-a za ove korake.
 
 Ažuriranje: konektor se ažurira sam; plugin preko `/plugin` (Update).
 
