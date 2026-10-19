@@ -50,14 +50,14 @@ test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na
     expect(await ui.find({ key: `b2-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ text: /agencij[ae] sa greškom/ })).toBeDefined() // podnožje: stanje izvora u jednom redu
     expect(await ui.find({ text: /✈ avion/ })).toBeDefined() // prevoz se uvek vidi
-    expect(await ui.find({ text: /≈ .* za 2/ })).toBeDefined() // ukupno za putnike
+    expect(await ui.find({ text: /€ za 2/ })).toBeDefined() // ukupno za putnike
 
     expect(await ui.find({ text: /Preporučeno za tebe/ })).toBeDefined()
     expect(await ui.find({ key: 'nz-Španija' })).toBeDefined() // prvi kontinent je otvoren, zemlje se vide odmah
     await ui.press({ key: 'm-putnici' }) // izbor putnika radi mišem: dugme pa čipovi
     await ui.press({ key: 'put-2+1' })
     await ui.advance(20)
-    expect(await ui.find({ text: /≈ .* za 3/ })).toBeDefined() // promena putnika menja ukupno na tabli
+    expect(await ui.find({ text: /€ za 3/ })).toBeDefined() // promena putnika menja ukupno na tabli
     await ui.press({ key: 'm-sort' })
     await ui.press({ key: 'sort-cena' })
     await ui.press({ key: 'nk-Azija' })
@@ -68,7 +68,7 @@ test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na
     await ui.advance(50)
     expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ key: 'b1-zzz1' })).toBeUndefined() // isti aranžman: jedan red, 2 polaska
-    expect(await ui.find({ text: /deca do 12 god/ })).toBeDefined() // popusti stižu u pozadini
+    expect(await ui.find({ text: /poslednja mesta/ })).toBeDefined() // jedna napomena ispod naziva
     expect(await ui.find({ text: /Najjeftinije/ })).toBeDefined() // isti redosled kao na početnoj
 
     await ui.press({ key: `b2-${PONUDA.id}` }) // i drugi red reda otvara ponudu
@@ -76,6 +76,7 @@ test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na
     expect(await ui.find({ type: 'Markdown', text: /Cena obuhvata/ })).toBeDefined()
     expect(await ui.find({ type: 'Markdown', text: /Svi polasci \(2\)/ })).toBeDefined()
     expect(await ui.find({ text: /3\. osoba: −10 €/ })).toBeDefined()
+    expect(await ui.find({ text: /deca do 12 god/ })).toBeDefined() // popusti za više osoba iz pozadine su u detalju
     expect(await ui.find({ key: 'trello' })).toBeUndefined() // bez dodatka nema Trella
 
     await ui.press({ key: 'nazad' })

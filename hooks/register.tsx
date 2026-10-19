@@ -212,6 +212,8 @@ function danIDatum(d: string | null): string {
   return `${DANI[new Date(d + 'T12:00:00').getDay()]} ${kratakDatum(d)}`
 }
 
+const DANI_PUNO = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota']
+
 /** Sve što red table prikazuje, isto za terminal i aplikaciju. */
 function podaciReda(t: Tura, osoba: number, pm: { [id: string]: string[] }, saZemljom: boolean) {
   const p = t.glavna
@@ -222,16 +224,18 @@ function podaciReda(t: Tura, osoba: number, pm: { [id: string]: string[] }, saZe
   const valuta = ts.find(x => x.cena)?.valuta ?? p.currency
   const lo = cene.length ? Math.min(...cene) : 0
   const od = p.note === "cena 'od'" || cenaVarira(ts)
-  const prevoz = p.transport ? (PREVOZ[p.transport] ?? p.transport) : 'prevoz nije naveden'
-  const polasci = ts.length > 1 ? `${ts.length} polazaka` : ''
-  const ostalo = [nociTekst(p.nights), p.agencija, polasci, saZemljom ? p.zemlja : ''].filter(Boolean).join(' · ')
   return {
-    p, pop, nap, prevoz, ostalo, meta: `${prevoz} · ${ostalo}`,
-    ikona: IKONA_PREVOZA[p.transport ?? ''] ?? '·',
-    datum: danIDatum(p.date_from),
+    p, pop, nap,
+    ikona: IKONA_PREVOZA[p.transport ?? ''] ?? '',
+    prevoz: p.transport ? (PREVOZ[p.transport] ?? p.transport) : '',
+    trajanje: nociTekst(p.nights),
+    datumKratko: p.date_from ? kratakDatum(p.date_from) : '',
+    dan: p.date_from ? DANI_PUNO[new Date(p.date_from + 'T12:00:00').getDay()] ?? '' : '',
+    zemlja: saZemljom && p.zemlja !== ime(p) ? p.zemlja : '',
+    polasci: ts.length > 1 ? `${ts.length} polazaka` : '',
     ime: ime(p),
     cena: lo ? `${od ? 'od ' : ''}${iznos(lo, valuta)}` : 'na upit',
-    ukupno: lo && osoba > 1 ? `≈ ${iznos(lo * osoba, valuta)} za ${osoba}` : lo ? 'po osobi' : '',
+    ukupno: lo && osoba > 1 ? `${iznos(lo * osoba, valuta)} za ${osoba}` : '',
   }
 }
 
@@ -806,72 +810,101 @@ async function crtaj($: any, e: any) {
   const pm = await read($, popustiMapa)
   const p0 = (t: string | null) => (t ? C.sky : C.dim)
   const tabla = (ture: Tura[], w: number, vis: number, naslov: any, prazno: string) => {
-    const wD = 11, wC = 14
-    const wIme = Math.max(10, w - 2 - wD - wC - 1)
-    const mesta = mono ? Math.max(2, Math.floor((vis - 3 - (redCipova ? 1 : 0)) / 2)) : 12
+    // kolone: svaka informacija ima svoje mesto, pa oko čita odozgo nadole (cene ispod cena, prevoz ispod prevoza)
+    const sAg = w >= 96, sTr = w >= 78
+    const wD = mono ? 11 : 10, wP = 12, wT = sTr ? 9 : 0, wA = sAg ? 16 : 0, wC = 12
+    const wIme = Math.max(12, w - 2 - wD - wP - wT - wA - wC)
+    const vrsta = mono ? 3 : 1 // terminal: dva reda + prazan red između aranžmana
+    const mesta = mono ? Math.max(2, Math.floor((vis - 3 - (redCipova ? 1 : 0)) / vrsta)) : 12
     const strane = Math.max(1, Math.ceil(ture.length / mesta))
     const sp = Math.min(n.strana, strane - 1)
     const vidljive = ture.slice(sp * mesta, sp * mesta + mesta)
     const stranice = strane > 1 ? (
       <Box flexDirection="row" gap={2} paddingX={1}>
         {sp > 0 ? <Button plain key="pg-prev" onPress={() => idiNa($, { strana: sp - 1 })}><Text color={C.sky}>‹ prethodne</Text></Button> : null}
-        <Text color={C.dim}>strana {sp + 1}/{strane}</Text>
+        <Text color={C.dim}>strana {sp + 1} od {strane}</Text>
         {sp < strane - 1 ? <Button plain key="pg-next" onPress={() => idiNa($, { strana: sp + 1 })}><Text color={C.sky}>sledeće ›</Text></Button> : null}
       </Box>
     ) : null
+    const zaglavljeKolona = mono
+      ? <Text color={C.dim}>{' ' + padR('Polazak', wD) + padR('Destinacija', wIme) + padR('Prevoz', wP) + (wT ? padR('Trajanje', wT) : '') + (wA ? padR('Agencija', wA) : '') + padL('Po osobi', wC) + ' '}</Text>
+      : (
+        <Box flexDirection="row" columnGap={1} paddingX="sm" paddingY="xs">
+          <Box width={wD} flexShrink={0}><Text size="footnote" color={C.dim}>Polazak</Text></Box>
+          <Box flexGrow={1} flexShrink={1} minWidth={0}><Text size="footnote" color={C.dim}>Destinacija</Text></Box>
+          <Box width={wP} flexShrink={0}><Text size="footnote" color={C.dim}>Prevoz</Text></Box>
+          {wT ? <Box width={wT} flexShrink={0}><Text size="footnote" color={C.dim}>Trajanje</Text></Box> : null}
+          {wA ? <Box width={wA} flexShrink={0}><Text size="footnote" color={C.dim}>Agencija</Text></Box> : null}
+          <Box width={wC} flexShrink={0} alignItems="flex-end"><Text size="footnote" color={C.dim}>Po osobi</Text></Box>
+        </Box>
+      )
     return (
       <Box flexDirection="column" width={mono ? w : undefined} flexGrow={mono ? 0 : 1} flexShrink={1} minWidth={0}>
         {naslov}
         {redCipova}
-        {mono ? crta(w) : null}
+        {zaglavljeKolona}
+        {mono ? crta(w) : <Box height={1} backgroundColor={ISTAKNUTO} />}
         {vidljive.length === 0 && <Box paddingX={1}><Text color={C.dim}>{st ? '…' : prazno}</Text></Box>}
-        {vidljive.map(t => {
+        {vidljive.map((t, i) => {
           const r = podaciReda(t, pp.ukupno, pm, n.view !== 'zemlja')
           const otvori = () => otvoriPonudu($, r.p)
+          // ispod naziva: gde je (zemlja), koliko polazaka; bez agencije u koloni ide i agencija
+          const ispod = [r.zemlja, r.polasci, wA ? '' : r.p.agencija, wT ? '' : r.trajanje].filter(Boolean).join(', ')
           if (!mono) return (
-            <Box flexDirection="column" key={`b-${r.p.id}`} paddingX="sm" paddingY="xs" hover={{ backgroundColor: ISTAKNUTO }}>
-              <Box flexDirection="row" alignItems="center" columnGap={1}>
-                <Box width={wD} flexShrink={0}><Button plain key={`b1d-${r.p.id}`} onPress={otvori}><Text color={r.datum ? C.amb : C.dim} weight="semibold" tabular>{r.datum || 'po izboru'}</Text></Button></Box>
-                <Box flexGrow={1} flexShrink={1} minWidth={0}><Button plain key={`b1-${r.p.id}`} onPress={otvori}><Text weight="semibold" wrap="truncate-end">{r.ime}</Text></Button></Box>
-                <Box flexShrink={0}><Button plain key={`b1c-${r.p.id}`} onPress={otvori}><Text color={C.amb} weight="bold" tabular>{r.cena}</Text></Button></Box>
-              </Box>
-              <Box flexDirection="row" columnGap={1} alignItems="center">
-                <Box width={wD} flexShrink={0} />
-                <Box flexGrow={1} flexShrink={1} minWidth={0} flexDirection="row" columnGap={2} flexWrap="wrap">
-                  <Button plain key={`b2-${r.p.id}`} onPress={otvori}><Text size="footnote" color={p0(r.p.transport)}>{r.ikona} {r.prevoz}</Text><Text size="footnote" color={C.dim}> · {r.ostalo}</Text></Button>
-                  {r.pop ? <Text size="footnote" weight="semibold" color={C.mint}>−{r.pop}%</Text> : null}
-                  {r.nap.slice(0, 2).map(x => <Text size="footnote" color={C.mint} key={`b2n-${r.p.id}-${x}`}>+ {x}</Text>)}
+            <Box flexDirection="column" key={`b-${r.p.id}`} paddingX="sm" paddingY="sm" hover={{ backgroundColor: ISTAKNUTO }}>
+              <Box flexDirection="row" columnGap={1} alignItems="flex-start">
+                <Box width={wD} flexShrink={0} flexDirection="column">
+                  <Button plain key={`b1d-${r.p.id}`} onPress={otvori}><Text color={r.datumKratko ? C.amb : C.dim} weight="semibold" tabular>{r.datumKratko || 'po izboru'}</Text></Button>
+                  <Text size="footnote" color={C.dim}>{r.dan}</Text>
                 </Box>
-                <Box flexShrink={0}><Text size="footnote" color={C.dim} tabular>{r.ukupno}</Text></Box>
+                <Box flexGrow={1} flexShrink={1} minWidth={0} flexDirection="column">
+                  <Button plain key={`b1-${r.p.id}`} onPress={otvori}>
+                    <Text weight="semibold" wrap="truncate-end">{r.ime}</Text>
+                    {r.pop ? <Text color={C.mint} weight="semibold">  −{r.pop}%</Text> : ''}
+                  </Button>
+                  <Button plain key={`b2-${r.p.id}`} onPress={otvori}><Text size="footnote" color={C.dim} wrap="truncate-end">{ispod}</Text>{r.nap[0] ? <Text size="footnote" color={C.mint}>{ispod ? '   ' : ''}{r.nap[0]}</Text> : ''}</Button>
+                </Box>
+                <Box width={wP} flexShrink={0}><Button plain key={`b1p-${r.p.id}`} onPress={otvori}><Text color={p0(r.p.transport)}>{r.p.transport ? `${r.ikona} ${r.prevoz}` : '—'}</Text></Button></Box>
+                {wT ? <Box width={wT} flexShrink={0}><Text color={C.fg2}>{r.trajanje || '—'}</Text></Box> : null}
+                {wA ? <Box width={wA} flexShrink={0}><Text color={C.fg2} wrap="truncate-end">{r.p.agencija}</Text></Box> : null}
+                <Box width={wC} flexShrink={0} flexDirection="column" alignItems="flex-end">
+                  <Button plain key={`b1c-${r.p.id}`} onPress={otvori}><Text color={C.amb} weight="bold" tabular>{r.cena}</Text></Button>
+                  {r.ukupno ? <Text size="footnote" color={C.dim} tabular>{r.ukupno}</Text> : null}
+                </Box>
               </Box>
             </Box>
           )
-          // terminal: pun red je jedno dugme, pa klik bilo gde na redu otvara ponudu
-          const desno = r.ukupno
-          const meta = `${r.ikona} ${r.meta}`
-          const tagovi = [r.pop ? `−${r.pop}%` : '', ...r.nap.slice(0, 2).map(x => `+ ${x}`)].filter(Boolean)
-          const mesto = w - 2 - wD - len(desno) - 2
-          const metaT = kratko(meta, Math.max(8, Math.min(len(meta), mesto - (tagovi[0] ? Math.min(len(tagovi[0]) + 3, 12) : 0))))
-          const prevozT = metaT.slice(0, Math.min(metaT.length, r.ikona.length + 1 + r.prevoz.length))
-          let tagT = ''
-          for (const x of tagovi) if (len(metaT) + len(tagT) + len(x) + 3 <= mesto) tagT += `   ${x}`
+          // terminal: oba reda su cela dugmad, klik bilo gde na aranžmanu ga otvara
+          const imeT = seci(r.ime, wIme - 2 - (r.pop ? 6 : 0))
+          const popT = r.pop ? `  −${r.pop}%` : ''
           return (
-            <Box flexDirection="column" key={`b-${r.p.id}`} hover={{ backgroundColor: C.sel }}>
+            <Box flexDirection="column" key={`b-${r.p.id}`}>
               <Button plain key={`b1-${r.p.id}`} onPress={otvori}>
                 <Text> </Text>
-                <Text color={r.datum ? C.amb : C.dim} bold={!!r.datum}>{padR(r.datum || 'po izboru', wD)}</Text>
-                <Text bold>{padR(r.ime, wIme)}</Text>
+                <Text color={r.datumKratko ? C.amb : C.dim} bold={!!r.datumKratko}>{padR(r.datumKratko || 'po izb.', wD)}</Text>
+                <Text bold>{imeT}</Text>
+                <Text color={C.mint} bold>{popT}</Text>
+                <Text>{' '.repeat(Math.max(1, wIme - len(imeT) - len(popT)))}</Text>
+                <Text color={p0(r.p.transport)}>{padR(r.p.transport ? `${r.ikona} ${r.prevoz}` : '—', wP)}</Text>
+                {wT ? <Text color={C.fg2}>{padR(r.trajanje || '—', wT)}</Text> : ''}
+                {wA ? <Text color={C.fg2}>{padR(r.p.agencija, wA)}</Text> : ''}
                 <Text color={C.amb} bold>{padL(r.cena, wC)}</Text>
                 <Text> </Text>
               </Button>
               <Button plain key={`b2-${r.p.id}`} onPress={otvori}>
-                <Text>{' '.repeat(1 + wD)}</Text>
-                <Text color={p0(r.p.transport)}>{prevozT}</Text><Text color={C.dim}>{metaT.slice(prevozT.length)}</Text>
-                <Text color={C.mint}>{tagT}</Text>
-                <Text>{' '.repeat(Math.max(1, w - 1 - wD - len(metaT) - len(tagT) - len(desno) - 1))}</Text>
-                <Text color={C.dim}>{desno}</Text>
+                <Text> </Text>
+                <Text color={C.dim}>{padR(r.dan, wD)}</Text>
+                {(() => {
+                  const mesto = w - 2 - wD - Math.max(wC, len(r.ukupno) + 1)
+                  const isp = seci(ispod, mesto)
+                  const ostaje = mesto - len(isp) - (isp ? 3 : 0)
+                  const napT = r.nap[0] && ostaje >= 14 ? `${isp ? '   ' : ''}${seci(r.nap[0], ostaje)}` : ''
+                  return [<Text color={C.dim} key="i">{isp}</Text>, <Text color={C.mint} key="n">{napT}</Text>, <Text key="s">{' '.repeat(Math.max(0, mesto - len(isp) - len(napT)))}</Text>]
+                })()}
+                <Text color={C.dim}>{padL(r.ukupno, Math.max(wC, len(r.ukupno) + 1))}</Text>
                 <Text> </Text>
               </Button>
+              {i < vidljive.length - 1 ? <Text> </Text> : null}
             </Box>
           )
         })}
