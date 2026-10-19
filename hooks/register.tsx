@@ -6,6 +6,8 @@ import type { Detalji, Diy, Izvori, Kalendar, Kombinacija, Konektor, Nav, Obaves
 const PANE = 'putovanja'
 const VERZIJA_ALATA = '0.5.1' // isto kao version u pyproject.toml; kad se razlikuje, pano osveži alat
 const KONEKTORI_STRANA = 'https://claude.ai/customize/connectors'
+// isti server kao konektor Putovanja (Cloudflare): pano ne treba Python ni lokalni sken
+const SERVER = 'https://putovanja.miljan-stankovic99.workers.dev/mcp'
 
 const nav = atom({ plugin: 'putovanja', key: 'nav' } as const, {
   view: 'pocetna', kontinent: '', zemlja: '', ponudaId: '', kriterijum: 'preporuka', strana: 0, sort: 'preporuka',
@@ -320,7 +322,49 @@ async function alat($: any): Promise<string> {
   return ALAT
 }
 
+// ---------- podaci: sa servera (podrazumevano) ili iz lokalnog alata (ako je zadat) ----------
+
+async function lokalno($: any): Promise<boolean> {
+  if (OPCIJE.lokalno === true || OPCIJE.lokalno === 'true' || OPCIJE.ptPath) return true
+  try { return !!(await $.store.get('ptPath')) } catch { return false }
+}
+
+function adresaServera(): string {
+  const a = String(OPCIJE.adresa ?? '').trim()
+  return /^https:\/\/[^\s]+\/mcp(\/[A-Za-z0-9_-]{8,64})?\/?$/.test(a) ? a : SERVER
+}
+
+async function saServera($: any, args: string[]): Promise<any> {
+  try {
+    const r = await $.http.fetch(adresaServera(), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call',
+        params: { name: 'putovanja_podaci', arguments: { komanda: args[0], argumenti: args.slice(1) } } }),
+    })
+    if (!r.ok) {
+      await update($, status, () => `Server Putovanja ne odgovara (HTTP ${r.status}). Probaj ponovo za minut.`)
+      return null
+    }
+    const j = JSON.parse(r.text)
+    if (j.error) {
+      await update($, status, () => `Greška servera: ${String(j.error.message ?? '').slice(0, 160)}`)
+      return null
+    }
+    const rez = j.result?.structuredContent?.rezultat
+    if (rez && typeof rez === 'object' && !Array.isArray(rez) && typeof rez.greska === 'string') {
+      await update($, status, () => rez.greska)
+      return null
+    }
+    return rez ?? null
+  } catch {
+    await update($, status, () => 'Nema veze sa serverom Putovanja. Proveri internet.')
+    return null
+  }
+}
+
 async function pt($: any, args: string[], timeoutMs = 60000): Promise<any> {
+  if (!(await lokalno($))) return saServera($, args)
   const bin = await alat($)
   if (!bin) {
     await update($, status, () => 'Alat putovanja nije instaliran. Pokreni instalaciju iz README-a (jedna komanda), pa otvori /putovanja ponovo.')
@@ -426,6 +470,11 @@ async function ucitajPocetnu($: any) {
 }
 
 async function skeniraj($: any) {
+  if (!(await lokalno($))) {
+    void $.ui.toast('Ponude se same osvežavaju svako jutro oko 6h. Učitavam najnovije.')
+    await ucitajPocetnu($)
+    return
+  }
   await update($, status, () => 'Skeniram agencije (1–2 min)…')
   const r = await pt($, ['agencije', 'skeniraj'], 600000)
   await update($, status, () => (r ? '' : 'Sken nije uspeo.'))
@@ -454,7 +503,7 @@ async function otvoriPracenje($: any) {
 }
 
 async function prebaciPracenje($: any, p: Ponuda) {
-  const r = await pt($, ['prati', p.id.slice(0, 12)])
+  const r = await pt($, ['prati', p.id])
   if (!r) return
   await update($, ponuda, x => (x && x.id === p.id ? { ...x, pratim: !!r.pratim } : x))
   void $.ui.toast(r.pratim ? `Pratim cenu: ${ime(p)}` : `Više ne pratim: ${ime(p)}`)
@@ -484,7 +533,7 @@ async function otvoriZemlju($: any, zemlja: string) {
   const ture = grupisi(l, 'cena').filter(t => !t.glavna.popusti_provereni).slice(0, 30)
   if (ture.length) {
     void (async () => {
-      const m = await pt($, ['popusti', ...ture.map(t => t.glavna.id.slice(0, 12))], 120000)
+      const m = await pt($, ['popusti', ...ture.map(t => t.glavna.id)], 120000)
       if (m) await update($, popustiMapa, x => ({ ...x, ...(m as { [id: string]: string[] }) }))
     })()
   }
@@ -496,12 +545,12 @@ async function otvoriPonudu($: any, p: Ponuda) {
   await idiNa($, { view: 'ponuda', ponudaId: p.id })
   await update($, status, () => `Čitam detalje sa sajta ${p.agencija}…`)
   const osobe = String(putnici((await read($, nav)).putnici).ukupno)
-  const brzo = await pt($, ['ponuda', p.id.slice(0, 12), '--osobe', osobe])
+  const brzo = await pt($, ['ponuda', p.id, '--osobe', osobe])
   if (brzo && (await read($, nav)).ponudaId === p.id) {
     await update($, ponuda, x => (x && x.id === p.id ? { ...x, termini: brzo.termini ?? x.termini, pratim: !!brzo.pratim,
       naziv: brzo.naziv ?? x.naziv, ukupno: brzo.ukupno ?? null, popusti: brzo.popusti ?? x.popusti } : x))
   }
-  const d = await pt($, ['ponuda', p.id.slice(0, 12), '--detalji', '--osobe', osobe], 90000)
+  const d = await pt($, ['ponuda', p.id, '--detalji', '--osobe', osobe], 90000)
   const cur = await read($, nav)
   if (d && cur.ponudaId === p.id) {
     await update($, detalji, () => (d.sa_sajta ?? null) as Detalji | null)
@@ -556,7 +605,8 @@ export const register: Register = (on, options) => {
       context: [
         'Korisnik je otvorio pano Putovanja (ponude domaćih turističkih agencija po kontinentima i zemljama, cene po osobi).',
         'Iz panoa stižu poruke kao "Uporedi ponudu <ID>" i "Uradi sam…". Radi ih po skillu putovanja-planer i uradi-sam;',
-        'podaci iz `pt --json ponuda <ID> --detalji`, `pt --json zemlja <naziv>`, `pt --json top <kriterijum>`, `pt --json izvori`.',
+        'podaci: alat detalji_ponude iz konektora Putovanja ako je dodat, inače `pt --json ponuda <ID> --detalji` ako je alat instaliran,',
+        'a ako nema ni jednog, pročitaj stranicu ponude (url) sa weba.',
         trello ? 'Dodatak putovanja-trello je uključen: "Stavi ponudu <ID> u Trello" radi po skillu trello-tabla; klik u panou je potvrda.' : 'Trello nije uključen; ne pominji ga.',
         'Odgovaraj kratko, srpski latinica.',
       ],
@@ -677,7 +727,7 @@ async function crtaj($: any, e: any) {
           ))}
         </Box>
         <Text color={C.dim}>+ {iz?.cita_claude.map(c => c.naziv).join(', ') || '3 sajta'}: čita ih Claude kad ga pitaš</Text>
-        <Box marginTop={mono ? 1 : 'xs'}><Button key="iz-sken" onPress={() => skeniraj($)}>Skeniraj ponovo</Button></Box>
+        <Box marginTop={mono ? 1 : 'xs'}><Button key="iz-sken" onPress={() => skeniraj($)}>Osveži ponude</Button></Box>
       </Box>
       <Box flexDirection="column" marginTop={mono ? 1 : 0} backgroundColor={mono ? undefined : KARTA} padding={mono ? 0 : 'sm'}>
         {naslovKarte('Konektori za letove, hotele i izlete', <Text color={C.dim}>{ko.filter(k => k.povezan).length} od {ko.length}</Text>)}
@@ -940,7 +990,7 @@ async function crtaj($: any, e: any) {
       )
     } else {
       ture = grupisi(await read($, top), n.sort)
-      prazno = 'Baza je prazna. Otvori „Izvori“ gore desno i klikni „Skeniraj ponovo“.'
+      prazno = 'Nema ponuda. Otvori „Izvori“ gore desno i klikni „Osveži ponude“.'
       naslovT = 'Preporučeno za tebe'
       podnaslov = 'po tvom profilu i ceni'
       if (!saNav && Object.keys(z).length) iznad = (

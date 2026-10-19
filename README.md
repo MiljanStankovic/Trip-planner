@@ -1,4 +1,4 @@
-# Putovanja · ponude agencija u Claude Code-u
+# Putovanja · ponude agencija u Claude-u
 
 U Claude Code-u ukucaš **`/putovanja`** i otvori se **pano**: levo kontinenti i zemlje, u sredini **tabla polazaka**
 (polazak, odredište, noći, prevoz, agencija, cena po osobi), desno **izvori podataka** i **konektori**.
@@ -19,30 +19,31 @@ kad ih agencija navodi (treća osoba, deca, jednokrevetna soba, rani booking). S
 └──────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Ispod panoa radi mali Python alat **`putovanja`** (skraćeno **`pt`**): skida ponude 15 agencija, čuva istoriju cena
-i odgovara panou i Claude-u.
+Podaci stižu sa servera Putovanja (Cloudflare), isti kao u konektoru: agencije se skeniraju same svako jutro.
+Na računaru ne treba ništa da se instalira osim samog plugina.
 
-## Putovanja u običnom Claude chatu (bez Claude Code-a)
+## Instalacija: jedna strana za sve
 
-Za porodicu i prijatelje: radi u Claude desktop aplikaciji, u običnom razgovoru, bez terminala.
+**[putovanja.miljan-stankovic99.workers.dev](https://putovanja.miljan-stankovic99.workers.dev)** — pošalji ovaj link porodici i prijateljima.
 
-1. Skini **[Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb)**.
-2. Dvoklik na fajl (ili prevuci ga u Claude aplikaciju), pa **Install**. Python ne treba, Claude ga sam namesti.
-3. Potpuno zatvori i ponovo otvori Claude, pa u novom razgovoru napiši: **pokaži mi putovanja**.
+1. **Konektor (telefon, tablet, računar, Chromebook).** Strana napravi tvoju adresu, kopira je i otvori konektore u
+   Claude-u; tamo „Add custom connector”, ime *Putovanja*, nalepiš adresu. Posle se Putovanja otvaraju kao prozor u
+   razgovoru na svim uređajima gde si prijavljen. Besplatan Claude dozvoljava jedan prilagođeni konektor.
+2. **Pano u Claude Code-u (opciono, na računaru).** U Claude Code pošalji
+   `/plugin marketplace add MiljanStankovic/Trip-planner`, pa `/plugin install putovanja@putovanja`, ponovo otvori
+   Claude Code i otkucaj **`/putovanja`**. Za praćenje cena i u panou, u podešavanjima plugina upiši istu adresu
+   konektora. U prozoru Putovanja dugme **„Pokreni app u Claude Code”** pita Claude-a za ove korake.
 
-Otvara se cela aplikacija preko prozora: ponude po zemljama (cena po osobi i ukupno za putnike), detalj ponude
-sa sajta agencije, kalendar polazaka, praćenje cena, uradi sam (prevoz + smeštaj) i izvori. Prvi put klikni
-„Skeniraj sada“ (1–3 min). Podaci ostaju na računaru, u istoj bazi koju koristi i terminal.
+Ažuriranje: konektor se ažurira sam; plugin preko `/plugin` (Update).
 
-Ko već instalira Putovanja za Claude Code, može oba odjednom: pre komande za instalaciju dodaj
-`$env:PUTOVANJA_CHAT="1";` (PowerShell) ili `PUTOVANJA_CHAT=1` (macOS).
+### Lokalni alat i sken na svom računaru (napredno)
 
-Ažuriranje: skini noviji `Putovanja.mcpb` sa istog linka i instaliraj preko starog. Detalji u [mcp/README.md](mcp/README.md).
+Mali Python alat **`putovanja`** (skraćeno **`pt`**) skida ponude 15 agencija sam, čuva istoriju cena i radi u
+terminalu. Pano ga koristi umesto servera kad u podešavanjima plugina upišeš putanju do alata (`ptPath`).
+Desktop dodatak [Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb) radi
+isto, lokalno, u Claude desktop aplikaciji ([mcp/README.md](mcp/README.md)); za većinu je konektor jednostavniji.
 
-## Instalacija za Claude Code (jedna komanda)
-
-Treba samo [Claude Code](https://code.claude.com/docs/en/setup) (Pro plan ili jači). Python ne moraš da instaliraš:
-skripta instalira [uv](https://docs.astral.sh/uv/), a on sam donese Python.
+Instalacija alata jednom komandom (instalira i [uv](https://docs.astral.sh/uv/), koji donese Python):
 
 **Windows (PowerShell):**
 
@@ -55,11 +56,6 @@ irm https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/main/install.
 ```bash
 curl -fsSL https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/main/install.sh | bash
 ```
-
-Zatim otvori novi terminal, pokreni `claude` i ukucaj **`/putovanja`**. **Ažuriranje:** ista komanda.
-
-Bez terminala, u Claude Code-u (ako već imaš uv): `/plugin marketplace add MiljanStankovic/Trip-planner`,
-pa `/plugin install putovanja@putovanja`. Pano pri prvom otvaranju sam pripremi alat.
 
 Opcije (pre komande): `$env:PUTOVANJA_BEZ_SKENA="1"` / `PUTOVANJA_BEZ_SKENA=1` preskače prvo skeniranje,
 `PUTOVANJA_TRELLO=1` uključuje dodatak za Trello, `PUTOVANJA_GRANA=ime-grane` instalira probnu granu.

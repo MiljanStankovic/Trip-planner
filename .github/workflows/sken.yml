@@ -1,0 +1,72 @@
+name: Sken agencija
+
+# Svako jutro skenira agencije i objavljuje katalog na granu `podaci`,
+# odakle ga čita server za Claude (web, telefon, Chromebook).
+on:
+  schedule:
+    - cron: "17 4 * * *"   # 06:17 po beogradskom vremenu (leti)
+  workflow_dispatch:
+    inputs:
+      detalji:
+        description: "Koliko ponuda da čita detalje sa sajta (0 = bez)"
+        default: "5000"
+  push:
+    branches: [main, server]
+    paths: [".github/workflows/sken.yml", "server/izvezi.py"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sken
+  cancel-in-progress: false
+
+jobs:
+  sken:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Alat putovanja
+        run: |
+          pip install -q .
+          putovanja init
+
+      - name: Prethodna baza (istorija cena)
+        run: |
+          mkdir -p ~/.local/share/putovanja
+          git fetch -q origin podaci || exit 0
+          git show origin/podaci:putovanja.db > ~/.local/share/putovanja/putovanja.db 2>/dev/null || rm -f ~/.local/share/putovanja/putovanja.db
+
+      - name: Sken
+        run: putovanja agencije skeniraj || true
+
+      - name: Izvoz
+        run: python server/izvezi.py izlaz --detalji "${{ github.event.inputs.detalji || '5000' }}" --niti 8
+
+      - name: Objavi na granu podaci
+        run: |
+          cp ~/.local/share/putovanja/putovanja.db izlaz/
+          cd izlaz
+          git init -q -b podaci
+          git config user.name "putovanja-sken"
+          git config user.email "sken@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Sken $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" podaci
+
+      - name: Sažetak
+        run: |
+          python - <<'E'
+          import json
+          iz = json.load(open("izlaz/izvori.json"))
+          st = json.load(open("izlaz/stanje.json"))
+          print(f"Ponuda: {st.get('ponuda')}, poslednji sken: {st.get('poslednji_sken')}")
+          for a in iz["agencije"]:
+              print(f"{a['stanje']:>14}  {a['naziv']:<16} {a['ponuda']:>4}  {'; '.join(a['greske'][:1])}")
+          E

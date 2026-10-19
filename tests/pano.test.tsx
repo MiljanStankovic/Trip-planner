@@ -31,11 +31,25 @@ function odgovor(argv: readonly string[]): string {
 }
 const ok = (argv: readonly string[]) => ({ value: { exitCode: 0, stdout: odgovor(argv), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }) as any
 
+// isti odgovori i za lokalni alat (process.run) i za server (http.fetch: JSON-RPC tools/call putovanja_podaci)
+const adrese: string[] = []
+function obe(on: any, h: (x: any, e: any) => Promise<any>) {
+  on('process.run', h)
+  on('http.fetch', async (_$: any, e: any) => {
+    adrese.push(e.url)
+    const { komanda, argumenti } = JSON.parse(e.init.body).params.arguments
+    const r = await h(_$, { argv: ['pt', '--json', komanda, ...argumenti] })
+    const rezultat = JSON.parse(r.value.stdout)
+    const text = JSON.stringify({ jsonrpc: '2.0', id: 1, result: { content: [], structuredContent: { komanda, rezultat } } })
+    return { value: { status: 200, ok: true, headers: {}, text } } as any
+  })
+}
+
 const PANE = { component: 'Pane', requestId: 'putovanja', props: { title: 'Putovanja', isFocused: true, bodyColumns: 150 } } as const
 
 test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na red otvara ponudu', async ($, on) => {
   mock.store(on)
-  on('process.run', async (_$, e: any) => ok(e.argv))
+  obe(on, async (_$, e: any) => ok(e.argv))
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
   expect(r.text).toContain('Putovanja')
@@ -94,7 +108,7 @@ test('pano (široko): destinacije levo, tabla, izvori kao poseban ekran; klik na
 
 test('usko (80 kolona): destinacije levo, stanje izvora u podnožju', async ($, on) => {
   mock.store(on)
-  on('process.run', async (_$, e: any) => ok(e.argv))
+  obe(on, async (_$, e: any) => ok(e.argv))
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   await $.command.run({ command: 'putovanja', args: '' } as any)
   const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE, props: { ...PANE.props, bodyColumns: 80 } })
@@ -106,7 +120,7 @@ test('usko (80 kolona): destinacije levo, stanje izvora u podnožju', async ($, 
 
 test('telefon: bez bočnog panoa aplikacija se crta u razgovoru ispod /putovanja', async ($, on) => {
   mock.store(on)
-  on('process.run', async (_$, e: any) => ok(e.argv))
+  obe(on, async (_$, e: any) => ok(e.argv))
   on('ui.open', async () => ({ value: { isPlaced: false } }) as any)
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
   expect(r.text).toBe('Putovanja')
@@ -130,7 +144,7 @@ test('ponuda: opseg cena na tabli, klik na datum otvara taj polazak', async ($, 
     { id: 'zzz1', datum: '2026-12-02', noci: 12, cena: 1649, stara: null, valuta: 'EUR' },
   ]
   mock.store(on)
-  on('process.run', async (_$, e: any) => {
+  obe(on, async (_$, e: any) => {
     const a = e.argv.slice(2)
     if (a[0] === 'top') return { value: { exitCode: 0, stdout: JSON.stringify({ ponude: [{ ...PONUDA, termini: T, zasto: 'x' }] }), stderr: '' } } as any
     if (a[0] === 'ponuda') return { value: { exitCode: 0, stdout: JSON.stringify({ ...PONUDA, id: a[1] === 'zzz1' ? 'zzz1' : PONUDA.id, date_from: a[1] === 'zzz1' ? '2026-12-02' : PONUDA.date_from, termini: T, sa_sajta: {} }), stderr: '' } } as any
@@ -153,7 +167,7 @@ test('kalendar i praćenje', async ($, on) => {
   const prac = { ...PONUDA, kljuc: 'k', cena_pocetna: 1649, cena_sada: 1549, javljena_cena: 1649, aktivno: true, promena: -100 }
   const pozivi: string[][] = []
   mock.store(on)
-  on('process.run', async (_$, e: any) => {
+  obe(on, async (_$, e: any) => {
     const a = e.argv.slice(2)
     pozivi.push(a)
     const out = a[0] === 'kalendar' ? JSON.stringify({ mesec: '2026-11', meseci: [{ mesec: '2026-11', broj: 1 }, { mesec: '2026-12', broj: 0 }], dani: { '2026-11-08': [PONUDA] } })
@@ -178,7 +192,7 @@ test('kalendar i praćenje', async ($, on) => {
   await ui.advance(50)
   await ui.press({ key: 'prati' })
   await ui.advance(50)
-  expect(pozivi.some(a => a[0] === 'prati' && a[1] === PONUDA.id.slice(0, 12))).toBe(true)
+  expect(pozivi.some(a => a[0] === 'prati' && a[1] === PONUDA.id)).toBe(true)
   expect(await ui.find({ key: 'prati', text: /Pratim cenu/ })).toBeDefined()
   await ui.unmount()
 })
@@ -191,7 +205,7 @@ test('uradi sam: forma, linkovi, zahtev Claude-u; ponuda: ukupno za izabrane put
   const uk = { osobe: 2, valuta: 'EUR', osnovno: 3098, stavke: [{ naziv: 'Boravišna taksa', iznos: 24, valuta: 'EUR', racun: '1 € × 12 noći × 2 os.', tip: 'obavezno', izvor: '' }],
     ukupno: 3122, ukupno_sa_preporucenim: 3122, napomena: '' }
   mock.store(on)
-  on('process.run', async (_$, e: any) => {
+  obe(on, async (_$, e: any) => {
     const a = e.argv.slice(2)
     const out = a[0] === 'uradisam' ? JSON.stringify(komb) : a[0] === 'ponuda' ? JSON.stringify({ ...PONUDA, ukupno: uk, sa_sajta: {} }) : odgovor(e.argv)
     return { value: { exitCode: 0, stdout: out, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
@@ -233,7 +247,7 @@ test('alat iz podešavanja plugina (ptPath) ima prednost', { options: { ptPath: 
   await ui.unmount()
 })
 
-test('bez ptPath: pano nađe uv i pokreće alat iz uv-ovog foldera', async ($, on) => {
+test('lokalno bez ptPath: pano nađe uv i pokreće alat iz uv-ovog foldera', { options: { lokalno: true } } as any, async ($, on) => {
   const pokrenuto: string[][] = []
   mock.store(on)
   on('process.run', async (_$, e: any) => { pokrenuto.push([...e.argv]); return ok(e.argv) })
@@ -243,5 +257,21 @@ test('bez ptPath: pano nađe uv i pokreće alat iz uv-ovog foldera', async ($, o
   await ui.advance(50)
   expect(pokrenuto.some(a => a[0] === '/u/bin/putovanja' && a[1] === '--json')).toBe(true)
   expect(pokrenuto.some(a => a.includes('install'))).toBe(false) // verzija se poklapa: bez reinstalacije
+  await ui.unmount()
+})
+
+test('podrazumevano: podaci sa servera, bez lokalnog alata; lična adresa iz podešavanja', { options: { adresa: 'https://putovanja.miljan-stankovic99.workers.dev/mcp/test-kljuc-123' } } as any, async ($, on) => {
+  const pokrenuto: string[][] = []
+  adrese.length = 0
+  mock.store(on)
+  obe(on, async (_$: any, e: any) => { if (e.argv[0] !== 'pt') pokrenuto.push([...e.argv]); return ok(e.argv) })
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
+  expect(adrese.length).toBeGreaterThan(0)
+  expect(adrese.every(a => a.endsWith('/mcp/test-kljuc-123'))).toBe(true)
+  expect(pokrenuto.length).toBe(0)
   await ui.unmount()
 })

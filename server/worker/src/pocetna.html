@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Putovanja za Claude</title>
+<meta name="description" content="Ponude domaćih turističkih agencija u Claude-u: na telefonu, tabletu i računaru.">
+<link rel="icon" href="/ikona.png" type="image/png">
+<style>
+  :root {
+    --poz: #F6F4EF; --kartica: #FFFFFF; --t1: #172030; --t2: #4A5568; --t3: #6B7686; --linija: #E2DED5;
+    --nav: #1D2E4A; --amb: #E9A93B; --amb-tekst: #8A5A00; --kod: #F1EEE7; --ok: #2F7D4A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --poz: #11161F; --kartica: #182130; --t1: #EEF1F6; --t2: #B9C2D0; --t3: #8B96A8; --linija: #2A3446;
+      --nav: #22324F; --amb: #F3B94D; --amb-tekst: #F3B94D; --kod: #0F141C; --ok: #86D19A; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--poz); color: var(--t1); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(env(safe-area-inset-top), 0px) 16px max(env(safe-area-inset-bottom), 24px); }
+  main { max-width: 640px; margin: 0 auto; }
+  header { display: flex; gap: 14px; align-items: center; padding: 28px 0 8px; }
+  header img { width: 56px; height: 56px; border-radius: 14px; }
+  h1 { font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 2px 0 0; color: var(--t2); font-size: 15px; }
+  .uvod { color: var(--t2); margin: 12px 0 24px; }
+  .uredjaji { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .uredjaji span { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--kartica); border: 1px solid var(--linija); color: var(--t2); }
+  section { background: var(--kartica); border: 1px solid var(--linija); border-radius: 16px; padding: 20px; margin: 0 0 16px; }
+  h2 { font-size: 19px; margin: 0 0 4px; }
+  .pod { color: var(--t3); font-size: 14px; margin: 0 0 16px; }
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: k; }
+  ol > li { counter-increment: k; position: relative; padding: 0 0 18px 44px; }
+  ol > li:last-child { padding-bottom: 0; }
+  ol > li::before { content: counter(k); position: absolute; left: 0; top: -1px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--nav); color: #fff; font-weight: 700; font-size: 15px; display: grid; place-items: center; }
+  li b { display: block; margin-bottom: 4px; }
+  li p { margin: 0 0 8px; color: var(--t2); }
+  .polje { display: flex; align-items: stretch; border: 1px solid var(--linija); border-radius: 10px; overflow: hidden; background: var(--kod); margin: 8px 0 4px; }
+  .polje code { flex: 1; min-width: 0; padding: 12px; font: 14px/1.4 ui-monospace, "SF Mono", Consolas, monospace; overflow-wrap: anywhere; }
+  button, .dugme { font: inherit; font-weight: 600; font-size: 15px; border: 0; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; }
+  .kopiraj { background: var(--nav); color: #fff; border-radius: 0; padding: 0 16px; min-width: 96px; }
+  .dugme { background: var(--amb); color: #1B1300; padding: 0 18px; margin-top: 4px; }
+  .tiho { color: var(--t3); font-size: 14px; }
+  .napomena { font-size: 14px; color: var(--t2); border-left: 3px solid var(--amb); padding: 2px 0 2px 12px; margin: 14px 0 0; }
+  .izbor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 16px; }
+  .opcija { justify-content: flex-start; gap: 12px; text-align: left; padding: 14px; min-height: 72px; background: var(--kartica);
+    color: var(--t1); border: 1.5px solid var(--linija); border-radius: 14px; font-weight: 400; }
+  .opcija svg { width: 30px; height: 30px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; color: var(--t3); }
+  .opcija b { display: block; font-size: 16px; }
+  .opcija small { display: block; color: var(--t3); font-size: 13px; line-height: 1.3; }
+  .opcija[aria-selected="true"] { border-color: var(--amb); box-shadow: inset 0 0 0 1px var(--amb); }
+  .opcija[aria-selected="true"] svg { color: var(--amb-tekst); }
+  .akcija { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--linija); }
+  .akcija .dugme { width: 100%; min-height: 52px; font-size: 16px; }
+  .adresa-red { margin-top: 10px; font-size: 13px; overflow-wrap: anywhere; }
+  .adresa-red code { font: 13px ui-monospace, Consolas, monospace; color: var(--t2); }
+  .link { background: none; color: var(--amb-tekst); padding: 0 4px; min-height: 32px; font-size: 13px; text-decoration: underline; }
+  @media (max-width: 380px) { .opcija { flex-direction: column; align-items: flex-start; gap: 6px; } }
+  :focus-visible { outline: 3px solid var(--amb); outline-offset: 2px; }
+  footer { color: var(--t3); font-size: 13px; text-align: center; padding: 8px 0 16px; }
+  .ok { color: var(--ok); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/ikona.png" alt="">
+    <div><h1>Putovanja</h1><p>Ponude domaćih agencija, u Claude-u</p></div>
+  </header>
+  <p class="uvod">Ponude 15 turističkih agencija iz Srbije na jednom mestu: cene po osobi, kalendar polazaka i praćenje cena.
+    Osvežava se svako jutro. Izaberi gde hoćeš Putovanja:</p>
+
+  <div class="izbor" role="tablist" aria-label="Gde koristiš Putovanja">
+    <button class="opcija" role="tab" id="t-claude" aria-controls="p-claude" aria-selected="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.2 3.6c-.5.4-1.3.1-1.3-.6V16A2.5 2.5 0 0 1 4 13.5z"/></svg>
+      <span><b>Claude</b><small>telefon, tablet, računar</small></span>
+    </button>
+    <button class="opcija" role="tab" id="t-code" aria-controls="p-code" aria-selected="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4" width="19" height="16" rx="2.5"/><path d="m7 9 3 3-3 3M12.5 15H17" fill="none"/></svg>
+      <span><b>Claude Code</b><small>pano na računaru</small></span>
+    </button>
+  </div>
+
+  <section role="tabpanel" id="p-claude" aria-labelledby="t-claude">
+    <h2>Dodaj Putovanja u Claude</h2>
+    <p class="pod">Jednom, oko minut. Posle radi na svim uređajima gde si prijavljen u Claude.</p>
+    <ol>
+      <li><b>Klikni dugme ispod</b>
+        <p>Tvoja lična adresa se kopira, a u Claude-u se otvore konektori. Po adresi Putovanja znaju šta ti pratiš.</p></li>
+      <li><b>Dodaj prilagođeni konektor</b>
+        <p>Klikni „Add custom connector”, za ime upiši <b style="display:inline">Putovanja</b>, a za URL nalepi adresu. Sačuvaj.</p></li>
+      <li><b>Probaj</b>
+        <p>U novom razgovoru napiši „Otvori Putovanja” ili „Šta ima za Grčku?”. Prozor se otvara u razgovoru, i na telefonu.</p></li>
+    </ol>
+    <p class="napomena">Najlakše je na računaru ili u pregledaču. Besplatan Claude dozvoljava jedan prilagođeni konektor; ovo je taj jedan.</p>
+    <div class="akcija">
+      <a class="dugme" id="otvori" href="https://claude.ai/customize/connectors" target="_blank" rel="noopener">Kopiraj adresu i otvori Claude</a>
+      <span class="tiho" id="otvori-ok" role="status"></span>
+      <div class="adresa-red"><span class="tiho">Tvoja adresa:</span> <code id="adresa">…</code> <button class="link" data-kopiraj="adresa">kopiraj</button></div>
+    </div>
+  </section>
+
+  <section role="tabpanel" id="p-code" aria-labelledby="t-code" hidden>
+    <h2>Putovanja u Claude Code-u</h2>
+    <p class="pod">Pano pored razgovora, u terminalu ili u Code delu aplikacije Claude. Ne treba ništa drugo da instaliraš.</p>
+    <ol>
+      <li><b>U Claude Code pošalji</b>
+        <div class="polje"><code id="k1">/plugin marketplace add MiljanStankovic/Trip-planner</code><button class="kopiraj" data-kopiraj="k1">Kopiraj</button></div></li>
+      <li><b>Pa ovo</b>
+        <div class="polje"><code id="k2">/plugin install putovanja@putovanja</code><button class="kopiraj" data-kopiraj="k2">Kopiraj</button></div></li>
+      <li><b>Ponovo otvori Claude Code i otkucaj</b>
+        <div class="polje"><code id="k3">/putovanja</code><button class="kopiraj" data-kopiraj="k3">Kopiraj</button></div></li>
+    </ol>
+    <p class="napomena">Za praćenje cena i u panou: u <code>/plugin</code> otvori Putovanja, podešavanja, i upiši svoju adresu iz izbora „Claude”.
+      Nemaš Claude Code? Windows (PowerShell): <code>irm https://claude.ai/install.ps1 | iex</code>, Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>
+  </section>
+
+  <footer>Putovanja __VERZIJA__ · __PONUDA__ ponuda · poslednji sken __SKEN__<br>Ne rezerviše i ne plaća ništa: ponude otvaraš na sajtu agencije.</footer>
+</main>
+<script>
+(() => {
+  const osnova = location.origin + '/mcp/';
+  let kljuc = '';
+  try { kljuc = localStorage.getItem('putovanja-kljuc') || ''; } catch {}
+  if (!/^[a-z0-9]{16}$/.test(kljuc)) {
+    const a = new Uint8Array(16); crypto.getRandomValues(a);
+    kljuc = Array.from(a, (b) => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+    try { localStorage.setItem('putovanja-kljuc', kljuc); } catch {}
+  }
+  document.getElementById('adresa').textContent = osnova + kljuc;
+  const izaberi = (k) => {
+    for (const x of ['claude', 'code']) {
+      document.getElementById('t-' + x).setAttribute('aria-selected', String(x === k));
+      document.getElementById('p-' + x).hidden = x !== k;
+    }
+    try { history.replaceState(null, '', k === 'code' ? '#claude-code' : location.pathname); } catch {}
+  };
+  document.getElementById('t-claude').onclick = () => izaberi('claude');
+  document.getElementById('t-code').onclick = () => izaberi('code');
+  if (location.hash === '#claude-code') izaberi('code');
+  async function kopiraj(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch { return false; }
+  }
+  // jedan klik: adresa ide u klipbord, pa se otvara strana sa konektorima (u novom jezičku, da ova ostane)
+  document.getElementById('otvori').addEventListener('click', async () => {
+    const ok = await kopiraj(document.getElementById('adresa').textContent);
+    document.getElementById('otvori-ok').textContent = ok ? ' Adresa je kopirana, samo je nalepi.' : '';
+  });
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-kopiraj]'); if (!b) return;
+    const t = document.getElementById(b.dataset.kopiraj).textContent;
+    try { await navigator.clipboard.writeText(t); }
+    catch { const r = document.createRange(); r.selectNodeContents(document.getElementById(b.dataset.kopiraj)); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); }
+    const bilo = b.textContent; b.textContent = b.classList.contains('link') ? 'kopirano ✓' : 'Kopirano ✓'; setTimeout(() => (b.textContent = bilo), 1600);
+  });
+})();
+</script>
+</body>
+</html>
