@@ -7,10 +7,13 @@
 // Protokol: MCP preko HTTP-a (JSON-RPC u POST telu, odgovor kao JSON), bez stanja između poziva.
 
 import PROZOR_HTML from './prozor.html';
+import POCETNA_HTML from './pocetna.html';
+import IKONA from './ikona.png';
 
-const VERZIJA = '0.4.4';
+const VERZIJA = '0.5.0';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
+const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
 const PODACI = 'https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/podaci';
 
 const UPUTSTVO =
@@ -18,7 +21,8 @@ const UPUTSTVO =
   'Kad korisnik pita za putovanja, aranžmane, gde da otputuje, ponude za neku zemlju ili šta prati, pozovi ' +
   'otvori_putovanja (sa zemljom ako je navedena). Prozor je cela aplikacija: korisnik u njemu sam bira zemlje, ' +
   'otvara ponude i prati cene. Za pitanja o jednoj ponudi koristi detalji_ponude umesto pretrage weba. ' +
-  'Ponude se osvežavaju svako jutro. Odgovaraj kratko, srpskom latinicom.';
+  'Ponude se osvežavaju svako jutro. Odgovaraj kratko, srpskom latinicom. ' +
+  'Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Za praćenje cena i u panou: u /plugin otvori Putovanja, podešavanja, i upiši istu adresu konektora koju vidi u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor.';
 
 const ALATI = [
   {
@@ -131,7 +135,10 @@ async function obavestenja(env, korisnik) {
 async function podaciZaProzor(env, korisnik, komanda, a = []) {
   switch (komanda) {
     case 'zemlje': return fajl('zemlje.json');
-    case 'top': return fajl('top.json');
+    case 'top': {
+      const k = /^[a-z]+$/.test(a[0] ?? '') ? a[0] : 'preporuka';
+      return (await fajl(`top/${k}.json`)) ?? fajl('top.json');
+    }
     case 'zemlja': return zemlja(a.join(' '));
     case 'ponuda': {
       const osobe = a.includes('--osobe') ? a[a.indexOf('--osobe') + 1] : 2;
@@ -151,6 +158,7 @@ async function podaciZaProzor(env, korisnik, komanda, a = []) {
     case 'stanje': return fajl('stanje.json');
     case 'popusti': return {};
     case 'uradisam': return [];
+    case 'agencije': return { poruka: 'Sken radi automatski svako jutro.' };
     default: return { greska: `komanda ${komanda} nije podržana` };
   }
 }
@@ -184,7 +192,8 @@ async function obradi(env, korisnik, poruka) {
       return ok({
         protocolVersion: params.protocolVersion || '2025-06-18',
         capabilities: { tools: { listChanged: false }, resources: { listChanged: false }, extensions: { 'io.modelcontextprotocol/ui': {} } },
-        serverInfo: { name: 'putovanja', title: 'Putovanja', version: VERZIJA },
+        serverInfo: { name: 'putovanja', title: 'Putovanja', version: VERZIJA, websiteUrl: ADRESA_SAJTA,
+          icons: [{ src: `${ADRESA_SAJTA}/ikona.png`, mimeType: 'image/png', sizes: ['512x512'] }] },
         instructions: UPUTSTVO,
       });
     case 'ping': return ok({});
@@ -215,7 +224,15 @@ function korisnikIz(url) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if ((url.pathname === '/ikona.png' || url.pathname === '/favicon.ico') && request.method === 'GET')
+      return new Response(IKONA, { headers: { 'content-type': 'image/png', 'cache-control': 'public, max-age=86400' } });
     if (url.pathname === '/' && request.method === 'GET') {
+      const st = await fajl('stanje.json');
+      const kad = st?.poslednji_sken ? st.poslednji_sken.slice(8, 10) + '.' + st.poslednji_sken.slice(5, 7) + '. u ' + st.poslednji_sken.slice(11, 16) : '?';
+      const html = POCETNA_HTML.replace('__VERZIJA__', VERZIJA).replace('__PONUDA__', String(st?.ponuda ?? '?')).replace('__SKEN__', kad);
+      return new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-cache' } });
+    }
+    if (url.pathname === '/stanje' && request.method === 'GET') {
       const st = await fajl('stanje.json');
       return new Response(`Putovanja ${VERZIJA}\nPonuda: ${st?.ponuda ?? '?'}, poslednji sken: ${st?.poslednji_sken ?? '?'}\nAdresa za Claude: ${url.origin}/mcp\n`,
         { headers: { 'content-type': 'text/plain; charset=utf-8' } });

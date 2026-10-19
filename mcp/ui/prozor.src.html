@@ -364,6 +364,7 @@ async function skeniraj() {
     crtaj();
   }, 4000);
 }
+const PITANJE_CLAUDE_CODE = 'Kako da pokrenem Putovanja u Claude Code-u (pano pored razgovora, u aplikaciji ili terminalu)? Daj mi tačne korake.';
 function pitaj(tekst) { app.sendMessage({ role: 'user', content: [{ type: 'text', text: tekst }] }).catch(() => {}); }
 function link(url) { app.openLink({ url }).catch(() => {}); }
 
@@ -582,7 +583,10 @@ function crtajIzvore() {
     ${ag.filter((a) => a.stanje !== 'ok').map((a) => `<div class="agencija"><button class="link" data-url="${esc(a.sajt)}">${esc(a.naziv)}</button><span class="st-los">${esc(a.greske?.[0] ?? 'nije skenirano')}</span></div>`).join('')}
     <div class="oznaka" style="margin-top:8px">U redu (${ag.filter((a) => a.stanje === 'ok').length})</div>
     <div class="cipovi" style="margin-top:4px">${ag.filter((a) => a.stanje === 'ok').map((a) => `<button class="cip" data-url="${esc(a.sajt)}">${esc(a.naziv)}<small>${a.ponuda}</small></button>`).join('')}</div>
-    ${iz?.cita_claude?.length ? `<p class="oznaka">Sajtove ${iz.cita_claude.map((c) => esc(c.naziv)).join(', ')} čita Claude kad ga pitaš.</p>` : ''}`;
+    ${iz?.cita_claude?.length ? `<p class="oznaka">Sajtove ${iz.cita_claude.map((c) => esc(c.naziv)).join(', ')} čita Claude kad ga pitaš.</p>` : ''}
+    <h2>Putovanja u Claude Code-u</h2>
+    <p class="oznaka">Na računaru sa Claude Code-om Putovanja mogu da stoje kao pano pored razgovora, sa istim ponudama.</p>
+    <div class="akcije"><button class="dugme" data-akcija="claude-code">Pokreni app u Claude Code</button></div>`;
 }
 function crtajBocno() {
   const novo = S.obav?.ukupno ?? 0;
@@ -601,6 +605,7 @@ function crtajBocno() {
     <div class="dno-bocno">
       <span class="verzija">Putovanja ${VERZIJA}</span>
       <span>${S.stanje?.ponuda ?? 0} ponuda${sken != null ? `, sken ${sken === 0 ? 'danas' : `pre ${sken} d`}` : ''}</span>
+      <button class="malo" data-akcija="claude-code">Pokreni app u Claude Code</button>
       ${S.modovi.includes('fullscreen') ? `<button class="malo" data-prikaz="1">${S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi'}</button>` : ''}
     </div>`;
 }
@@ -640,6 +645,7 @@ $('bocno').addEventListener('click', (e) => {
   if (b('[data-k]')) { const k = b('[data-k]').dataset.k; S.kontinent = S.kontinent === k ? '__' : k; return crtaj(); }
   if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
   if (b('[data-prikaz]')) return promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen');
+  if (b('[data-akcija="claude-code"]')) return pitaj(PITANJE_CLAUDE_CODE);
 });
 window.addEventListener('resize', () => crtaj());
 // okretanje tableta: odmah drugi raspored
@@ -673,6 +679,7 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (a === 'sajt') return link(p.url);
   if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id}.`);
   if (a === 'diy') { S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od: kratakDatum(p.date_from) }; sacuvaj('diy', S.diy); return otvoriDiy(); }
+  if (a === 'claude-code') return pitaj(PITANJE_CLAUDE_CODE);
   if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${S.diy.od}–${S.diy.do}, ${n.ukupno} osobe. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
   if (a === 'pitaj-mesec') return pitaj(`Pogledaj polaske za ${MES_PUNO[Number(S.kal.mesec.slice(5)) - 1]} (kalendar u Putovanjima) i predloži 3 najbolje opcije za vikend ili praznik, sa cenom po osobi i ukupno za ${n.ukupno}.`);
   if (a === 'sken') return skeniraj();

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Putovanja za Claude</title>
+<meta name="description" content="Ponude domaćih turističkih agencija u Claude-u: na telefonu, tabletu i računaru.">
+<link rel="icon" href="/ikona.png" type="image/png">
+<style>
+  :root {
+    --poz: #F6F4EF; --kartica: #FFFFFF; --t1: #172030; --t2: #4A5568; --t3: #6B7686; --linija: #E2DED5;
+    --nav: #1D2E4A; --amb: #E9A93B; --amb-tekst: #8A5A00; --kod: #F1EEE7; --ok: #2F7D4A;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --poz: #11161F; --kartica: #182130; --t1: #EEF1F6; --t2: #B9C2D0; --t3: #8B96A8; --linija: #2A3446;
+      --nav: #22324F; --amb: #F3B94D; --amb-tekst: #F3B94D; --kod: #0F141C; --ok: #86D19A; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--poz); color: var(--t1); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(env(safe-area-inset-top), 0px) 16px max(env(safe-area-inset-bottom), 24px); }
+  main { max-width: 640px; margin: 0 auto; }
+  header { display: flex; gap: 14px; align-items: center; padding: 28px 0 8px; }
+  header img { width: 56px; height: 56px; border-radius: 14px; }
+  h1 { font-size: 26px; line-height: 1.2; margin: 0; letter-spacing: -0.01em; }
+  header p { margin: 2px 0 0; color: var(--t2); font-size: 15px; }
+  .uvod { color: var(--t2); margin: 12px 0 24px; }
+  .uredjaji { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .uredjaji span { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--kartica); border: 1px solid var(--linija); color: var(--t2); }
+  section { background: var(--kartica); border: 1px solid var(--linija); border-radius: 16px; padding: 20px; margin: 0 0 16px; }
+  h2 { font-size: 19px; margin: 0 0 4px; }
+  .pod { color: var(--t3); font-size: 14px; margin: 0 0 16px; }
+  ol { margin: 0; padding: 0; list-style: none; counter-reset: k; }
+  ol > li { counter-increment: k; position: relative; padding: 0 0 18px 44px; }
+  ol > li:last-child { padding-bottom: 0; }
+  ol > li::before { content: counter(k); position: absolute; left: 0; top: -1px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--nav); color: #fff; font-weight: 700; font-size: 15px; display: grid; place-items: center; }
+  li b { display: block; margin-bottom: 4px; }
+  li p { margin: 0 0 8px; color: var(--t2); }
+  .polje { display: flex; align-items: stretch; border: 1px solid var(--linija); border-radius: 10px; overflow: hidden; background: var(--kod); margin: 8px 0 4px; }
+  .polje code { flex: 1; min-width: 0; padding: 12px; font: 14px/1.4 ui-monospace, "SF Mono", Consolas, monospace; overflow-wrap: anywhere; }
+  button, .dugme { font: inherit; font-weight: 600; font-size: 15px; border: 0; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; }
+  .kopiraj { background: var(--nav); color: #fff; border-radius: 0; padding: 0 16px; min-width: 96px; }
+  .dugme { background: var(--amb); color: #1B1300; padding: 0 18px; margin-top: 4px; }
+  .tiho { color: var(--t3); font-size: 14px; }
+  .napomena { font-size: 14px; color: var(--t2); border-left: 3px solid var(--amb); padding: 2px 0 2px 12px; margin: 14px 0 0; }
+  details summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: "›"; margin-left: auto; font-size: 26px; color: var(--t3); transition: transform .15s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  :focus-visible { outline: 3px solid var(--amb); outline-offset: 2px; }
+  footer { color: var(--t3); font-size: 13px; text-align: center; padding: 8px 0 16px; }
+  .ok { color: var(--ok); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="/ikona.png" alt="">
+    <div><h1>Putovanja</h1><p>Ponude domaćih agencija, u Claude-u</p></div>
+  </header>
+  <p class="uvod">Ponude 15 turističkih agencija iz Srbije na jednom mestu, cene po osobi, kalendar polazaka i praćenje cena. Osvežava se svako jutro.
+    <span class="uredjaji"><span>Telefon</span><span>Tablet</span><span>Računar</span><span>Chromebook</span></span></p>
+
+  <section aria-labelledby="h-konektor">
+    <h2 id="h-konektor">Dodaj Putovanja u Claude</h2>
+    <p class="pod">Jednom, oko minut. Posle radi na svim uređajima gde si prijavljen u Claude.</p>
+    <ol>
+      <li><b>Kopiraj svoju adresu</b>
+        <p>Napravljena je samo za tebe; po njoj Putovanja znaju šta ti pratiš.</p>
+        <div class="polje"><code id="adresa">…</code><button class="kopiraj" data-kopiraj="adresa">Kopiraj</button></div>
+        <span class="tiho">Ista adresa ostaje kad se vratiš na ovu stranu u ovom pregledaču.</span></li>
+      <li><b>Otvori konektore u Claude-u</b>
+        <p>Najlakše na računaru ili u pregledaču. Posle se Putovanja sama pojave i u aplikaciji na telefonu.</p>
+        <a class="dugme" id="otvori" href="https://claude.ai/customize/connectors" target="_blank" rel="noopener">Kopiraj adresu i otvori Claude</a>
+        <span class="tiho" id="otvori-ok" role="status"></span></li>
+      <li><b>Dodaj prilagođeni konektor</b>
+        <p>Klikni „Add custom connector”, za ime upiši <b style="display:inline">Putovanja</b>, a za URL nalepi adresu iz koraka 1. Sačuvaj.</p></li>
+      <li><b>Probaj</b>
+        <p>U novom razgovoru napiši „Otvori Putovanja” ili „Šta ima za Grčku?”. Prozor se otvara u razgovoru.</p></li>
+    </ol>
+    <p class="napomena">Besplatan Claude dozvoljava jedan prilagođeni konektor; ovo je taj jedan.</p>
+  </section>
+
+  <section aria-labelledby="h-code" id="code">
+    <details id="code-det">
+      <summary><h2 id="h-code" style="margin:0">Imaš Claude Code na računaru?</h2></summary>
+      <p class="pod" style="margin-top:6px">Putovanja mogu da stoje i kao pano pored razgovora, u terminalu ili u Code delu aplikacije Claude. Ne treba ništa drugo da instaliraš.</p>
+      <ol>
+        <li><b>U Claude Code pošalji</b>
+          <div class="polje"><code id="k1">/plugin marketplace add MiljanStankovic/Trip-planner</code><button class="kopiraj" data-kopiraj="k1">Kopiraj</button></div></li>
+        <li><b>Pa ovo</b>
+          <div class="polje"><code id="k2">/plugin install putovanja@putovanja</code><button class="kopiraj" data-kopiraj="k2">Kopiraj</button></div></li>
+        <li><b>Ponovo otvori Claude Code i otkucaj</b>
+          <div class="polje"><code id="k3">/putovanja</code><button class="kopiraj" data-kopiraj="k3">Kopiraj</button></div>
+          <p class="tiho">Za praćenje cena i u panou: u <code>/plugin</code> otvori Putovanja, podešavanja, i upiši istu adresu iz koraka 1 gore.</p></li>
+      </ol>
+      <p class="napomena">Nemaš Claude Code? Windows (PowerShell): <code>irm https://claude.ai/install.ps1 | iex</code>, Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>
+    </details>
+  </section>
+
+  <footer>Putovanja __VERZIJA__ · __PONUDA__ ponuda · poslednji sken __SKEN__<br>Ne rezerviše i ne plaća ništa: ponude otvaraš na sajtu agencije.</footer>
+</main>
+<script>
+(() => {
+  const osnova = location.origin + '/mcp/';
+  let kljuc = '';
+  try { kljuc = localStorage.getItem('putovanja-kljuc') || ''; } catch {}
+  if (!/^[a-z0-9]{16}$/.test(kljuc)) {
+    const a = new Uint8Array(16); crypto.getRandomValues(a);
+    kljuc = Array.from(a, (b) => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join('');
+    try { localStorage.setItem('putovanja-kljuc', kljuc); } catch {}
+  }
+  document.getElementById('adresa').textContent = osnova + kljuc;
+  // na računaru je Claude Code odmah otvoren, na telefonu skupljen
+  if (!matchMedia('(pointer: coarse)').matches && innerWidth >= 900) document.getElementById('code-det').open = true;
+  async function kopiraj(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch { return false; }
+  }
+  // jedan klik: adresa ide u klipbord, pa se otvara strana sa konektorima (u novom jezičku, da ova ostane)
+  document.getElementById('otvori').addEventListener('click', async () => {
+    const ok = await kopiraj(document.getElementById('adresa').textContent);
+    document.getElementById('otvori-ok').textContent = ok ? ' Adresa je kopirana, samo je nalepi.' : '';
+  });
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-kopiraj]'); if (!b) return;
+    const t = document.getElementById(b.dataset.kopiraj).textContent;
+    try { await navigator.clipboard.writeText(t); }
+    catch { const r = document.createRange(); r.selectNodeContents(document.getElementById(b.dataset.kopiraj)); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); }
+    const bilo = b.textContent; b.textContent = 'Kopirano ✓'; setTimeout(() => (b.textContent = bilo), 1600);
+  });
+})();
+</script>
+</body>
+</html>

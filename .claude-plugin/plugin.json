@@ -1,18 +1,31 @@
 {
   "name": "putovanja",
   "displayName": "Putovanja",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Planer putovanja u Claude Code-u: ponude domaćih agencija po zemljama, kalendar polazaka, praćenje cena, Uradi sam (prevoz + smeštaj) i pano /putovanja",
-  "author": { "name": "Miljan Stanković" },
+  "author": {
+    "name": "Miljan Stanković"
+  },
   "repository": "https://github.com/MiljanStankovic/Trip-planner",
   "license": "MIT",
-  "keywords": ["travel", "putovanja", "agencije", "srbija"],
+  "keywords": [
+    "travel",
+    "putovanja",
+    "agencije",
+    "srbija"
+  ],
   "types": "./types/index.d.ts",
   "userConfig": {
+    "adresa": {
+      "type": "string",
+      "title": "Lična adresa konektora (za praćenje cena)",
+      "description": "Prazno: pano prikazuje ponude, ali praćenje ne radi. Upiši istu adresu kao u konektoru Putovanja (https://…/mcp/…), pa pano i telefon prate iste ponude.",
+      "default": ""
+    },
     "ptPath": {
       "type": "string",
-      "title": "Putanja do alata putovanja",
-      "description": "Prazno (preporučeno): pano sam pokreće alat preko uv-a. Upiši punu putanju samo ako alat instaliraš na svoj način.",
+      "title": "Lokalni alat (napredno)",
+      "description": "Prazno (preporučeno): podaci stižu sa servera, bez instalacije. Upiši putanju do alata putovanja samo ako želiš da skeniraš agencije na svom računaru.",
       "default": ""
     }
   }

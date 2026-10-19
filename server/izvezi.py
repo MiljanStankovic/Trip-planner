@@ -59,6 +59,10 @@ def main() -> int:
 
     top = [{**it.to_dict(), "zasto": why} for it, why in catalog.top(stavke, cfg, "preporuka", limit=60)]
     pisi("top.json", {"ponude": cli._dodaj_popuste(conn, top)})
+    (izlaz / "top").mkdir(parents=True, exist_ok=True)
+    for k in catalog.TOP_CRITERIA:
+        po = [{**it.to_dict(), "zasto": why} for it, why in catalog.top(stavke, cfg, k, limit=60)]
+        pisi(f"top/{k}.json", {"ponude": cli._dodaj_popuste(conn, po)})
 
     # kalendar po mesecima
     prvi = watch.kalendar(stavke, None)

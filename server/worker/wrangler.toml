@@ -9,6 +9,11 @@ type = "Text"
 globs = ["**/*.html"]
 fallthrough = true
 
+[[rules]]
+type = "Data"
+globs = ["**/*.png"]
+fallthrough = true
+
 # lične stvari (šta ko prati); id upisuje GitHub Actions pri postavljanju
 [[kv_namespaces]]
 binding = "KV"

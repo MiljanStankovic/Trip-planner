@@ -35,7 +35,8 @@ server = MCPServer(
         "Kad korisnik pita za putovanja, aranžmane, gde da otputuje, ponude za neku zemlju ili šta prati, "
         "pozovi otvori_putovanja (sa zemljom ako je navedena). Prozor je cela aplikacija: korisnik u njemu sam "
         "bira zemlje, otvara ponude, prati cene i pravi 'uradi sam' plan. Za pitanja o jednoj ponudi koristi "
-        "detalji_ponude umesto pretrage weba. Odgovaraj kratko, srpskom latinicom."
+        "detalji_ponude umesto pretrage weba. Odgovaraj kratko, srpskom latinicom. "
+        "Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Za praćenje cena i u panou: u /plugin otvori Putovanja, podešavanja, i upiši istu adresu konektora koju vidi u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor."
     ),
 )
 
