@@ -1,6 +1,6 @@
 [project]
 name = "putovanja"
-version = "0.5.0"
+version = "0.5.1"
 description = "Pregledač ponuda domaćih turističkih agencija po kontinentima i zemljama, sa detaljima i slanjem u Trello"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,6 +8,7 @@ dependencies = [
     "requests>=2.31",
     "beautifulsoup4>=4.12",
     "rich>=13.7",
+    "tzdata>=2024.1; sys_platform == 'win32'",
 ]
 
 [project.optional-dependencies]

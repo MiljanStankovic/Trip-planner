@@ -42,7 +42,11 @@ from .scrapers import CLAUDE_SOURCES, SCRAPERS, SKIPPED
 from .trello import Trello, TrelloError
 
 console = Console()
-TZ = ZoneInfo("Europe/Belgrade")
+try:
+    TZ = ZoneInfo("Europe/Belgrade")
+except Exception:  # Windows bez baze vremenskih zona (paket tzdata): radi i bez nje
+    from datetime import timedelta, timezone
+    TZ = timezone(timedelta(hours=1), "CET")
 
 
 def _out(data, as_json: bool, render=None) -> None:
@@ -180,7 +184,7 @@ def cmd_suggest(cfg: Config, args) -> int:
 def cmd_add(cfg: Config, args) -> int:
     due = None
     if args.rok:
-        due = datetime.fromisoformat(args.rok + "T09:00").replace(tzinfo=TZ).astimezone(ZoneInfo("UTC")).isoformat()
+        due = datetime.fromisoformat(args.rok + "T09:00").replace(tzinfo=TZ).astimezone(__import__("datetime").timezone.utc).isoformat()
     try:
         card = Trello(cfg.trello).add_card(args.lista, args.naslov, args.opis or "", due=due, url=args.link)
     except TrelloError as e:

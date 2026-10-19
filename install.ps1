@@ -89,7 +89,9 @@ $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if (-not ($userPath -split ";" | Where-Object { $_ -eq $toolBin })) {
     [Environment]::SetEnvironmentVariable("Path", (($userPath.TrimEnd(";")) + ";" + $toolBin).TrimStart(";"), "User")
 }
-Ok ("putovanja " + (& $pt --version))
+$ver = & $pt --version 2>&1 | Out-String
+if ($LASTEXITCODE) { Write-Host $ver; Greska "Alat putovanja ne radi (vidi grešku iznad)" }
+Ok ("putovanja " + $ver.Trim())
 $cfg = Join-Path $HOME ".config\putovanja\config.toml"
 if (-not (Test-Path $cfg)) { & $pt init | Out-Null; Ok "podešavanja: $cfg" }
 

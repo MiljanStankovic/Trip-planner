@@ -66,7 +66,8 @@ if [[ -n "$GRANA" ]]; then PAKET="$IZVOR"; else PAKET="https://github.com/$REPO/
 uv tool install --force --quiet --python 3.12 "$PAKET" >/dev/null 2>&1 || greska "uv tool install nije uspeo"
 PT="$(uv tool dir --bin)/putovanja"
 [[ -x "$PT" ]] || greska "Nema $PT posle instalacije"
-ok "putovanja $("$PT" --version)"
+VER="$("$PT" --version 2>&1)" || { echo "$VER"; greska "Alat putovanja ne radi (vidi grešku iznad)"; }
+ok "putovanja $VER"
 case ":$PATH:" in *":$(uv tool dir --bin):"*) ;; *) uv tool update-shell >/dev/null 2>&1 || true;; esac
 CFG="$HOME/.config/putovanja/config.toml"
 if [[ ! -f "$CFG" ]]; then "$PT" init >/dev/null; ok "podešavanja: $CFG"; fi

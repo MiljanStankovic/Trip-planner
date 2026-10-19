@@ -4,7 +4,7 @@ import type { Register } from 'claude-code'
 import type { Detalji, Diy, Izvori, Kalendar, Kombinacija, Konektor, Nav, Obavestenja, Ponuda, Pracena, Stanje, Termin, ZemljeMapa } from '../types'
 
 const PANE = 'putovanja'
-const VERZIJA_ALATA = '0.5.0' // isto kao version u pyproject.toml; kad se razlikuje, pano osveži alat
+const VERZIJA_ALATA = '0.5.1' // isto kao version u pyproject.toml; kad se razlikuje, pano osveži alat
 const KONEKTORI_STRANA = 'https://claude.ai/settings/connectors'
 
 const nav = atom({ plugin: 'putovanja', key: 'nav' } as const, {

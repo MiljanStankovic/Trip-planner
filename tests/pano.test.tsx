@@ -17,7 +17,7 @@ const IZVORI = {
 }
 
 function odgovor(argv: readonly string[]): string {
-  if (argv[1] === '--version') return '0.5.0'
+  if (argv[1] === '--version') return '0.5.1'
   if (argv.includes('tool') && argv.includes('dir')) return '/u/bin'
   const a = argv.slice(2)
   if (a[0] === 'zemlje') return JSON.stringify({ Evropa: { 'Španija': 46 }, Azija: { Tajland: 51, Maldivi: 74 } })
