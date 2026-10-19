@@ -39,6 +39,8 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
   on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
   const r = await $.command.run({ command: 'putovanja', args: '' } as any)
   expect(r.text).toContain('Putovanja')
+  const r2 = await $.command.run({ command: 'putovanja:pano', args: '' } as any) // isti pano iz commands/pano.md
+  expect(r2.text).toContain('Putovanja')
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ plugin: 'putovanja', surface, ...PANE })
@@ -48,7 +50,7 @@ test('pano (široko): kontinenti levo, tabla u sredini, izvori i konektori desno
     expect(await ui.find({ key: `b2-${PONUDA.id}` })).toBeDefined()
     expect(await ui.find({ text: /14|1 agencija u redu/ })).toBeDefined()
     expect(await ui.find({ text: /Odeon: stranica/ })).toBeDefined()
-    expect(await ui.find({ text: /Konektori/ })).toBeDefined()
+    expect(await ui.find({ text: /Konektori/i })).toBeDefined()
     expect(await ui.find({ text: /Najjeftinije svuda/ })).toBeDefined()
 
     expect(await ui.find({ text: /Preporučeno za tebe/ })).toBeDefined()

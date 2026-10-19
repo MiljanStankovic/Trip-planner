@@ -69,6 +69,7 @@ Glavna je **`/putovanja`** (pano). `/putovanja Tajland` otvara pano odmah na Taj
 | Komanda | Šta radi |
 |---|---|
 | `/putovanja [zemlja]` | Pano Putovanja pored razgovora |
+| `/putovanja:pano [zemlja]` | Isto, za Claude aplikaciju: tamo je u meniju od starta, pa nema poruke "isn't a command here" |
 | `/putovanja:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
 | `/putovanja:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
 | `/putovanja:uradi-sam <kuda> <od> <do>` | Prevoz + smeštaj u sopstvenoj režiji, ukupna cena, poređenje sa agencijama |

@@ -478,7 +478,8 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
-  on('command.run', { command: 'putovanja' }, async ($, e) => {
+  // /putovanja:pano je isti pano kao /putovanja, ali je i fajl u commands/, pa ga Claude aplikacija zna od starta
+  on('command.run', { command: ['putovanja', 'putovanja:pano', 'pano'] } as any, async ($: any, e: any) => {
     const args = (e.args ?? '').trim()
     if (args.startsWith('pt ')) {
       await $.store.set('ptPath', args.slice(3).trim())
@@ -557,7 +558,7 @@ async function crtaj($: any, e: any) {
   const zaglavlje = (
     <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
       <Box flexDirection="row" gap={2} alignItems="center" flexWrap="wrap">
-        <Text bold color={C.amb}>Putovanja</Text>
+        {terminal || telefon ? <Text bold color={C.amb}>Putovanja</Text> : null}
         {tab('t-ag', 'Agencije', odeljak === 'agencije', () => { void idiNa($, { view: 'pocetna' }); void ucitajPocetnu($) })}
         {tab('t-diy', 'Uradi sam', odeljak === 'diy', () => otvoriDiy($))}
         {tab('t-pr', <Text>Praćeno{brojObav ? <Text color={C.cor} bold> {brojObav} nova</Text> : ''}</Text>, odeljak === 'prac', () => otvoriPracenje($))}
@@ -581,12 +582,19 @@ async function crtaj($: any, e: any) {
   const vertikala = (vis: number) => mono
     ? <Box width={1} flexShrink={0}><Text color={C.bor}>{Array(Math.max(1, vis)).fill('│').join('\n')}</Text></Box>
     : <Box width={3} flexShrink={0} />
-  const red2 = (levo: any, desno: any, key?: string) => <Box flexDirection="row" justifyContent="space-between" key={key}>{levo}{desno}</Box>
+  const red2 = (levo: any, desno: any, key?: string) => <Box flexDirection="row" justifyContent="space-between" columnGap={1} key={key}>{levo}{desno}</Box>
+  // aplikacija: kartice sa blagom pozadinom i isticanje reda pod mišem (prozirne boje rade i u svetloj i u tamnoj temi)
+  const KARTA = '#8080800d', ISTAKNUTO = '#80808024', IZABRANO = '#7FB8E62e'
+  const naslovKarte = (t: string, desno?: any) => (
+    <Box flexDirection="row" justifyContent="space-between" marginBottom="xs">
+      <Text size="footnote" weight="semibold" color={C.dim}>{t.toUpperCase()}</Text>{desno ?? null}
+    </Box>
+  )
 
   // ===== bočna kolona: izvori + konektori =====
   const iz = await read($, izvori)
   const ko = await read($, konektori)
-  const sirinaStrane = 34
+  const sirinaStrane = terminal ? 34 : 32
   const strana = (vis: number) => {
     const w = sirinaStrane - 2
     const ag = iz?.agencije ?? []
@@ -597,6 +605,38 @@ async function crtaj($: any, e: any) {
       return sati < 1 ? 'sken upravo' : sati < 24 ? `sken pre ${sati} h` : `sken pre ${Math.round(sati / 24)} d`
     })() : 'nema skena'
     const nepovezani = ko.filter(k => !k.povezan)
+    if (!mono) return (
+      <Box flexDirection="column" width={sirinaStrane} flexShrink={0} gap="md">
+        <Box flexDirection="column" backgroundColor={KARTA} padding="sm" gap="xs">
+          {naslovKarte('Izvori', <Text size="footnote" color={C.dim}>{kad}</Text>)}
+          {problemi.map(a => <Link key={`iz-p-${a.id}`} href={a.sajt} label={`! ${a.naziv}: ${a.greske[0] ?? (a.stanje === 'greska' ? 'nije učitano' : 'delimično')}`} />)}
+          {red2(<Text wrap="truncate-end"><Text color={C.mint}>✓</Text> {uRedu} agencija u redu</Text>,
+            <Button plain key="iz-sve" onPress={() => idiNa($, { izvoriOtvoreni: !n.izvoriOtvoreni })}><Text color={C.sky}>{n.izvoriOtvoreni ? 'sakrij' : 'spisak'}</Text></Button>)}
+          {n.izvoriOtvoreni && ag.filter(a => a.stanje !== 'greska' && a.stanje !== 'delimicno').map(a =>
+            red2(<Link key={`iz-${a.id}`} href={a.sajt} label={a.naziv} />, <Text size="footnote" color={C.dim} tabular>{a.ponuda}</Text>, `izr-${a.id}`))}
+          <Text size="footnote" color={C.dim} wrap="wrap">+ {iz?.cita_claude.length ?? 3} sajta čita Claude kad ga pitaš</Text>
+          <Box marginTop="xs"><Button key="iz-sken" variant="secondary" onPress={() => skeniraj($)}>Skeniraj ponovo</Button></Box>
+        </Box>
+        <Box flexDirection="column" backgroundColor={KARTA} padding="sm" gap="xs">
+          {naslovKarte('Konektori', <Text size="footnote" color={C.dim}>{ko.filter(k => k.povezan).length} od {ko.length}</Text>)}
+          {ko.map(k => (
+            <Box flexDirection="row" justifyContent="space-between" alignItems="center" columnGap={1} key={`ko-${k.ime}`}>
+              <Box flexDirection="column" flexShrink={1}>
+                <Text><Text color={k.povezan ? C.mint : C.cor}>{k.povezan ? '✓' : '✗'}</Text> {k.ime}</Text>
+                <Text size="footnote" color={C.dim} wrap="truncate-end">{k.sta}</Text>
+              </Box>
+              {k.povezan ? <Text size="footnote" color={C.mint}>povezan</Text> : <Link key={`ko-l-${k.ime}`} href={KONEKTORI_STRANA} label="Poveži" />}
+            </Box>
+          ))}
+          {nepovezani.length > 0 && (
+            <Box flexDirection="column" marginTop="xs">
+              <Link key="ko-sve" href={KONEKTORI_STRANA} label={`Poveži preostale (${nepovezani.length})`} />
+              <Text size="footnote" color={C.dim} wrap="wrap">Otvara claude.ai. Posle povezivanja ponovo otvori Putovanja.</Text>
+            </Box>
+          )}
+        </Box>
+      </Box>
+    )
     return (
       <Box flexDirection="column" width={sirinaStrane} flexShrink={0} paddingX={1}>
         <Box flexDirection="row" justifyContent="space-between"><Text bold>Izvori</Text><Text color={C.dim}>{kad}</Text></Box>
@@ -636,7 +676,7 @@ async function crtaj($: any, e: any) {
   }
 
   // ===== leva kolona: kontinenti ili zemlje =====
-  const sirinaNav = 21
+  const sirinaNav = terminal ? 21 : 24
   const navKolona = (vis: number) => {
     const w = sirinaNav - 1
     const kontinenti = Object.entries(z)
@@ -647,22 +687,28 @@ async function crtaj($: any, e: any) {
     const od = zemljeOtv.length > mesta ? Math.max(0, Math.min(i - Math.floor(mesta / 2), zemljeOtv.length - mesta + 1)) : 0
     const vidljive = zemljeOtv.length > mesta ? zemljeOtv.slice(od, od + mesta - 1) : zemljeOtv
     if (!mono) {
-      const dug = (key: string, tekst: any, broj: number, onPress: () => void) =>
-        red2(<Button plain key={key} onPress={onPress}>{tekst}</Button>, <Text color={C.dim}>{broj}</Text>, `${key}-r`)
+      const dug = (key: string, tekst: any, broj: number, onPress: () => void, izabran = false) => (
+        <Box key={`${key}-r`} flexDirection="row" justifyContent="space-between" columnGap={1} paddingX="xs"
+          backgroundColor={izabran ? IZABRANO : undefined} hover={{ backgroundColor: ISTAKNUTO }}>
+          <Button plain key={key} onPress={onPress}>{tekst}</Button><Text size="footnote" color={C.dim} tabular>{broj}</Text>
+        </Box>
+      )
       return (
-        <Box flexDirection="column" width={sirinaNav} flexShrink={0} gap={0}>
-          <Button plain key="nav-pocetna" onPress={() => idiNa($, { view: 'pocetna', zemlja: '', strana: 0 })}>
-            <Text color={n.view === 'pocetna' ? C.sky : undefined} bold={n.view === 'pocetna'}>Preporučeno</Text>
-          </Button>
-          <Box height={1} />
+        <Box flexDirection="column" width={sirinaNav} flexShrink={0} backgroundColor={KARTA} padding="sm">
+          <Box key="nav-p-r" paddingX="xs" backgroundColor={n.view === 'pocetna' ? IZABRANO : undefined} hover={{ backgroundColor: ISTAKNUTO }}>
+            <Button plain key="nav-pocetna" onPress={() => idiNa($, { view: 'pocetna', zemlja: '', strana: 0 })}>
+              <Text weight={n.view === 'pocetna' ? 'semibold' : 'regular'} color={n.view === 'pocetna' ? C.sky : undefined}>★ Preporučeno</Text>
+            </Button>
+          </Box>
+          <Box marginTop="sm">{naslovKarte('Destinacije')}</Box>
           {kontinenti.map(([k, c]) => (
             <Box flexDirection="column" key={`nkb-${k}`}>
-              {dug(`nk-${k}`, <Text bold={k === otvoren}>{k === otvoren ? '▾ ' : '▸ '}{k}</Text>, Object.values(c).reduce((x, y) => x + y, 0), () => idiNa($, { kontinent: k }))}
+              {dug(`nk-${k}`, <Text weight={k === otvoren ? 'semibold' : 'regular'}><Text color={C.dim}>{k === otvoren ? '▾ ' : '▸ '}</Text>{k}</Text>, Object.values(c).reduce((x, y) => x + y, 0), () => idiNa($, { kontinent: k }))}
               {k === otvoren && (
-                <Box flexDirection="column" paddingLeft={2}>
-                  {zemljeOtv.slice(0, Math.max(6, mesta)).map(([zem, cz]) => dug(`nz-${zem}`,
-                    <Text bold={zem === n.zemlja && n.view !== 'pocetna'} color={zem === n.zemlja && n.view !== 'pocetna' ? C.sky : undefined}>{zem}</Text>, cz, () => otvoriZemlju($, zem)))}
-                  {zemljeOtv.length > Math.max(6, mesta) && <Text color={C.dim}>+{zemljeOtv.length - Math.max(6, mesta)} zemalja</Text>}
+                <Box flexDirection="column" paddingLeft="sm">
+                  {zemljeOtv.slice(0, Math.max(6, mesta)).map(([zem, cz]) => { const iz2 = zem === n.zemlja && n.view !== 'pocetna'; return dug(`nz-${zem}`,
+                    <Text size="footnote" weight={iz2 ? 'semibold' : 'regular'} color={iz2 ? C.sky : C.fg2}>{zem}</Text>, cz, () => otvoriZemlju($, zem), iz2) })}
+                  {zemljeOtv.length > Math.max(6, mesta) && <Text size="footnote" color={C.dim}>+{zemljeOtv.length - Math.max(6, mesta)} zemalja</Text>}
                 </Box>
               )}
             </Box>
@@ -709,18 +755,18 @@ async function crtaj($: any, e: any) {
     const sp = Math.min(n.strana, strane - 1)
     const vidljive = ture.slice(sp * mesta, sp * mesta + mesta)
     return (
-      <Box flexDirection="column" width={w} flexShrink={1}>
+      <Box flexDirection="column" width={mono ? w : undefined} flexGrow={mono ? 0 : 1} flexShrink={1}>
         {naslov}
         {mono
           ? <Text color={C.dim}>{' ' + padR('Polazak', wD) + padR('Odredište', wIme) + padL('Noći', wN - 2) + '  ' + (wP ? padR('Prevoz', wP) : '') + (wA ? padR('Agencija', wA) : '') + padL('Po osobi', wC) + ' '}</Text>
           : (
-            <Box flexDirection="row" paddingX={1}>
-              <Box width={wD}><Text color={C.dim}>Polazak</Text></Box>
-              <Box flexGrow={1} flexShrink={1}><Text color={C.dim}>Odredište</Text></Box>
-              <Box width={wN} justifyContent="flex-end"><Text color={C.dim}>Noći</Text></Box>
-              {wP ? <Box width={wP} paddingLeft={2}><Text color={C.dim}>Prevoz</Text></Box> : null}
-              {wA ? <Box width={wA} paddingLeft={2}><Text color={C.dim}>Agencija</Text></Box> : null}
-              <Box width={wC} justifyContent="flex-end"><Text color={C.dim}>Po osobi</Text></Box>
+            <Box flexDirection="row" paddingX="sm" paddingY="xs" marginTop="sm" backgroundColor={KARTA}>
+              <Box width={wD}><Text size="footnote" weight="semibold" color={C.dim}>POLAZAK</Text></Box>
+              <Box flexGrow={1} flexShrink={1}><Text size="footnote" weight="semibold" color={C.dim}>ODREDIŠTE</Text></Box>
+              <Box width={wN} justifyContent="flex-end"><Text size="footnote" weight="semibold" color={C.dim}>NOĆI</Text></Box>
+              {wP ? <Box width={wP} paddingLeft={2}><Text size="footnote" weight="semibold" color={C.dim}>PREVOZ</Text></Box> : null}
+              {wA ? <Box width={wA} paddingLeft={2}><Text size="footnote" weight="semibold" color={C.dim}>AGENCIJA</Text></Box> : null}
+              <Box width={wC} justifyContent="flex-end"><Text size="footnote" weight="semibold" color={C.dim}>PO OSOBI</Text></Box>
             </Box>
           )}
         {crta(w)}
@@ -741,19 +787,19 @@ async function crtaj($: any, e: any) {
           if (!mono) {
             const otvori = () => otvoriPonudu($, p)
             return (
-              <Box flexDirection="column" key={`b-${p.id}`} paddingX={1} marginBottom={1}>
-                <Box flexDirection="row">
-                  <Box width={wD}><Button plain key={`b1d-${p.id}`} onPress={otvori}><Text color={C.amb} bold>{kratakDatum(p.date_from)}</Text></Button></Box>
-                  <Box flexGrow={1} flexShrink={1}><Button plain key={`b1-${p.id}`} onPress={otvori}><Text bold>{ime(p)}</Text></Button></Box>
-                  <Box width={wN} justifyContent="flex-end"><Button plain key={`b1n-${p.id}`} onPress={otvori}>{p.nights === 0 ? 'izlet' : String(p.nights ?? '')}</Button></Box>
-                  {wP ? <Box width={wP} paddingLeft={2}><Button plain key={`b1p-${p.id}`} onPress={otvori}><Text color={C.fg2}>{PREVOZ[p.transport ?? ''] ?? (p.transport ?? '')}</Text></Button></Box> : null}
-                  {wA ? <Box width={wA} paddingLeft={2}><Button plain key={`b1a-${p.id}`} onPress={otvori}><Text color={C.fg2}>{p.agencija}</Text></Button></Box> : null}
-                  <Box width={wC} justifyContent="flex-end"><Button plain key={`b1c-${p.id}`} onPress={otvori}><Text color={C.amb} bold>{opseg(ts)}</Text></Button></Box>
+              <Box flexDirection="column" key={`b-${p.id}`} paddingX="sm" paddingY="xs" hover={{ backgroundColor: ISTAKNUTO }}>
+                <Box flexDirection="row" alignItems="center">
+                  <Box width={wD}><Button plain key={`b1d-${p.id}`} onPress={otvori}><Text color={C.amb} weight="semibold" tabular>{kratakDatum(p.date_from)}</Text></Button></Box>
+                  <Box flexGrow={1} flexShrink={1}><Button plain key={`b1-${p.id}`} onPress={otvori}><Text weight="semibold" wrap="truncate-end">{ime(p)}</Text></Button></Box>
+                  <Box width={wN} justifyContent="flex-end"><Button plain key={`b1n-${p.id}`} onPress={otvori}><Text color={C.fg2} tabular>{p.nights === 0 ? 'izlet' : String(p.nights ?? '')}</Text></Button></Box>
+                  {wP ? <Box width={wP} paddingLeft={2}><Button plain key={`b1p-${p.id}`} onPress={otvori}><Text color={C.fg2} wrap="truncate-end">{PREVOZ[p.transport ?? ''] ?? (p.transport ?? '')}</Text></Button></Box> : null}
+                  {wA ? <Box width={wA} paddingLeft={2}><Button plain key={`b1a-${p.id}`} onPress={otvori}><Text color={C.fg2} wrap="truncate-end">{p.agencija}</Text></Button></Box> : null}
+                  <Box width={wC} justifyContent="flex-end"><Button plain key={`b1c-${p.id}`} onPress={otvori}><Text color={C.amb} weight="bold" tabular>{opseg(ts)}</Text></Button></Box>
                 </Box>
                 <Box flexDirection="row" paddingLeft={wD} columnGap={2} flexWrap="wrap">
-                  <Button plain key={`b2-${p.id}`} onPress={otvori}><Text color={C.dim}>{red2tekst}</Text></Button>
-                  {nap.slice(0, 3).map(x => <Text color={C.mint} key={`b2n-${p.id}-${x}`}>+ {x}</Text>)}
-                  {pop ? <Text color={C.mint}>−{pop}%</Text> : null}
+                  <Button plain key={`b2-${p.id}`} onPress={otvori}><Text size="footnote" color={C.dim}>{red2tekst}</Text></Button>
+                  {nap.slice(0, 3).map(x => <Text size="footnote" color={C.mint} key={`b2n-${p.id}-${x}`}>+ {x}</Text>)}
+                  {pop ? <Text size="footnote" weight="semibold" color={C.mint}>−{pop}%</Text> : null}
                 </Box>
               </Box>
             )
@@ -825,8 +871,8 @@ async function crtaj($: any, e: any) {
       )
     }
     return (
-      <Box flexDirection="row" gap={3} paddingX={1} backgroundColor={C.strip}>
-        <Text color={C.dim}>Najjeftinije svuda</Text>
+      <Box flexDirection="row" gap={3} paddingX={1} paddingY={mono ? 0 : 'xs'} backgroundColor={mono ? C.strip : KARTA} flexWrap="wrap">
+        <Text color={C.dim} size="footnote" weight="semibold">Najjeftinije svuda</Text>
         {delovi}
       </Box>
     )
@@ -845,7 +891,7 @@ async function crtaj($: any, e: any) {
       ture = grupisi(await read($, lista), n.sort === 'preporuka' ? 'cena' : n.sort)
       naslov = (
         <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
-          <Text><Text bold>{n.zemlja}</Text><Text color={C.dim}>  {ture.length} {ture.length === 1 ? 'aranžman' : 'aranžmana'}</Text></Text>
+          <Text><Text bold size="heading">{n.zemlja}</Text><Text color={C.dim}>  {ture.length} {ture.length === 1 ? 'aranžman' : 'aranžmana'}</Text></Text>
           <Box flexDirection="row" gap={2}>
             {izborPutnika}
             {izborSorta}
@@ -873,7 +919,7 @@ async function crtaj($: any, e: any) {
       prazno = 'Baza je prazna. Klikni „Skeniraj ponovo“ desno, ili napiši Claude-u: „uradi sken agencija“.'
       naslov = (
         <Box flexDirection="row" justifyContent="space-between" paddingX={1} flexWrap="wrap">
-          <Text bold>Preporučeno za tebe</Text>
+          <Text bold size="heading">Preporučeno za tebe</Text>
           <Box flexDirection="row" gap={2}>
             {izborPutnika}
             {izborSorta}
@@ -903,6 +949,22 @@ async function crtaj($: any, e: any) {
         </Box>
       )
     })() : null
+    if (!mono && !telefon) {
+      const wT = cols - (saNav ? sirinaNav + 2 : 0) - (saStranom ? sirinaStrane + 2 : 0)
+      return (
+        <Box flexDirection="column" gap="sm" paddingX="xs">
+          {zaglavlje}
+          {statusRed}
+          <Box flexDirection="row" columnGap="md" alignItems="flex-start">
+            {saNav && navKolona(vis)}
+            {tabla(ture, wT, vis - 1, naslov, prazno)}
+            {saStranom && strana(vis)}
+          </Box>
+          {jf.length > 0 ? traka(cols) : null}
+          {sazetak}
+        </Box>
+      )
+    }
     return (
       <Box flexDirection="column">
         {zaglavlje}
