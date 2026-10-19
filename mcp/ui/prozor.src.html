@@ -162,11 +162,16 @@
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .kartica .cena { min-width: 0; text-align: right; }
   .kartica .cena span, .kartica .cena small { white-space: nowrap; }
-  body.dodir.ceo { --vrh-claude: max(calc(var(--gore, 0px) + 64px), 96px); }
-  body.dodir.ceo .app { padding-top: var(--vrh-claude) !important; padding-bottom: max(var(--dno, 0px), 120px) !important; }
-  body.dodir.ceo .app.siroko { min-height: 0; }
-  body.dodir.ceo .bocno { top: var(--vrh-claude); max-height: calc(100vh - var(--vrh-claude) - 14px); }
-  body.mob.ceo .app { padding-left: max(var(--levo, 0px), 4px); padding-right: max(var(--desno, 0px), 4px); }
+  /* „puno”: prozor zauzima ceo ekran telefona ili tableta (javlja Claude, a ako ne javi, prepoznaje se po veličini).
+     Gore je traka iste boje ispod Claude-ovog dugmeta X i naslova; meni (odeljci) se lepi odmah ispod nje. */
+  body.puno { --vrh-claude: max(calc(var(--gore, 0px) + 48px), 68px); }
+  body.puno::before { content: ''; position: fixed; z-index: 20; top: 0; left: 0; right: 0; height: var(--vrh-claude); background: var(--poz2); }
+  html:has(body.puno), body.puno { background: var(--poz2); }
+  body.puno .app { padding-top: var(--vrh-claude) !important; padding-bottom: max(var(--dno, 0px), 72px) !important; }
+  body.puno .app.siroko { min-height: 0; }
+  body.puno .bocno { top: calc(var(--vrh-claude) + 8px); max-height: calc(100vh - var(--vrh-claude) - 16px); }
+  body.puno .vrh { position: sticky; z-index: 10; top: var(--vrh-claude); background: var(--poz2); margin: 0 -4px 6px; padding: 2px 4px 0; }
+  body.puno.mob .app { padding-left: max(var(--levo, 0px), 4px); padding-right: max(var(--desno, 0px), 4px); }
   .mob .app, .app.mob { padding: 6px 2px 10px; }
   .mob .vrh { margin-bottom: 6px; flex-wrap: nowrap; }
   .mob .vrh { display: block; }
@@ -301,7 +306,16 @@ let VERZIJA = '0.3.2';
 const naDodir = () => { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } };
 const uspravno = () => { const t = screen.orientation?.type; return t ? t.startsWith('portrait') : screen.height > screen.width; };
 const mob = () => window.innerWidth < 600 || (naDodir() && uspravno() && window.innerWidth < 1100);
-const siroko = () => S.prikaz === 'fullscreen' && !mob();
+const naDodiru = () => naDodir() || (navigator.maxTouchPoints > 1 && matchMedia('(hover: none)').matches);
+// ceo ekran telefona/tableta: Claude javi „fullscreen”, ili je prozor visok skoro kao ekran i skroluje se iznutra
+const puno = () => {
+  if (!naDodiru()) return false;
+  if (S.prikaz === 'fullscreen') return true;
+  const ekran = matchMedia('(orientation: landscape)').matches ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+  const el = document.scrollingElement || document.documentElement;
+  return innerHeight >= ekran * 0.6 && el.scrollHeight > innerHeight + 40;
+};
+const siroko = () => (S.prikaz === 'fullscreen' || puno()) && !mob();
 const poStrani = () => siroko() ? 10 : 6;
 
 // ---------- veza sa Claude-om ----------
@@ -624,8 +638,8 @@ let posmatrac = null;
 function beskonacno() {
   posmatrac?.disconnect();
   const dugme = document.querySelector('#sadrzaj .vise');
-  // u razgovoru (ne preko celog ekrana) prozor raste sa sadržajem, pa bi se sve učitalo odjednom: tu ostaje dugme
-  if (!dugme || S.prikaz !== 'fullscreen' || !('IntersectionObserver' in window)) return;
+  // svuda: kad se dugme „Prikaži još” stvarno vidi na ekranu (i u razgovoru, dok skroluješ chat), samo se klikne
+  if (!dugme || !('IntersectionObserver' in window)) return;
   posmatrac = new IntersectionObserver((ul) => {
     if (!ul.some((x) => x.isIntersecting)) return;
     posmatrac.disconnect();
@@ -639,7 +653,7 @@ function crtaj() {
   const sir = siroko();
   document.body.classList.toggle('mob', mob());
   document.body.classList.toggle('ceo', S.prikaz === 'fullscreen');
-  document.body.classList.toggle('dodir', matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 1 && matchMedia('(hover: none)').matches);
+  document.body.classList.toggle('puno', puno());
   $('app').classList.toggle('siroko', sir);
   $('bocno').hidden = !sir;
   if (sir) $('bocno').innerHTML = crtajBocno();
