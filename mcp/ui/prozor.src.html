@@ -468,9 +468,8 @@ function crtajPonude() {
   if (mob()) return crtajPonudeMob();
   const n = putnici(S.putnici).ukupno;
   TURE = grupisi(S.lista, S.zemlja && S.sort === 'preporuka' ? 'cena' : S.sort);
-  const ps = poStrani(), strane = Math.max(1, Math.ceil(TURE.length / ps));
-  S.strana = Math.min(S.strana, strane - 1);
-  const vid = TURE.slice(S.strana * ps, S.strana * ps + ps);
+  const ps = poStrani(), dokle = (S.strana + 1) * ps;
+  const vid = TURE.slice(0, dokle);
   const prazna = !S.stanje?.ponuda;
   return `
     ${siroko() ? '' : cipoviZemalja()}
@@ -482,9 +481,9 @@ function crtajPonude() {
       ${izborPutnika()}
     </div>
     ${prazna && !S.ucitava ? `<div class="poruka">Baza je prazna. Prvo skeniraj agencije (1–3 min). <button class="dugme" data-akcija="sken">Skeniraj sada</button></div>` : ''}
-    <ol class="lista" id="lista">${vid.length ? vid.map((t, i) => redPonude(t, S.strana * ps + i, n)).join('') : `<li class="prazno">${S.ucitava ? 'Učitavam…' : 'Nema ponuda za ovaj izbor.'}</li>`}</ol>
+    <ol class="lista" id="lista">${vid.length ? vid.map((t, i) => redPonude(t, i, n)).join('') : `<li class="prazno">${S.ucitava ? 'Učitavam…' : 'Nema ponuda za ovaj izbor.'}</li>`}</ol>
+    ${TURE.length > dokle ? `<button class="vise" data-akcija="vise-str">Prikaži još (${TURE.length - dokle})</button>` : ''}
     <div class="strane"><span>Cene po osobi, sa sajtova agencija <span class="verzija">· v${VERZIJA}</span></span>
-      ${strane > 1 ? `<span class="dugmad"><button class="malo" data-str="-1" ${S.strana === 0 ? 'disabled' : ''}>‹</button><span>${S.strana + 1} od ${strane}</span><button class="malo" data-str="1" ${S.strana >= strane - 1 ? 'disabled' : ''}>›</button></span>` : ''}
     </div>`;
 }
 function crtajPonudu() {
@@ -529,22 +528,20 @@ function crtajKalendar() {
   const k = S.kal;
   if (!k) return '<div class="prazno">Učitavam…</div>';
   const dani = Object.entries(k.dani ?? {});
-  const ps = S.prikaz === 'fullscreen' ? 8 : 3, strane = Math.max(1, Math.ceil(dani.length / ps));
-  S.strana = Math.min(S.strana, strane - 1);
+  const ps = S.prikaz === 'fullscreen' ? 8 : 3, dokle = (S.strana + 1) * ps;
   const mi = Number(k.mesec.slice(5)) - 1;
   return `
     <div class="cipovi" id="meseci" style="margin:4px 0">${(k.meseci ?? []).map((m) => `<button class="cip" data-m="${m.mesec}" aria-pressed="${m.mesec === k.mesec}">${MES[Number(m.mesec.slice(5)) - 1]}<small>${m.broj}</small></button>`).join('')}</div>
     <h2>${MES_PUNO[mi]} ${k.mesec.slice(0, 4)}<small>${dani.reduce((a, [, l]) => a + l.length, 0)} polazaka</small></h2>
     ${Object.keys(k.praznici ?? {}).length ? `<div class="oznaka">Praznici: ${Object.entries(k.praznici).map(([d, x]) => `${kratakDatum(d)} ${esc(x)}`).join(', ')}</div>` : ''}
-    ${dani.slice(S.strana * ps, S.strana * ps + ps).map(([d, l]) => {
+    ${dani.slice(0, dokle).map(([d, l]) => {
       const dt = new Date(d + 'T12:00:00');
       return `<div class="dan-zag">${DAN_PUNO[dt.getDay()]} ${kratakDatum(d)}${k.praznici?.[d] ? ` · ${esc(k.praznici[d])}` : ''}<small>${l.length}</small></div>
         ${l.slice(0, S.prikaz === 'fullscreen' ? 5 : 3).map((p, i) => `<div class="mini" data-kd="${d}" data-ki="${i}"><span>${esc(ime(p))} <span class="tiho">${esc(p.zemlja)}, ${esc(p.agencija)}</span></span><b>${iznos(p.price, p.currency) || 'na upit'}</b></div>`).join('')}
         ${l.length > (S.prikaz === 'fullscreen' ? 5 : 3) ? `<div class="oznaka" style="padding:2px 6px">+${l.length - (S.prikaz === 'fullscreen' ? 5 : 3)} još tog dana</div>` : ''}`;
     }).join('') || '<div class="prazno">Nema polazaka u ovom mesecu.</div>'}
-    <div class="strane"><button class="malo" data-akcija="pitaj-mesec">Pitaj Claude-a za najbolje u ovom mesecu</button>
-      ${strane > 1 ? `<span class="dugmad"><button class="malo" data-str="-1" ${S.strana === 0 ? 'disabled' : ''}>‹</button><span>${S.strana + 1} od ${strane}</span><button class="malo" data-str="1" ${S.strana >= strane - 1 ? 'disabled' : ''}>›</button></span>` : ''}
-    </div>`;
+    ${dani.length > dokle ? `<button class="vise" data-akcija="vise-str">Prikaži još dana (${dani.length - dokle})</button>` : ''}
+    <div class="strane"><button class="malo" data-akcija="pitaj-mesec">Pitaj Claude-a za najbolje u ovom mesecu</button></div>`;
 }
 function crtajPraceno() {
   const o = S.obav;
@@ -623,6 +620,21 @@ function crtajBocno() {
       ${S.modovi.includes('fullscreen') ? `<button class="malo" data-prikaz="1">${S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi'}</button>` : ''}
     </div>`;
 }
+let posmatrac = null;
+function beskonacno() {
+  posmatrac?.disconnect();
+  const dugme = document.querySelector('#sadrzaj .vise');
+  // u razgovoru (ne preko celog ekrana) prozor raste sa sadržajem, pa bi se sve učitalo odjednom: tu ostaje dugme
+  if (!dugme || S.prikaz !== 'fullscreen' || !('IntersectionObserver' in window)) return;
+  posmatrac = new IntersectionObserver((ul) => {
+    if (!ul.some((x) => x.isIntersecting)) return;
+    posmatrac.disconnect();
+    const a = dugme.dataset.akcija;
+    if (a === 'vise') S.koliko += 8; else S.strana += 1;
+    crtaj();
+  }, { rootMargin: '600px 0px' });
+  posmatrac.observe(dugme);
+}
 function crtaj() {
   const sir = siroko();
   document.body.classList.toggle('mob', mob());
@@ -637,6 +649,7 @@ function crtaj() {
   $('prosiri').querySelector('span').textContent = S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi';
   const telo = { ponude: crtajPonude, kalendar: crtajKalendar, praceno: crtajPraceno, uradisam: crtajDiy, izvori: crtajIzvore }[S.odeljak]();
   $('sadrzaj').innerHTML = (S.greska ? `<div class="poruka">${esc(S.greska)}</div>` : '') + (S.ucitava ? `<div class="oznaka">${esc(S.ucitava)}</div>` : '') + telo;
+  beskonacno();
 }
 
 // ---------- klikovi ----------
@@ -674,7 +687,6 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
   if (b('[data-s]')) { S.sort = b('[data-s]').dataset.s; S.strana = 0; S.koliko = 8; return crtaj(); }
   if (b('[data-p]')) { S.putnici = b('[data-p]').dataset.p; sacuvaj('putnici', S.putnici); if (S.ponuda?.ucitano) return otvoriPonudu(S.ponuda); return crtaj(); }
-  if (b('[data-str]')) { S.strana += Number(b('[data-str]').dataset.str); return crtaj(); }
   if (b('.red')) return otvoriPonudu(TURE[Number(b('.red').dataset.i)].glavna);
   if (b('.kartica')) return otvoriPonudu(TURE[Number(b('.kartica').dataset.i)].glavna);
   if (b('[data-t]')) { const ts = termini(S.ponuda).sort((a, c) => (a.datum ?? '9999').localeCompare(c.datum ?? '9999')); const x = ts[Number(b('[data-t]').dataset.t)]; return otvoriPonudu({ ...S.ponuda, id: x.id, date_from: x.datum, price: x.cena, old_price: x.stara, currency: x.valuta }); }
@@ -688,6 +700,7 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (a === 'nazad') { S.ponuda = null; return crtaj(); }
   if (a === 'filteri') { S.filteri = !S.filteri; return crtaj(); }
   if (a === 'vise') { S.koliko += 8; return crtaj(); }
+  if (a === 'vise-str') { S.strana += 1; return crtaj(); }
   if (a === 'sve-zemlje') { S.sveZemlje = true; return crtaj(); }
   if (a === 'zatvori-zemlje') { S.sveZemlje = false; return crtaj(); }
   if (a === 'prati') return prati(p);
