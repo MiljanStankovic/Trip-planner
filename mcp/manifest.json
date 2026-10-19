@@ -1,0 +1,28 @@
+{
+  "manifest_version": "0.4",
+  "name": "putovanja",
+  "display_name": "Putovanja (proba)",
+  "version": "0.1.0",
+  "description": "Ponude domaćih turističkih agencija u prozoru u razgovoru: cene po osobi, prevoz, polasci.",
+  "long_description": "Probna verzija: prikazuje snimak ponuda srpskih turističkih agencija. Napiši u chatu, na primer, „pokaži mi putovanja“ ili „putovanja za Grčku“.",
+  "author": { "name": "Miljan Stanković" },
+  "repository": { "type": "git", "url": "https://github.com/MiljanStankovic/Trip-planner" },
+  "icon": "icon.png",
+  "server": {
+    "type": "uv",
+    "entry_point": "src/server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "src/server.py"]
+    }
+  },
+  "tools": [
+    { "name": "pokazi_putovanja", "description": "Prikazuje ponude agencija u prozoru, preporučene ili za jednu zemlju." }
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32"],
+    "runtimes": { "python": ">=3.10" }
+  },
+  "keywords": ["putovanja", "turističke agencije", "aranžmani", "Srbija"],
+  "license": "MIT"
+}

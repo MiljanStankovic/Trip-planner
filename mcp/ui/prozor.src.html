@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Putovanja</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --pozadina: var(--color-background-primary, #ffffff);
+    --pozadina-2: var(--color-background-secondary, #f6f7f9);
+    --tekst: var(--color-text-primary, #1a2433);
+    --tekst-2: var(--color-text-secondary, #5b677a);
+    --tekst-3: var(--color-text-tertiary, #8a94a3);
+    --linija: var(--color-border-tertiary, #e3e7ec);
+    --linija-2: var(--color-border-secondary, #d4dae2);
+    --uspeh: var(--color-text-success, #1e7a3c);
+    --uspeh-poz: var(--color-background-success, #e6f4ea);
+    --info: var(--color-text-info, #1f5f99);
+    --zaobl: var(--border-radius-md, 8px);
+    --zaobl-mali: var(--border-radius-sm, 6px);
+    --font: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif);
+    /* jedini sopstveni ton: cena, boja karte za putovanje */
+    --cena: #b35c00;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cena: #f3b94d; --pozadina: var(--color-background-primary, #1f1f1e); --pozadina-2: var(--color-background-secondary, #2a2a28); --tekst: var(--color-text-primary, #ececea); --tekst-2: var(--color-text-secondary, #b4b4b0); --tekst-3: var(--color-text-tertiary, #8b8b87); --linija: var(--color-border-tertiary, #3a3a37); --linija-2: var(--color-border-secondary, #4a4a46); --uspeh: var(--color-text-success, #86d19a); --uspeh-poz: var(--color-background-success, #1f3326); --info: var(--color-text-info, #7fb8e6); } }
+  :root[data-theme="dark"] { --cena: #f3b94d; }
+  :root[data-theme="light"] { --cena: #b35c00; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--pozadina); color: var(--tekst); font-family: var(--font); font-size: 14px; line-height: 1.4; }
+  button, select { font: inherit; color: inherit; }
+  .okvir { padding: 14px 16px 10px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+  h1 { font-size: 18px; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
+  .podnaslov { color: var(--tekst-2); font-size: 13px; margin-left: 6px; font-weight: 400; }
+  .kontrole { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .segment { display: inline-flex; background: var(--pozadina-2); border-radius: var(--zaobl); padding: 2px; }
+  .segment button { border: 0; background: transparent; padding: 4px 10px; border-radius: var(--zaobl-mali); color: var(--tekst-2); cursor: pointer; font-size: 13px; }
+  .segment button[aria-pressed="true"] { background: var(--pozadina); color: var(--tekst); box-shadow: var(--shadow-hairline, 0 0 0 1px var(--linija)); font-weight: 600; }
+  .segment button:focus-visible, .zemlja:focus-visible, .red:focus-visible, select:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+  select { background: var(--pozadina-2); border: 0; border-radius: var(--zaobl); padding: 5px 8px; font-size: 13px; cursor: pointer; }
+
+  .zemlje { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0 10px; scrollbar-width: none; }
+  .zemlja { flex: none; border: 1px solid var(--linija); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 13px; cursor: pointer; color: var(--tekst-2); }
+  .zemlja[aria-pressed="true"] { border-color: var(--tekst); color: var(--tekst); font-weight: 600; }
+
+  ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linija); }
+  .red { display: grid; grid-template-columns: 52px minmax(0, 1fr) 112px 104px; gap: 14px; align-items: center; padding: 11px 6px; border-bottom: 1px solid var(--linija); cursor: pointer; border-radius: 0; }
+  .red:hover { background: var(--pozadina-2); }
+
+  /* datum kao listić kalendara: odmah se vidi kada */
+  .datum { text-align: center; border: 1px solid var(--linija-2); border-radius: var(--zaobl-mali); overflow: hidden; line-height: 1.1; }
+  .datum .mes { display: block; font-size: 10.5px; padding: 2px 0; background: var(--pozadina-2); color: var(--tekst-2); }
+  .datum .dan { display: block; font-size: 18px; font-weight: 650; padding: 3px 0 1px; font-variant-numeric: tabular-nums; }
+  .datum .ned { display: block; font-size: 10.5px; color: var(--tekst-3); padding-bottom: 3px; }
+  .datum.bez { border-style: dashed; color: var(--tekst-3); font-size: 11px; padding: 8px 2px; }
+
+  .naziv { font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .popust { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--uspeh); background: var(--uspeh-poz); padding: 0 6px; border-radius: 999px; vertical-align: 1px; }
+  .opis { color: var(--tekst-2); font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .napomena { color: var(--uspeh); }
+
+  .put { font-size: 13px; color: var(--tekst); }
+  .put .ikona { display: inline-block; width: 1.4em; }
+  .put small { display: block; color: var(--tekst-2); font-size: 12.5px; margin-left: 1.4em; }
+  .bez-prevoza { color: var(--tekst-3); }
+
+  .cena { text-align: right; }
+  .cena b { display: block; font-size: 16px; font-weight: 700; color: var(--cena); font-variant-numeric: tabular-nums; }
+  .cena b .od { font-size: 11.5px; font-weight: 500; color: var(--tekst-2); margin-right: 3px; }
+  .cena small { color: var(--tekst-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  footer { display: flex; justify-content: space-between; gap: 12px; color: var(--tekst-3); font-size: 12px; padding: 10px 2px 2px; }
+  .prazno { padding: 28px 6px; color: var(--tekst-2); }
+
+  @media (max-width: 560px) {
+    .red { grid-template-columns: 46px minmax(0, 1fr) auto; }
+    .put { grid-column: 2; grid-row: 2; display: flex; gap: 8px; }
+    .put small { display: inline; margin: 0; }
+    .cena { grid-column: 3; grid-row: 1 / span 2; }
+  }
+</style>
+</head>
+<body>
+<div class="okvir">
+  <header>
+    <h1 id="naslov">Putovanja<span class="podnaslov" id="podnaslov"></span></h1>
+    <div class="kontrole">
+      <div class="segment" role="group" aria-label="Redosled" id="sort">
+        <button data-v="preporuka">Preporučeno</button>
+        <button data-v="cena">Najjeftinije</button>
+        <button data-v="datum">Najranije</button>
+        <button data-v="popust">Popust</button>
+      </div>
+      <select id="putnika" aria-label="Broj putnika">
+        <option value="1">1 osoba</option><option value="2">2 osobe</option><option value="3">3 osobe</option>
+        <option value="4">4 osobe</option><option value="5">5 osoba</option><option value="6">6 osoba</option>
+      </select>
+    </div>
+  </header>
+  <nav class="zemlje" id="zemlje" aria-label="Zemlje"></nav>
+  <ol id="lista"><li class="prazno">Učitavam ponude…</li></ol>
+  <footer><span id="stanje"></span><span>Cene po osobi, sa sajtova agencija</span></footer>
+</div>
+
+<script type="module">
+/*SDK*/
+const { App, applyDocumentTheme, applyHostStyleVariables, applyHostFonts } = window.__mcpApps;
+
+const MESECI = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'];
+const DANI = ['ned', 'pon', 'uto', 'sre', 'čet', 'pet', 'sub'];
+const PREVOZ = { avion: ['✈️', 'avion'], autobus: ['🚌', 'autobus'], sopstveni: ['🚗', 'sopstveni'], brod: ['🚢', 'brod'], voz: ['🚆', 'voz'] };
+
+let stanje = { zemlja: '', sortiraj: 'preporuka', putnika: 2, ponude: [], dostupne: [], broj: 0 };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const iznos = (v, val) => v ? `${Math.round(v).toLocaleString('de-DE')} ${val === 'RSD' ? 'din' : '€'}` : '';
+const noci = (n) => n === 0 ? 'izlet' : !n ? '' : (n % 10 === 1 && n !== 11) ? `${n} noć` : `${n} noći`;
+const popust = (p) => p.old_price && p.price && p.old_price > p.price ? Math.round(100 * (p.old_price - p.price) / p.old_price) : 0;
+
+function datumHtml(d) {
+  if (!d) return '<div class="datum bez">po izboru</div>';
+  const dt = new Date(d + 'T12:00:00');
+  return `<div class="datum"><span class="mes">${MESECI[dt.getMonth()]}</span><span class="dan">${dt.getDate()}</span><span class="ned">${DANI[dt.getDay()]}</span></div>`;
+}
+
+function crtaj() {
+  const n = stanje;
+  $('podnaslov').textContent = n.zemlja ? `${n.zemlja}, ${n.broj} aranžmana` : `preporučeno, ${n.broj} ponuda`;
+  for (const b of $('sort').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === n.sortiraj));
+  $('putnika').value = String(n.putnika);
+  $('zemlje').innerHTML = ['', ...n.dostupne].map((z) =>
+    `<button class="zemlja" data-z="${esc(z)}" aria-pressed="${z === n.zemlja}">${z ? esc(z) : 'Sve preporučene'}</button>`).join('');
+  if (!n.ponude.length) { $('lista').innerHTML = '<li class="prazno">Nema ponuda za ovaj izbor.</li>'; return; }
+  $('lista').innerHTML = n.ponude.map((p, i) => {
+    const [ik, pr] = PREVOZ[p.transport] ?? ['', ''];
+    const pol = (p.svi_datumi ?? []).length;
+    const opis = [!n.zemlja ? p.zemlja : '', p.agencija, pol > 1 ? `${pol} polazaka` : ''].filter(Boolean).join(', ');
+    const od = p.note === "cena 'od'" || pol > 1;
+    const pp = popust(p);
+    const ukupno = p.price && n.putnika > 1 ? `${iznos(p.price * n.putnika, p.currency)} za ${n.putnika}` : 'po osobi';
+    return `<li class="red" tabindex="0" data-i="${i}">
+      ${datumHtml(p.date_from)}
+      <div style="min-width:0"><div class="naziv">${esc(p.naziv)}${pp ? `<span class="popust">−${pp}%</span>` : ''}</div><div class="opis">${esc(opis)}</div></div>
+      <div class="put">${pr ? `<span class="ikona">${ik}</span>${pr}` : '<span class="bez-prevoza">prevoz na sajtu</span>'}<small>${noci(p.nights)}</small></div>
+      <div class="cena">${p.price ? `<b>${od ? '<span class="od">od</span>' : ''}${iznos(p.price, p.currency)}</b><small>${ukupno}</small>` : '<b><span class="od">cena</span>na upit</b>'}</div>
+    </li>`;
+  }).join('');
+  $('stanje').textContent = 'Klik na ponudu: Claude je otvara i poredi';
+}
+
+function prihvati(rez) {
+  const d = rez?.structuredContent ?? (() => { try { return JSON.parse(rez?.content?.[0]?.text ?? '{}'); } catch { return {}; } })();
+  if (!d || !d.ponude) return;
+  stanje = { ...stanje, zemlja: d.zemlja ?? '', sortiraj: d.sortiraj ?? 'preporuka', putnika: d.putnika ?? stanje.putnika,
+    ponude: d.ponude, dostupne: d.dostupne_zemlje ?? stanje.dostupne, broj: d.broj ?? d.ponude.length };
+  crtaj();
+}
+
+const app = new App({ name: 'Putovanja', version: '0.1.0' }, {});
+function tema(ctx) {
+  if (!ctx) return;
+  if (ctx.theme) applyDocumentTheme(ctx.theme);
+  if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
+  if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
+}
+app.ontoolresult = prihvati;
+app.onhostcontextchanged = tema;
+
+async function ucitaj(izmena) {
+  const arg = { zemlja: stanje.zemlja, sortiraj: stanje.sortiraj, putnika: stanje.putnika, ...izmena };
+  stanje = { ...stanje, ...arg };
+  $('stanje').textContent = 'Učitavam…';
+  try { prihvati(await app.callServerTool({ name: 'pokazi_putovanja', arguments: arg })); }
+  catch (e) { $('stanje').textContent = 'Nije uspelo: ' + (e?.message ?? e); }
+}
+
+$('sort').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) ucitaj({ sortiraj: v }); });
+$('putnika').addEventListener('change', (e) => { stanje.putnika = Number(e.target.value); crtaj(); });
+$('zemlje').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) ucitaj({ zemlja: b.dataset.z }); });
+async function otvori(el) {
+  const p = stanje.ponude[Number(el.dataset.i)];
+  if (!p) return;
+  await app.sendMessage({ role: 'user', content: [{ type: 'text',
+    text: `Pričaj mi o ponudi „${p.naziv}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi, nas je ${stanje.putnika}). Link: ${p.url}` }] });
+}
+$('lista').addEventListener('click', (e) => { const r = e.target.closest('.red'); if (r) otvori(r); });
+$('lista').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const r = e.target.closest('.red'); if (r) otvori(r); } });
+
+await app.connect();
+tema(app.getHostContext());
+</script>
+</body>
+</html>
