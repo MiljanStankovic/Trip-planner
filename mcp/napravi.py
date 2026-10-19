@@ -1,4 +1,4 @@
-"""Pravi prozor (ugradi MCP Apps SDK u HTML) i pakuje Putovanja-proba.mcpb.
+"""Pravi prozor (ugradi MCP Apps SDK u HTML) i pakuje Putovanja.mcpb.
 
     python mcp/napravi.py            # samo prozor.html
     python mcp/napravi.py --paket    # i .mcpb (treba npx)
@@ -44,6 +44,14 @@ def sdk() -> str:
     return kod[: m[-1].start()] + "window.__mcpApps={" + ",".join(parovi) + "};"
 
 
+def paket_putovanja() -> None:
+    """Alat putovanja (isti kao za terminal) ide u paket pored servera."""
+    cilj = OVDE / "src" / "putovanja"
+    if cilj.exists():
+        shutil.rmtree(cilj)
+    shutil.copytree(OVDE.parent / "src" / "putovanja", cilj, ignore=shutil.ignore_patterns("__pycache__"))
+
+
 def prozor() -> Path:
     src = (OVDE / "ui" / "prozor.src.html").read_text(encoding="utf-8")
     izlaz = OVDE / "src" / "prozor.html"
@@ -54,19 +62,20 @@ def prozor() -> Path:
 def paket() -> Path:
     dist = OVDE / "dist"
     dist.mkdir(exist_ok=True)
-    cilj = dist / "Putovanja-proba.mcpb"
+    cilj = dist / "Putovanja.mcpb"
     with tempfile.TemporaryDirectory() as t:
         p = Path(t) / "putovanja"
         p.mkdir()
         for f in ["manifest.json", "pyproject.toml", "icon.png"]:
             if (OVDE / f).exists():
                 shutil.copy(OVDE / f, p / f)
-        shutil.copytree(OVDE / "src", p / "src", ignore=shutil.ignore_patterns("__pycache__"))
+        shutil.copytree(OVDE / "src", p / "src", ignore=shutil.ignore_patterns("__pycache__", "demo.json"))
         subprocess.run(["npx", "-y", "@anthropic-ai/mcpb@2.1.2", "pack", str(p), str(cilj)], check=True)
     return cilj
 
 
 if __name__ == "__main__":
+    paket_putovanja()
     print("prozor:", prozor())
     if "--paket" in sys.argv:
         print("paket:", paket())

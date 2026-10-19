@@ -7,210 +7,529 @@
 <style>
   :root {
     color-scheme: light dark;
-    --pozadina: var(--color-background-primary, #ffffff);
-    --pozadina-2: var(--color-background-secondary, #f6f7f9);
-    --tekst: var(--color-text-primary, #1a2433);
-    --tekst-2: var(--color-text-secondary, #5b677a);
-    --tekst-3: var(--color-text-tertiary, #8a94a3);
-    --linija: var(--color-border-tertiary, #e3e7ec);
-    --linija-2: var(--color-border-secondary, #d4dae2);
-    --uspeh: var(--color-text-success, #1e7a3c);
-    --uspeh-poz: var(--color-background-success, #e6f4ea);
-    --info: var(--color-text-info, #1f5f99);
-    --zaobl: var(--border-radius-md, 8px);
-    --zaobl-mali: var(--border-radius-sm, 6px);
+    --poz: var(--color-background-primary, #ffffff);
+    --poz2: var(--color-background-secondary, #f5f4ed);
+    --poz3: var(--color-background-tertiary, #faf9f5);
+    --t1: var(--color-text-primary, #141413);
+    --t2: var(--color-text-secondary, #3d3d3a);
+    --t3: var(--color-text-tertiary, #73726c);
+    --l1: var(--color-border-tertiary, rgba(31, 30, 29, .15));
+    --l2: var(--color-border-secondary, rgba(31, 30, 29, .3));
+    --ok: var(--color-text-success, #265b19);
+    --okp: var(--color-background-success, #e9f1dc);
+    --info: var(--color-text-info, #3266ad);
+    --upoz: var(--color-text-warning, #5a4815);
+    --upozp: var(--color-background-warning, #f6eedf);
+    --r: var(--border-radius-md, 8px);
+    --rs: var(--border-radius-sm, 6px);
     --font: var(--font-sans, system-ui, -apple-system, "Segoe UI", sans-serif);
-    /* jedini sopstveni ton: cena, boja karte za putovanje */
-    --cena: #b35c00;
+    /* jedini sopstveni ton: cena */
+    --cena: #a35400;
   }
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cena: #f3b94d; --pozadina: var(--color-background-primary, #1f1f1e); --pozadina-2: var(--color-background-secondary, #2a2a28); --tekst: var(--color-text-primary, #ececea); --tekst-2: var(--color-text-secondary, #b4b4b0); --tekst-3: var(--color-text-tertiary, #8b8b87); --linija: var(--color-border-tertiary, #3a3a37); --linija-2: var(--color-border-secondary, #4a4a46); --uspeh: var(--color-text-success, #86d19a); --uspeh-poz: var(--color-background-success, #1f3326); --info: var(--color-text-info, #7fb8e6); } }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cena: #f3b94d; --poz: var(--color-background-primary, #30302e); --poz2: var(--color-background-secondary, #262624); --poz3: var(--color-background-tertiary, #141413); --t1: var(--color-text-primary, #faf9f5); --t2: var(--color-text-secondary, #c2c0b6); --t3: var(--color-text-tertiary, #9c9a92); --l1: var(--color-border-tertiary, rgba(222, 220, 209, .15)); --l2: var(--color-border-secondary, rgba(222, 220, 209, .3)); --ok: var(--color-text-success, #7ab948); --okp: var(--color-background-success, #1b4614); --info: var(--color-text-info, #80aadd); --upoz: var(--color-text-warning, #d1a041); --upozp: var(--color-background-warning, #483a0f); } }
   :root[data-theme="dark"] { --cena: #f3b94d; }
-  :root[data-theme="light"] { --cena: #b35c00; }
+  :root[data-theme="light"] { --cena: #a35400; }
 
   * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--pozadina); color: var(--tekst); font-family: var(--font); font-size: 14px; line-height: 1.4; }
-  button, select { font: inherit; color: inherit; }
-  .okvir { padding: 14px 16px 10px; }
+  html, body { margin: 0; background: transparent; color: var(--t1); font-family: var(--font); font-size: 14px; line-height: 1.4; }
+  button, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+  [hidden] { display: none !important; }
+  .app { padding: 10px 4px 6px; }
 
-  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
-  h1 { font-size: 18px; font-weight: 650; margin: 0; letter-spacing: -0.01em; }
-  .podnaslov { color: var(--tekst-2); font-size: 13px; margin-left: 6px; font-weight: 400; }
-  .kontrole { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .segment { display: inline-flex; background: var(--pozadina-2); border-radius: var(--zaobl); padding: 2px; }
-  .segment button { border: 0; background: transparent; padding: 4px 10px; border-radius: var(--zaobl-mali); color: var(--tekst-2); cursor: pointer; font-size: 13px; }
-  .segment button[aria-pressed="true"] { background: var(--pozadina); color: var(--tekst); box-shadow: var(--shadow-hairline, 0 0 0 1px var(--linija)); font-weight: 600; }
-  .segment button:focus-visible, .zemlja:focus-visible, .red:focus-visible, select:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
-  .oznaka { align-self: center; padding: 0 6px 0 8px; color: var(--tekst-2); font-size: 13px; }
-  select { background: var(--pozadina-2); border: 0; border-radius: var(--zaobl); padding: 5px 8px; font-size: 13px; cursor: pointer; }
+  /* zaglavlje: odeljci levo, prikaz desno */
+  .vrh { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tabovi { display: flex; gap: 2px; flex-wrap: wrap; }
+  .tab { border: 0; background: transparent; padding: 6px 10px; border-radius: var(--rs); color: var(--t2); }
+  .tab[aria-current="true"] { background: var(--poz2); color: var(--t1); font-weight: 600; }
+  .tab .broj { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: var(--upozp); color: var(--upoz); font-size: 11.5px; font-weight: 600; }
+  .malo { border: 1px solid var(--l1); background: transparent; border-radius: var(--rs); padding: 4px 10px; font-size: 13px; color: var(--t2); }
 
-  .zemlje { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0 10px; scrollbar-width: none; }
-  .zemlja { flex: none; border: 1px solid var(--linija); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 13px; cursor: pointer; color: var(--tekst-2); }
-  .zemlja[aria-pressed="true"] { border-color: var(--tekst); color: var(--tekst); font-weight: 600; }
+  .red-kontrola { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 6px 0; }
+  .oznaka { color: var(--t3); font-size: 12.5px; }
+  .seg { display: inline-flex; flex-wrap: wrap; background: var(--poz2); border-radius: var(--r); padding: 2px; gap: 1px; }
+  .seg button { border: 0; background: transparent; padding: 4px 10px; border-radius: var(--rs); color: var(--t2); font-size: 13px; }
+  .seg button[aria-pressed="true"] { background: var(--poz); color: var(--t1); font-weight: 600; box-shadow: 0 0 0 1px var(--l1); }
+  .cipovi { display: flex; flex-wrap: wrap; gap: 6px; }
+  .cip { border: 1px solid var(--l1); background: transparent; border-radius: 999px; padding: 3px 11px; font-size: 13px; color: var(--t2); }
+  .cip[aria-pressed="true"] { border-color: var(--t1); color: var(--t1); font-weight: 600; }
+  .cip small { color: var(--t3); margin-left: 4px; font-weight: 400; }
 
-  ol { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linija); }
-  .red { display: grid; grid-template-columns: 52px minmax(0, 1fr) 112px 104px; gap: 14px; align-items: center; padding: 11px 6px; border-bottom: 1px solid var(--linija); cursor: pointer; border-radius: 0; }
-  .red:hover { background: var(--pozadina-2); }
+  h2 { font-size: 17px; font-weight: 650; margin: 10px 0 2px; letter-spacing: -0.01em; }
+  h2 small { font-size: 13px; color: var(--t2); font-weight: 400; margin-left: 6px; }
 
-  /* datum kao listić kalendara: odmah se vidi kada */
-  .datum { text-align: center; border: 1px solid var(--linija-2); border-radius: var(--zaobl-mali); overflow: hidden; line-height: 1.1; }
-  .datum .mes { display: block; font-size: 10.5px; padding: 2px 0; background: var(--pozadina-2); color: var(--tekst-2); }
-  .datum .dan { display: block; font-size: 18px; font-weight: 650; padding: 3px 0 1px; font-variant-numeric: tabular-nums; }
-  .datum .ned { display: block; font-size: 10.5px; color: var(--tekst-3); padding-bottom: 3px; }
-  .datum.bez { border-style: dashed; color: var(--tekst-3); font-size: 11px; padding: 8px 2px; }
-
-  .naziv { font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .popust { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--uspeh); background: var(--uspeh-poz); padding: 0 6px; border-radius: 999px; vertical-align: 1px; }
-  .opis { color: var(--tekst-2); font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .napomena { color: var(--uspeh); }
-
-  .put { font-size: 13px; color: var(--tekst); }
-  .put .ikona { display: inline-block; width: 1.4em; }
-  .put small { display: block; color: var(--tekst-2); font-size: 12.5px; margin-left: 1.4em; }
-  .bez-prevoza { color: var(--tekst-3); }
-
+  /* lista ponuda */
+  ol.lista { list-style: none; margin: 8px 0 0; padding: 0; border-top: 1px solid var(--l1); }
+  .red { display: grid; grid-template-columns: 50px minmax(0, 1fr) 104px 104px; gap: 12px; align-items: center; padding: 9px 6px; border-bottom: 1px solid var(--l1); cursor: pointer; }
+  .red:hover { background: var(--poz2); }
+  .datum { text-align: center; border: 1px solid var(--l2); border-radius: var(--rs); overflow: hidden; line-height: 1.1; }
+  .datum .m { display: block; font-size: 10.5px; padding: 2px 0; background: var(--poz2); color: var(--t2); }
+  .datum .d { display: block; font-size: 17px; font-weight: 650; padding: 3px 0 1px; font-variant-numeric: tabular-nums; }
+  .datum .n { display: block; font-size: 10.5px; color: var(--t3); padding-bottom: 3px; }
+  .datum.bez { border-style: dashed; color: var(--t3); font-size: 11px; padding: 7px 2px; }
+  .naziv { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pop { display: inline-block; margin-left: 6px; font-size: 12px; font-weight: 600; color: var(--ok); background: var(--okp); padding: 0 6px; border-radius: 999px; vertical-align: 1px; }
+  .sporedno { color: var(--t2); font-size: 12.5px; margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .put { font-size: 13px; }
+  .put .ik { display: inline-block; width: 1.4em; }
+  .put small { display: block; color: var(--t2); font-size: 12.5px; margin-left: 1.4em; }
+  .tiho { color: var(--t3); }
   .cena { text-align: right; }
-  .cena b { display: block; font-size: 16px; font-weight: 700; color: var(--cena); font-variant-numeric: tabular-nums; }
-  .cena b .od { font-size: 11.5px; font-weight: 500; color: var(--tekst-2); margin-right: 3px; }
-  .cena small { color: var(--tekst-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .cena b { display: block; font-size: 15.5px; font-weight: 700; color: var(--cena); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cena b .od { font-size: 11.5px; font-weight: 500; color: var(--t2); margin-right: 3px; }
+  .cena small { color: var(--t2); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-  footer { display: flex; justify-content: space-between; gap: 12px; color: var(--tekst-3); font-size: 12px; padding: 10px 2px 2px; }
-  .prazno { padding: 28px 6px; color: var(--tekst-2); }
+  .strane { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 2px 0; color: var(--t3); font-size: 12.5px; }
+  .strane .dugmad { display: flex; gap: 6px; }
+  .prazno { padding: 22px 6px; color: var(--t2); }
+  .poruka { margin: 8px 0; padding: 8px 10px; border-radius: var(--r); background: var(--upozp); color: var(--upoz); font-size: 13px; }
 
-  @media (max-width: 560px) {
-    .red { grid-template-columns: 46px minmax(0, 1fr) auto; }
-    .put { grid-column: 2; grid-row: 2; display: flex; gap: 8px; }
-    .put small { display: inline; margin: 0; }
-    .cena { grid-column: 3; grid-row: 1 / span 2; }
+  /* detalj ponude */
+  .nazad { border: 0; background: transparent; color: var(--info); padding: 2px 0; font-size: 13px; }
+  .det-naslov { font-size: 19px; font-weight: 650; margin: 6px 0 2px; letter-spacing: -0.01em; }
+  .det-pod { color: var(--t2); font-size: 13px; }
+  .cinjenice { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+  .cinj { background: var(--poz2); border-radius: var(--r); padding: 8px 10px; }
+  .cinj span { display: block; color: var(--t3); font-size: 12px; }
+  .cinj b { font-size: 14.5px; font-weight: 600; }
+  .cinj b.c { color: var(--cena); font-size: 16px; }
+  .ukupno { border: 1px solid var(--l1); border-radius: var(--r); padding: 10px 12px; margin: 10px 0; }
+  .ukupno .glavno { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-weight: 600; }
+  .ukupno .glavno b { color: var(--cena); font-size: 17px; }
+  .stavka { display: flex; justify-content: space-between; gap: 10px; color: var(--t2); font-size: 13px; padding: 2px 0; }
+  .akcije { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .dugme { border: 1px solid var(--l2); background: var(--poz); border-radius: var(--r); padding: 6px 12px; font-size: 13.5px; }
+  .dugme.glavno { background: var(--t1); color: var(--poz); border-color: var(--t1); font-weight: 600; }
+  details { border-top: 1px solid var(--l1); padding: 8px 0; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details ul { margin: 6px 0 0; padding-left: 18px; color: var(--t2); }
+  details li { margin: 2px 0; }
+
+  /* kalendar, praćeno, uradi sam, izvori */
+  .dan-zag { font-weight: 600; margin: 10px 0 2px; }
+  .dan-zag small { color: var(--t3); font-weight: 400; margin-left: 6px; }
+  .mini { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 6px; border-bottom: 1px solid var(--l1); cursor: pointer; }
+  .mini:hover { background: var(--poz2); }
+  .mini b { color: var(--cena); font-variant-numeric: tabular-nums; }
+  .forma { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
+  .forma label { display: block; color: var(--t3); font-size: 12px; }
+  .forma input { width: 100%; padding: 6px 8px; border: 1px solid var(--l2); border-radius: var(--rs); background: var(--poz); }
+  .linkovi { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+  .linkovi h3 { font-size: 13px; margin: 0 0 4px; color: var(--t2); font-weight: 600; }
+  .link { display: block; border: 0; background: transparent; color: var(--info); padding: 3px 0; text-align: left; font-size: 13.5px; }
+  .agencija { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--l1); font-size: 13.5px; }
+  .agencija .st-ok { color: var(--ok); }
+  .agencija .st-los { color: var(--upoz); }
+
+  @media (max-width: 600px) {
+    .red { grid-template-columns: 44px minmax(0, 1fr) auto; }
+    .red .put { grid-column: 2; grid-row: 2; display: flex; gap: 8px; }
+    .red .put small { display: inline; margin: 0; }
+    .red .cena { grid-column: 3; grid-row: 1 / span 2; }
+    .cinjenice { grid-template-columns: 1fr 1fr; }
+    .forma { grid-template-columns: 1fr 1fr; }
+    .linkovi { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
-<div class="okvir">
-  <header>
-    <h1 id="naslov">Putovanja<span class="podnaslov" id="podnaslov"></span></h1>
-    <div class="kontrole">
-      <div class="segment" role="group" aria-label="Redosled" id="sort">
-        <button data-v="preporuka">Preporučeno</button>
-        <button data-v="cena">Najjeftinije</button>
-        <button data-v="datum">Najranije</button>
-        <button data-v="popust">Popust</button>
-      </div>
-      <div class="segment" role="group" aria-label="Broj putnika" id="putnika">
-        <span class="oznaka">Osoba</span><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button><button data-n="5">5+</button>
-      </div>
-      <div class="segment" id="prikaz" hidden>
-        <button data-m="fullscreen" title="Otvori preko celog prozora, razgovor ostaje dole">Proširi</button>
-        <button data-m="pip" title="Mali prozor koji ostaje dok pišeš">Sa strane</button>
-        <button data-m="inline" title="Vrati u razgovor">U razgovoru</button>
-      </div>
-    </div>
-  </header>
-  <nav class="zemlje" id="zemlje" aria-label="Zemlje"></nav>
-  <ol id="lista"><li class="prazno">Učitavam ponude…</li></ol>
-  <footer><span id="stanje"></span><span>Cene po osobi, sa sajtova agencija</span></footer>
+<div class="app">
+  <div class="vrh">
+    <nav class="tabovi" id="tabovi" aria-label="Odeljci">
+      <button class="tab" data-v="ponude">Ponude</button>
+      <button class="tab" data-v="kalendar">Kalendar</button>
+      <button class="tab" data-v="praceno">Praćeno</button>
+      <button class="tab" data-v="uradisam">Uradi sam</button>
+      <button class="tab" data-v="izvori">Izvori</button>
+    </nav>
+    <button class="malo" id="prosiri" hidden>Proširi</button>
+  </div>
+  <div id="sadrzaj"></div>
 </div>
 
 <script type="module">
 /*SDK*/
+{ // sopstveni kod u svom bloku, da se imena ne sudare sa ugrađenim SDK-om
 const { App, applyDocumentTheme, applyHostStyleVariables, applyHostFonts } = window.__mcpApps;
 
-const MESECI = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'];
-const DANI = ['ned', 'pon', 'uto', 'sre', 'čet', 'pet', 'sub'];
+// ---------- pomoćne ----------
+const MES = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt', 'nov', 'dec'];
+const MES_PUNO = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
+const DAN = ['ned', 'pon', 'uto', 'sre', 'čet', 'pet', 'sub'];
+const DAN_PUNO = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
 const PREVOZ = { avion: ['✈️', 'avion'], autobus: ['🚌', 'autobus'], sopstveni: ['🚗', 'sopstveni'], brod: ['🚢', 'brod'], voz: ['🚆', 'voz'] };
+const PUTNICI = [['1+0', '1 osoba'], ['2+0', '2 odrasla'], ['2+1', '2 + dete'], ['2+2', '2 + 2 dece'], ['3+0', '3 odrasla'], ['4+0', '4 odrasla']];
+const SORT = [['preporuka', 'Preporučeno'], ['cena', 'Najjeftinije'], ['datum', 'Najranije'], ['popust', 'Popust']];
 
-let stanje = { zemlja: '', sortiraj: 'preporuka', putnika: 2, ponude: [], dostupne: [], broj: 0 };
 const $ = (id) => document.getElementById(id);
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const iznos = (v, val) => v ? `${Math.round(v).toLocaleString('de-DE')} ${val === 'RSD' ? 'din' : '€'}` : '';
 const noci = (n) => n === 0 ? 'izlet' : !n ? '' : (n % 10 === 1 && n !== 11) ? `${n} noć` : `${n} noći`;
 const popust = (p) => p.old_price && p.price && p.old_price > p.price ? Math.round(100 * (p.old_price - p.price) / p.old_price) : 0;
+const eur = (p) => !p.price ? 1e9 : p.currency === 'RSD' ? p.price / 117 : p.price;
+const ime = (p) => p.naziv || p.title || p.destination;
+const kratakDatum = (d) => d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.` : '';
+const putnici = (s) => { const [a, d] = (s || '2+0').split('+').map(Number); return { odrasli: a || 1, deca: d || 0, ukupno: (a || 1) + (d || 0) }; };
+const sacuvaj = (k, v) => { try { localStorage.setItem('putovanja.' + k, JSON.stringify(v)); } catch {} };
+const procitaj = (k, def) => { try { const v = localStorage.getItem('putovanja.' + k); return v ? JSON.parse(v) : def; } catch { return def; } };
 
 function datumHtml(d) {
   if (!d) return '<div class="datum bez">po izboru</div>';
   const dt = new Date(d + 'T12:00:00');
-  return `<div class="datum"><span class="mes">${MESECI[dt.getMonth()]}</span><span class="dan">${dt.getDate()}</span><span class="ned">${DANI[dt.getDay()]}</span></div>`;
+  return `<div class="datum"><span class="m">${MES[dt.getMonth()]}</span><span class="d">${dt.getDate()}</span><span class="n">${DAN[dt.getDay()]}</span></div>`;
+}
+function termini(p) {
+  if (p.termini?.length) return p.termini;
+  const d = p.svi_datumi?.length ? p.svi_datumi : [p.date_from];
+  return d.map((datum) => ({ id: p.id, datum, noci: p.nights, cena: p.price, stara: p.old_price, valuta: p.currency }));
+}
+function grupisi(lista, sort) {
+  const mapa = new Map();
+  for (const p of lista) {
+    const k = `${p.agencija}|${(p.url || '').split('?')[0]}|${(p.title || '').toLowerCase()}`;
+    mapa.set(k, [...(mapa.get(k) ?? []), p]);
+  }
+  const ture = [...mapa.values()].map((svi) => { const po = [...svi].sort((a, b) => (a.date_from ?? '9999').localeCompare(b.date_from ?? '9999')); return { glavna: po[0], svi: po }; });
+  if (sort === 'cena') ture.sort((a, b) => Math.min(...a.svi.map(eur)) - Math.min(...b.svi.map(eur)));
+  else if (sort === 'datum') ture.sort((a, b) => (a.glavna.date_from ?? '9999').localeCompare(b.glavna.date_from ?? '9999'));
+  else if (sort === 'popust') ture.sort((a, b) => Math.max(...b.svi.map(popust)) - Math.max(...a.svi.map(popust)));
+  return ture;
 }
 
+// ---------- stanje ----------
+const S = {
+  odeljak: 'ponude', zemlja: '', kontinent: '', sort: 'preporuka', putnici: procitaj('putnici', '2+0'),
+  lista: [], zemlje: {}, stanje: null, strana: 0, ponuda: null, ucitava: '', greska: '', sviZemlje: false,
+  kal: null, prac: [], obav: null, izvori: null, sken: null, diy: procitaj('diy', { odakle: 'Beograd', kuda: '', od: '', do: '' }), diyLista: [], diyAg: [],
+  prikaz: 'inline', modovi: [],
+};
+const poStrani = () => S.prikaz === 'fullscreen' ? 12 : 6;
+
+// ---------- veza sa Claude-om ----------
+const app = new App({ name: 'Putovanja', version: '0.2.0' }, { availableDisplayModes: ['inline', 'fullscreen'] });
+async function pozovi(name, args = {}) {
+  const r = await app.callServerTool({ name, arguments: args });
+  const d = r?.structuredContent ?? (() => { try { return JSON.parse(r?.content?.[0]?.text ?? '{}'); } catch { return {}; } })();
+  if (d?.skeniranje) S.sken = d.skeniranje;
+  return d;
+}
+async function pt(komanda, ...argumenti) {
+  const d = await pozovi('putovanja_podaci', { komanda, argumenti: argumenti.map(String) });
+  if (d?.rezultat?.greska) throw new Error(d.rezultat.greska);
+  return d?.rezultat;
+}
+async function radi(poruka, fn) {
+  S.ucitava = poruka; S.greska = ''; crtaj();
+  try { await fn(); } catch (e) { S.greska = String(e?.message ?? e); }
+  S.ucitava = ''; crtaj();
+}
+
+// ---------- akcije ----------
+async function otvoriZemlju(z) {
+  S.odeljak = 'ponude'; S.ponuda = null; S.strana = 0; S.zemlja = z;
+  await radi(z ? `Učitavam ${z}…` : 'Učitavam preporuke…', async () => {
+    if (z) S.lista = (await pt('zemlja', z)) ?? [];
+    else S.lista = (await pt('top', 'preporuka', '--limit', '60'))?.ponude ?? [];
+  });
+}
+async function otvoriPonudu(p) {
+  S.ponuda = { ...p, ucitano: false };
+  await radi('Čitam ponudu sa sajta agencije…', async () => {
+    const d = await pt('ponuda', p.id.slice(0, 12), '--detalji', '--osobe', putnici(S.putnici).ukupno);
+    if (d) S.ponuda = { ...p, ...d, ucitano: true };
+  });
+}
+async function otvoriKalendar(m) {
+  S.odeljak = 'kalendar';
+  await radi('Učitavam kalendar…', async () => { S.kal = await pt('kalendar', ...(m ? [m] : [])); S.strana = 0; });
+}
+async function otvoriPraceno() {
+  S.odeljak = 'praceno';
+  await radi('Učitavam praćeno…', async () => { S.prac = (await pt('prati')) ?? []; S.obav = await pt('obavestenja'); });
+}
+async function otvoriIzvore() {
+  S.odeljak = 'izvori';
+  await radi('Učitavam izvore…', async () => { S.izvori = await pt('izvori'); S.stanje = await pt('stanje'); });
+}
+async function otvoriDiy() {
+  S.odeljak = 'uradisam';
+  await radi('', async () => {
+    S.diyLista = (await pt('uradisam', 'lista', ...(S.diy.kuda ? [S.diy.kuda] : []))) ?? [];
+    S.diyAg = S.diy.kuda ? ((await pt('zemlja', S.diy.kuda)) ?? []) : [];
+  });
+}
+async function prati(p) {
+  await radi('', async () => { const r = await pt('prati', p.id.slice(0, 12)); if (S.ponuda?.id === p.id) S.ponuda.pratim = !!r?.pratim; });
+}
+let tajmer = null;
+async function skeniraj() {
+  const d = await pozovi('skeniraj_agencije');
+  S.sken = d.skeniranje; crtaj();
+  clearInterval(tajmer);
+  tajmer = setInterval(async () => {
+    const r = await pozovi('putovanja_podaci', { komanda: 'stanje', argumenti: [] });
+    S.stanje = r?.rezultat ?? S.stanje;
+    if (!S.sken?.radi) { clearInterval(tajmer); S.zemlje = (await pt('zemlje')) ?? S.zemlje; if (S.odeljak === 'izvori') await otvoriIzvore(); else await otvoriZemlju(S.zemlja); }
+    crtaj();
+  }, 4000);
+}
+function pitaj(tekst) { app.sendMessage({ role: 'user', content: [{ type: 'text', text: tekst }] }).catch(() => {}); }
+function link(url) { app.openLink({ url }).catch(() => {}); }
+
+// ---------- crtanje ----------
+function cipoviZemalja() {
+  const kont = Object.entries(S.zemlje ?? {});
+  if (!kont.length) return '';
+  const k = S.kontinent && S.zemlje[S.kontinent] ? S.kontinent : kont[0][0];
+  const zem = Object.entries(S.zemlje[k] ?? {}).sort((a, b) => b[1] - a[1]);
+  const vidljive = S.sviZemlje ? zem : zem.slice(0, 10);
+  return `
+    <div class="red-kontrola"><div class="seg" id="kontinenti">${kont.map(([kk]) => `<button data-k="${esc(kk)}" aria-pressed="${kk === k}">${esc(kk)}</button>`).join('')}</div></div>
+    <div class="cipovi" id="zemlje">
+      <button class="cip" data-z="" aria-pressed="${!S.zemlja}">★ Preporučeno</button>
+      ${vidljive.map(([z, c]) => `<button class="cip" data-z="${esc(z)}" aria-pressed="${z === S.zemlja}">${esc(z)}<small>${c}</small></button>`).join('')}
+      ${zem.length > 10 ? `<button class="cip" data-sve="1">${S.sviZemlje ? 'manje' : `+${zem.length - 10} zemalja`}</button>` : ''}
+    </div>`;
+}
+function izborPutnika() {
+  return `<span class="oznaka">Putnici</span><div class="seg" id="putnici">${PUTNICI.map(([v, l]) => `<button data-p="${v}" aria-pressed="${v === S.putnici}">${l}</button>`).join('')}</div>`;
+}
+function redPonude(t, i, n) {
+  const p = t.glavna, ts = t.svi.flatMap(termini);
+  const cene = ts.map((x) => x.cena).filter(Boolean), lo = cene.length ? Math.min(...cene) : 0;
+  const val = ts.find((x) => x.cena)?.valuta ?? p.currency;
+  const od = p.note === "cena 'od'" || new Set(cene).size > 1;
+  const [ik, pr] = PREVOZ[p.transport] ?? ['', ''];
+  const pp = Math.max(0, ...t.svi.map(popust));
+  const opis = [!S.zemlja ? p.zemlja : '', p.agencija, ts.length > 1 ? `${ts.length} polazaka` : ''].filter(Boolean).join(', ');
+  const uk = lo && n > 1 ? `${iznos(lo * n, val)} za ${n}` : 'po osobi';
+  return `<li class="red" tabindex="0" data-i="${i}">
+    ${datumHtml(p.date_from)}
+    <div style="min-width:0"><div class="naziv">${esc(ime(p))}${pp ? `<span class="pop">−${pp}%</span>` : ''}</div><div class="sporedno">${esc(opis)}</div></div>
+    <div class="put">${pr ? `<span class="ik">${ik}</span>${pr}` : '<span class="tiho">prevoz na sajtu</span>'}<small>${noci(p.nights)}</small></div>
+    <div class="cena">${lo ? `<b>${od ? '<span class="od">od</span>' : ''}${iznos(lo, val)}</b><small>${uk}</small>` : '<b><span class="od">cena</span>na upit</b>'}</div>
+  </li>`;
+}
+let TURE = [];
+function crtajPonude() {
+  if (S.ponuda) return crtajPonudu();
+  const n = putnici(S.putnici).ukupno;
+  TURE = grupisi(S.lista, S.zemlja && S.sort === 'preporuka' ? 'cena' : S.sort);
+  const ps = poStrani(), strane = Math.max(1, Math.ceil(TURE.length / ps));
+  S.strana = Math.min(S.strana, strane - 1);
+  const vid = TURE.slice(S.strana * ps, S.strana * ps + ps);
+  const prazna = !S.stanje?.ponuda;
+  return `
+    ${cipoviZemalja()}
+    <h2>${S.zemlja ? esc(S.zemlja) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
+    <div class="red-kontrola">
+      <div class="seg" id="sort">${SORT.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === S.sort}">${l}</button>`).join('')}</div>
+      ${izborPutnika()}
+    </div>
+    ${prazna && !S.ucitava ? `<div class="poruka">Baza je prazna. Prvo skeniraj agencije (1–3 min). <button class="dugme" data-akcija="sken">Skeniraj sada</button></div>` : ''}
+    <ol class="lista" id="lista">${vid.length ? vid.map((t, i) => redPonude(t, S.strana * ps + i, n)).join('') : `<li class="prazno">${S.ucitava ? 'Učitavam…' : 'Nema ponuda za ovaj izbor.'}</li>`}</ol>
+    <div class="strane"><span>Cene po osobi, sa sajtova agencija</span>
+      ${strane > 1 ? `<span class="dugmad"><button class="malo" data-str="-1" ${S.strana === 0 ? 'disabled' : ''}>‹</button><span>${S.strana + 1} od ${strane}</span><button class="malo" data-str="1" ${S.strana >= strane - 1 ? 'disabled' : ''}>›</button></span>` : ''}
+    </div>`;
+}
+function crtajPonudu() {
+  const p = S.ponuda, d = p.sa_sajta ?? {}, u = p.ukupno, n = putnici(S.putnici);
+  const [ik, pr] = PREVOZ[p.transport] ?? ['', ''];
+  const pp = popust(p);
+  const nap = [...new Set(p.popusti ?? [])];
+  const ts = termini(p).sort((a, b) => (a.datum ?? '9999').localeCompare(b.datum ?? '9999'));
+  const val = (v) => iznos(v, u?.valuta ?? p.currency);
+  const sekcije = [['opis', 'Ukratko'], ['obuhvata', 'Cena obuhvata'], ['ne_obuhvata', 'Ne obuhvata / doplate'], ['sobe', 'Cene po sobi'], ['napomene', 'Napomene'], ['program', 'Program']];
+  const lin = (s) => String(s).split('\n').map((x) => x.replace(/^[\s*•\-–]+/, '').trim()).filter(Boolean);
+  const dt = p.date_from ? new Date(p.date_from + 'T12:00:00') : null;
+  return `
+    <button class="nazad" data-akcija="nazad">‹ Nazad na listu</button>
+    <div class="det-naslov">${esc(ime(p))}${pp ? `<span class="pop">−${pp}%</span>` : ''}</div>
+    <div class="det-pod">${esc([p.zemlja, p.agencija].filter(Boolean).join(', '))}</div>
+    <div class="cinjenice">
+      <div class="cinj"><span>Polazak</span><b>${dt ? `${DAN_PUNO[dt.getDay()]} ${kratakDatum(p.date_from)}` : 'po izboru'}</b></div>
+      <div class="cinj"><span>Trajanje</span><b>${noci(p.nights) || '?'}</b></div>
+      <div class="cinj"><span>Prevoz</span><b>${pr ? `${ik} ${pr}` : 'na sajtu'}</b></div>
+      <div class="cinj"><span>Po osobi${p.old_price && pp ? ` (bilo ${Math.round(p.old_price)})` : ''}</span><b class="c">${iznos(p.price, p.currency) || 'na upit'}</b></div>
+    </div>
+    <div class="red-kontrola">${izborPutnika()}</div>
+    ${p.price ? `<div class="ukupno">
+      <div class="glavno"><span>Ukupno za ${n.ukupno} ${n.deca ? `(${n.odrasli} odr. + ${n.deca} dece)` : n.ukupno === 1 ? 'osobu' : 'osobe'}</span><b>${u ? '~' + val(u.ukupno_sa_preporucenim) : val(p.price * n.ukupno) + ' + takse'}</b></div>
+      <div class="stavka"><span>Aranžman ${n.ukupno} × ${iznos(p.price, p.currency)}</span><span>${iznos(p.price * n.ukupno, p.currency)}</span></div>
+      ${(u?.stavke ?? []).filter((s) => s.tip !== 'opciono').map((s) => `<div class="stavka"><span>${esc(s.naziv)} <i>${esc(s.racun)}</i></span><span>${iznos(s.iznos, s.valuta)}</span></div>`).join('')}
+      ${!p.ucitano ? '<div class="stavka"><span>Čitam takse i doplate sa sajta…</span></div>' : ''}
+      ${nap.length ? `<div class="stavka" style="color:var(--ok)"><span>Za više osoba: ${nap.map(esc).join(' · ')}</span></div>` : ''}
+    </div>` : ''}
+    <div class="akcije">
+      <button class="dugme glavno" data-akcija="prati">${p.pratim ? '✓ Pratim cenu' : 'Prati cenu'}</button>
+      <button class="dugme" data-akcija="sajt">Sajt agencije</button>
+      <button class="dugme" data-akcija="pitaj">Pitaj Claude-a</button>
+      <button class="dugme" data-akcija="diy">Uradi sam za isto</button>
+    </div>
+    ${ts.length > 1 ? `<div class="oznaka">Svi polasci</div><div class="cipovi" style="margin:4px 0 8px">${ts.slice(0, 16).map((t, i) => `<button class="cip" data-t="${i}" aria-pressed="${t.datum === p.date_from}">${kratakDatum(t.datum)}${new Set(ts.map((x) => x.cena)).size > 1 ? `<small>${iznos(t.cena, t.valuta)}</small>` : ''}</button>`).join('')}</div>` : ''}
+    ${d.greska ? `<div class="poruka">${esc(d.greska)}</div>` : ''}
+    ${sekcije.filter(([k]) => d[k]).map(([k, nas], i) => `<details ${i === 0 && S.prikaz === 'fullscreen' ? 'open' : ''}><summary>${nas}</summary>${k === 'opis' ? `<p style="color:var(--t2);margin:6px 0 0">${esc(lin(d[k]).join(' ').slice(0, 500))}</p>` : `<ul>${lin(d[k]).slice(0, 12).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}`;
+}
+function crtajKalendar() {
+  const k = S.kal;
+  if (!k) return '<div class="prazno">Učitavam…</div>';
+  const dani = Object.entries(k.dani ?? {});
+  const ps = S.prikaz === 'fullscreen' ? 8 : 3, strane = Math.max(1, Math.ceil(dani.length / ps));
+  S.strana = Math.min(S.strana, strane - 1);
+  const mi = Number(k.mesec.slice(5)) - 1;
+  return `
+    <div class="cipovi" id="meseci" style="margin:4px 0">${(k.meseci ?? []).map((m) => `<button class="cip" data-m="${m.mesec}" aria-pressed="${m.mesec === k.mesec}">${MES[Number(m.mesec.slice(5)) - 1]}<small>${m.broj}</small></button>`).join('')}</div>
+    <h2>${MES_PUNO[mi]} ${k.mesec.slice(0, 4)}<small>${dani.reduce((a, [, l]) => a + l.length, 0)} polazaka</small></h2>
+    ${Object.keys(k.praznici ?? {}).length ? `<div class="oznaka">Praznici: ${Object.entries(k.praznici).map(([d, x]) => `${kratakDatum(d)} ${esc(x)}`).join(', ')}</div>` : ''}
+    ${dani.slice(S.strana * ps, S.strana * ps + ps).map(([d, l]) => {
+      const dt = new Date(d + 'T12:00:00');
+      return `<div class="dan-zag">${DAN_PUNO[dt.getDay()]} ${kratakDatum(d)}${k.praznici?.[d] ? ` · ${esc(k.praznici[d])}` : ''}<small>${l.length}</small></div>
+        ${l.slice(0, S.prikaz === 'fullscreen' ? 5 : 3).map((p, i) => `<div class="mini" data-kd="${d}" data-ki="${i}"><span>${esc(ime(p))} <span class="tiho">${esc(p.zemlja)}, ${esc(p.agencija)}</span></span><b>${iznos(p.price, p.currency) || 'na upit'}</b></div>`).join('')}
+        ${l.length > (S.prikaz === 'fullscreen' ? 5 : 3) ? `<div class="oznaka" style="padding:2px 6px">+${l.length - (S.prikaz === 'fullscreen' ? 5 : 3)} još tog dana</div>` : ''}`;
+    }).join('') || '<div class="prazno">Nema polazaka u ovom mesecu.</div>'}
+    <div class="strane"><button class="malo" data-akcija="pitaj-mesec">Pitaj Claude-a za najbolje u ovom mesecu</button>
+      ${strane > 1 ? `<span class="dugmad"><button class="malo" data-str="-1" ${S.strana === 0 ? 'disabled' : ''}>‹</button><span>${S.strana + 1} od ${strane}</span><button class="malo" data-str="1" ${S.strana >= strane - 1 ? 'disabled' : ''}>›</button></span>` : ''}
+    </div>`;
+}
+function crtajPraceno() {
+  const o = S.obav;
+  const iz = (v, p) => iznos(v, p.currency || 'EUR');
+  return `
+    ${o?.ukupno ? `<h2>Novo od poslednjeg pregleda</h2>
+      ${o.padovi.map((p, i) => `<div class="mini" data-pr="${i}" data-izvor="padovi"><span>${esc(ime(p))} <span class="tiho">${esc(p.agencija)}</span></span><span><s class="tiho">${iz(p.javljena_cena, p)}</s> <b>${iz(p.cena_sada, p)}</b></span></div>`).join('')}
+      ${o.nestali.map((p) => `<div class="mini"><span>${esc(ime(p))}</span><span class="tiho">nestalo sa sajta</span></div>`).join('')}
+      ${o.nove_po_zeljama.slice(0, 6).map((p, i) => `<div class="mini" data-pr="${i}" data-izvor="nove"><span>${esc(ime(p))} <span class="tiho">novo: ${esc(p.zelja)}</span></span><b>${iz(p.price, p)}</b></div>`).join('')}` : ''}
+    <h2>Pratiš<small>${S.prac.length}</small></h2>
+    ${S.prac.length ? S.prac.map((p, i) => {
+      const pr = p.promena ?? 0;
+      return `<div class="mini" data-pr="${i}" data-izvor="prac"><span>${esc(ime(p))} <span class="tiho">${esc(p.agencija)}${p.aktivno ? '' : ', nema je više'}</span></span>
+        <span>${iz(p.cena_pocetna, p)} → <b>${iz(p.cena_sada, p)}</b>${pr ? ` <span style="color:${pr < 0 ? 'var(--ok)' : 'var(--upoz)'}">${pr < 0 ? '▼' : '▲'}${Math.abs(Math.round(pr))}</span>` : ''}</span></div>`;
+    }).join('') : '<div class="prazno">Još ništa ne pratiš. Otvori ponudu i klikni „Prati cenu“.</div>'}`;
+}
+function diyLinkovi(d) {
+  const e = encodeURIComponent, od = d.odakle || 'Beograd', ku = d.kuda, n = putnici(S.putnici).ukupno;
+  const iso = (s) => { const m = (s || '').match(/^(\d{1,2})\.(\d{1,2})\.?(\d{4})?/); if (!m) return ''; const t = new Date(); let y = m[3] ? +m[3] : t.getFullYear(); const r = `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; return !m[3] && r < t.toISOString().slice(0, 10) ? `${y + 1}${r.slice(4)}` : r; };
+  const a = iso(d.od), b = iso(d.do);
+  return {
+    prevoz: [['Avion · Google Flights', `https://www.google.com/travel/flights?q=${e(`Flights from ${od} to ${ku} on ${a} through ${b}`)}&hl=sr`], ['Svi prevozi · Rome2rio', `https://www.rome2rio.com/map/${e(od)}/${e(ku)}`], ['Autobus', `https://www.google.com/search?q=${e(`autobus ${od} ${ku} karte red vožnje`)}`], ['Autom · Google Maps', `https://www.google.com/maps/dir/?api=1&origin=${e(od)}&destination=${e(ku)}&travelmode=driving`]],
+    smestaj: [[`Booking · ${n} os.`, `https://www.booking.com/searchresults.html?ss=${e(ku)}&checkin=${a}&checkout=${b}&group_adults=${n}&no_rooms=1&lang=sr`], ['Airbnb', `https://www.airbnb.com/s/${e(ku)}/homes?checkin=${a}&checkout=${b}&adults=${n}`], ['Trivago', `https://www.trivago.rs/sr/srl?search=${e(ku)}`], ['Google hoteli', `https://www.google.com/travel/search?q=${e(`hoteli ${ku}`)}`]],
+  };
+}
+function crtajDiy() {
+  const d = S.diy, l = d.kuda ? diyLinkovi(d) : null;
+  const ag = grupisi(S.diyAg, 'cena').slice(0, 4);
+  return `
+    <h2>Uradi sam<small>prevoz i smeštaj u sopstvenoj režiji</small></h2>
+    <form class="forma" id="diy-forma">
+      ${[['odakle', 'Odakle', 'Beograd'], ['kuda', 'Kuda', 'npr. Lisabon'], ['od', 'Od', '5.12.'], ['do', 'Do', '9.12.']].map(([k, lab, ph]) => `<label>${lab}<input name="${k}" value="${esc(d[k])}" placeholder="${ph}"></label>`).join('')}
+      <label>&nbsp;<button class="dugme glavno" style="width:100%">Prikaži</button></label>
+    </form>
+    <div class="red-kontrola">${izborPutnika()}</div>
+    ${l ? `<div class="linkovi"><div><h3>Prevoz</h3>${l.prevoz.map(([n, u]) => `<button class="link" data-url="${esc(u)}">${esc(n)}</button>`).join('')}</div>
+      <div><h3>Smeštaj</h3>${l.smestaj.map(([n, u]) => `<button class="link" data-url="${esc(u)}">${esc(n)}</button>`).join('')}</div></div>
+      <div class="akcije"><button class="dugme glavno" data-akcija="diy-pitaj">Neka Claude nađe 2–3 kombinacije</button></div>` : '<div class="prazno">Upiši kuda i datume, pa dobijaš linkove za avion, autobus i smeštaj.</div>'}
+    ${ag.length ? `<h2>Agencije za ${esc(d.kuda)}<small>za poređenje</small></h2>${ag.map((t, i) => `<div class="mini" data-dg="${i}"><span>${esc(ime(t.glavna))} <span class="tiho">${esc(t.glavna.agencija)}, ${kratakDatum(t.glavna.date_from)}</span></span><b>${iznos(t.glavna.price, t.glavna.currency) || 'na upit'}</b></div>`).join('')}` : ''}
+    ${S.diyLista.length ? `<h2>Sačuvane kombinacije</h2>${S.diyLista.map((k) => `<div class="mini"><span>${esc(k.naslov || k.kuda)} <span class="tiho">${esc(k.od || '')}–${esc(k.do || '')}</span></span><b>${iznos(k.po_osobi, 'EUR')} / os.</b></div>`).join('')}` : ''}`;
+}
+function crtajIzvore() {
+  const iz = S.izvori, st = S.stanje;
+  const ag = iz?.agencije ?? [];
+  const kad = st?.poslednji_sken ? new Date(st.poslednji_sken).toLocaleString('sr-Latn', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'nikad';
+  return `
+    <h2>Agencije<small>${st?.ponuda ?? 0} ponuda, poslednji sken ${kad}</small></h2>
+    <div class="akcije">${S.sken?.radi ? '<span class="oznaka">Skeniram agencije… (1–3 min, prozor se sam osveži)</span>' : '<button class="dugme glavno" data-akcija="sken">Skeniraj ponovo</button>'}
+      ${S.sken?.greska ? `<span class="poruka">${esc(S.sken.greska)}</span>` : ''}</div>
+    ${ag.filter((a) => a.stanje !== 'ok').map((a) => `<div class="agencija"><button class="link" data-url="${esc(a.sajt)}">${esc(a.naziv)}</button><span class="st-los">${esc(a.greske?.[0] ?? 'nije skenirano')}</span></div>`).join('')}
+    <div class="oznaka" style="margin-top:8px">U redu (${ag.filter((a) => a.stanje === 'ok').length})</div>
+    <div class="cipovi" style="margin-top:4px">${ag.filter((a) => a.stanje === 'ok').map((a) => `<button class="cip" data-url="${esc(a.sajt)}">${esc(a.naziv)}<small>${a.ponuda}</small></button>`).join('')}</div>
+    ${iz?.cita_claude?.length ? `<p class="oznaka">Sajtove ${iz.cita_claude.map((c) => esc(c.naziv)).join(', ')} čita Claude kad ga pitaš.</p>` : ''}`;
+}
 function crtaj() {
-  const n = stanje;
-  $('podnaslov').textContent = n.zemlja ? `${n.zemlja}, ${n.broj} aranžmana` : `preporučeno, ${n.broj} ponuda`;
-  for (const b of $('sort').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === n.sortiraj));
-  for (const b of $('putnika').querySelectorAll('button')) b.setAttribute('aria-pressed', String(Number(b.dataset.n) === Math.min(n.putnika, 5)));
-  $('zemlje').innerHTML = ['', ...n.dostupne].map((z) =>
-    `<button class="zemlja" data-z="${esc(z)}" aria-pressed="${z === n.zemlja}">${z ? esc(z) : 'Sve preporučene'}</button>`).join('');
-  if (!n.ponude.length) { $('lista').innerHTML = '<li class="prazno">Nema ponuda za ovaj izbor.</li>'; return; }
-  $('lista').innerHTML = n.ponude.map((p, i) => {
-    const [ik, pr] = PREVOZ[p.transport] ?? ['', ''];
-    const pol = (p.svi_datumi ?? []).length;
-    const opis = [!n.zemlja ? p.zemlja : '', p.agencija, pol > 1 ? `${pol} polazaka` : ''].filter(Boolean).join(', ');
-    const od = p.note === "cena 'od'" || pol > 1;
-    const pp = popust(p);
-    const ukupno = p.price && n.putnika > 1 ? `${iznos(p.price * n.putnika, p.currency)} za ${n.putnika}` : 'po osobi';
-    return `<li class="red" tabindex="0" data-i="${i}">
-      ${datumHtml(p.date_from)}
-      <div style="min-width:0"><div class="naziv">${esc(p.naziv)}${pp ? `<span class="popust">−${pp}%</span>` : ''}</div><div class="opis">${esc(opis)}</div></div>
-      <div class="put">${pr ? `<span class="ikona">${ik}</span>${pr}` : '<span class="bez-prevoza">prevoz na sajtu</span>'}<small>${noci(p.nights)}</small></div>
-      <div class="cena">${p.price ? `<b>${od ? '<span class="od">od</span>' : ''}${iznos(p.price, p.currency)}</b><small>${ukupno}</small>` : '<b><span class="od">cena</span>na upit</b>'}</div>
-    </li>`;
-  }).join('');
-  $('stanje').textContent = 'Klik na ponudu: Claude je otvara i poredi';
+  for (const b of $('tabovi').querySelectorAll('.tab')) b.setAttribute('aria-current', String(b.dataset.v === S.odeljak));
+  const novo = (S.obav?.ukupno ?? 0);
+  $('tabovi').querySelector('[data-v="praceno"]').innerHTML = `Praćeno${novo ? `<span class="broj">${novo}</span>` : ''}`;
+  $('prosiri').hidden = !S.modovi.includes('fullscreen');
+  $('prosiri').textContent = S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi';
+  const telo = { ponude: crtajPonude, kalendar: crtajKalendar, praceno: crtajPraceno, uradisam: crtajDiy, izvori: crtajIzvore }[S.odeljak]();
+  $('sadrzaj').innerHTML = (S.greska ? `<div class="poruka">${esc(S.greska)}</div>` : '') + (S.ucitava ? `<div class="oznaka">${esc(S.ucitava)}</div>` : '') + telo;
 }
 
-function prihvati(rez) {
-  const d = rez?.structuredContent ?? (() => { try { return JSON.parse(rez?.content?.[0]?.text ?? '{}'); } catch { return {}; } })();
-  if (!d || !d.ponude) return;
-  stanje = { ...stanje, zemlja: d.zemlja ?? '', sortiraj: d.sortiraj ?? 'preporuka', putnika: d.putnika ?? stanje.putnika,
-    ponude: d.ponude, dostupne: d.dostupne_zemlje ?? stanje.dostupne, broj: d.broj ?? d.ponude.length };
+// ---------- klikovi ----------
+$('tabovi').addEventListener('click', (e) => {
+  const v = e.target.closest('.tab')?.dataset.v; if (!v) return;
+  S.strana = 0;
+  if (v === 'ponude') { S.odeljak = 'ponude'; S.ponuda = null; crtaj(); }
+  else if (v === 'kalendar') otvoriKalendar();
+  else if (v === 'praceno') otvoriPraceno();
+  else if (v === 'uradisam') otvoriDiy();
+  else otvoriIzvore();
+});
+$('prosiri').addEventListener('click', async () => {
+  const cilj = S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen';
+  try { const r = await app.requestDisplayMode({ mode: cilj }); S.prikaz = r?.mode ?? cilj; } catch {}
   crtaj();
-}
+});
+$('sadrzaj').addEventListener('click', (e) => {
+  const t = e.target;
+  const b = (sel) => t.closest(sel);
+  if (b('[data-k]')) { S.kontinent = b('[data-k]').dataset.k; S.sviZemlje = false; return crtaj(); }
+  if (b('[data-sve]')) { S.sviZemlje = !S.sviZemlje; return crtaj(); }
+  if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
+  if (b('[data-s]')) { S.sort = b('[data-s]').dataset.s; S.strana = 0; return crtaj(); }
+  if (b('[data-p]')) { S.putnici = b('[data-p]').dataset.p; sacuvaj('putnici', S.putnici); if (S.ponuda?.ucitano) return otvoriPonudu(S.ponuda); return crtaj(); }
+  if (b('[data-str]')) { S.strana += Number(b('[data-str]').dataset.str); return crtaj(); }
+  if (b('.red')) return otvoriPonudu(TURE[Number(b('.red').dataset.i)].glavna);
+  if (b('[data-t]')) { const ts = termini(S.ponuda).sort((a, c) => (a.datum ?? '9999').localeCompare(c.datum ?? '9999')); const x = ts[Number(b('[data-t]').dataset.t)]; return otvoriPonudu({ ...S.ponuda, id: x.id, date_from: x.datum, price: x.cena, old_price: x.stara, currency: x.valuta }); }
+  if (b('[data-m]')) return otvoriKalendar(b('[data-m]').dataset.m);
+  if (b('[data-kd]')) { const el = b('[data-kd]'); S.odeljak = 'ponude'; return otvoriPonudu(S.kal.dani[el.dataset.kd][Number(el.dataset.ki)]); }
+  if (b('[data-pr]')) { const el = b('[data-pr]'); const izv = { prac: S.prac, padovi: S.obav?.padovi, nove: S.obav?.nove_po_zeljama }[el.dataset.izvor]; S.odeljak = 'ponude'; return otvoriPonudu(izv[Number(el.dataset.pr)]); }
+  if (b('[data-dg]')) { const tt = grupisi(S.diyAg, 'cena'); S.odeljak = 'ponude'; return otvoriPonudu(tt[Number(b('[data-dg]').dataset.dg)].glavna); }
+  if (b('[data-url]')) return link(b('[data-url]').dataset.url);
+  const a = b('[data-akcija]')?.dataset.akcija; if (!a) return;
+  const p = S.ponuda, n = putnici(S.putnici);
+  if (a === 'nazad') { S.ponuda = null; return crtaj(); }
+  if (a === 'prati') return prati(p);
+  if (a === 'sajt') return link(p.url);
+  if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id.slice(0, 12)}.`);
+  if (a === 'diy') { S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od: kratakDatum(p.date_from) }; sacuvaj('diy', S.diy); return otvoriDiy(); }
+  if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${S.diy.od}–${S.diy.do}, ${n.ukupno} osobe. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
+  if (a === 'pitaj-mesec') return pitaj(`Pogledaj polaske za ${MES_PUNO[Number(S.kal.mesec.slice(5)) - 1]} (kalendar u Putovanjima) i predloži 3 najbolje opcije za vikend ili praznik, sa cenom po osobi i ukupno za ${n.ukupno}.`);
+  if (a === 'sken') return skeniraj();
+});
+$('sadrzaj').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  S.diy = { odakle: f.get('odakle') || 'Beograd', kuda: String(f.get('kuda') || '').trim(), od: f.get('od'), do: f.get('do') };
+  sacuvaj('diy', S.diy); otvoriDiy();
+});
+$('sadrzaj').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.classList?.contains('red')) e.target.click(); });
 
-const app = new App({ name: 'Putovanja', version: '0.1.1' }, { availableDisplayModes: ['inline', 'fullscreen', 'pip'] });
+// ---------- start ----------
 function tema(ctx) {
   if (!ctx) return;
   if (ctx.theme) applyDocumentTheme(ctx.theme);
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
-  prikazi(app.getHostContext());
+  if (ctx.displayMode) S.prikaz = ctx.displayMode;
+  if (ctx.availableDisplayModes) S.modovi = ctx.availableDisplayModes;
 }
-app.ontoolresult = prihvati;
-app.onhostcontextchanged = tema;
-
-async function ucitaj(izmena) {
-  const arg = { zemlja: stanje.zemlja, sortiraj: stanje.sortiraj, putnika: stanje.putnika, ...izmena };
-  stanje = { ...stanje, ...arg };
-  $('stanje').textContent = 'Učitavam…';
-  try { prihvati(await app.callServerTool({ name: 'pokazi_putovanja', arguments: arg })); }
-  catch (e) { $('stanje').textContent = 'Nije uspelo: ' + (e?.message ?? e); }
-}
-
-$('sort').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) ucitaj({ sortiraj: v }); });
-$('putnika').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.n; if (v) { stanje.putnika = Number(v); crtaj(); } });
-function prikazi(ctx) {
-  const ima = ctx?.availableDisplayModes ?? [];
-  const sad = ctx?.displayMode ?? 'inline';
-  let vidljivo = 0;
-  for (const b of $('prikaz').querySelectorAll('button')) {
-    const da = ima.includes(b.dataset.m) && b.dataset.m !== sad;
-    b.hidden = !da; vidljivo += da ? 1 : 0;
-  }
-  $('prikaz').hidden = vidljivo === 0;
-}
-$('prikaz').addEventListener('click', async (e) => {
-  const m = e.target.closest('button')?.dataset.m; if (!m) return;
-  try { const r = await app.requestDisplayMode({ mode: m }); prikazi({ ...app.getHostContext(), displayMode: r?.mode ?? m }); } catch (err) { $('stanje').textContent = 'Ovaj prikaz nije dostupan.'; }
-});
-$('zemlje').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) ucitaj({ zemlja: b.dataset.z }); });
-async function otvori(el) {
-  const p = stanje.ponude[Number(el.dataset.i)];
-  if (!p) return;
-  await app.sendMessage({ role: 'user', content: [{ type: 'text',
-    text: `Pričaj mi o ponudi „${p.naziv}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi, nas je ${stanje.putnika}). Link: ${p.url}` }] });
-}
-$('lista').addEventListener('click', (e) => { const r = e.target.closest('.red'); if (r) otvori(r); });
-$('lista').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const r = e.target.closest('.red'); if (r) otvori(r); } });
-
+app.onhostcontextchanged = (ctx) => { tema({ ...app.getHostContext(), ...ctx }); crtaj(); };
+app.ontoolresult = (r) => {
+  const d = r?.structuredContent; if (!d?.lista) return;
+  S.lista = d.lista; S.zemlje = d.zemlje ?? {}; S.stanje = d.stanje; S.zemlja = d.zemlja ?? ''; S.sken = d.skeniranje;
+  const k = Object.entries(S.zemlje).find(([, z]) => S.zemlja in z)?.[0]; if (k) S.kontinent = k;
+  if (d.prikaz === 'kalendar') return otvoriKalendar();
+  if (d.prikaz === 'praceno') return otvoriPraceno();
+  if (d.prikaz === 'uradisam') return otvoriDiy();
+  crtaj();
+  pt('obavestenja').then((o) => { S.obav = o; crtaj(); }).catch(() => {});
+};
+crtaj();
 await app.connect();
 tema(app.getHostContext());
+crtaj();
+}
 </script>
 </body>
 </html>

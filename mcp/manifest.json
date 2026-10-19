@@ -1,28 +1,63 @@
 {
   "manifest_version": "0.4",
   "name": "putovanja",
-  "display_name": "Putovanja (proba)",
-  "version": "0.1.1",
-  "description": "Ponude domaćih turističkih agencija u prozoru u razgovoru: cene po osobi, prevoz, polasci.",
-  "long_description": "Probna verzija: prikazuje snimak ponuda srpskih turističkih agencija. Napiši u chatu, na primer, „pokaži mi putovanja“ ili „putovanja za Grčku“.",
-  "author": { "name": "Miljan Stanković" },
-  "repository": { "type": "git", "url": "https://github.com/MiljanStankovic/Trip-planner" },
+  "display_name": "Putovanja",
+  "version": "0.2.0",
+  "description": "Ponude domaćih turističkih agencija u prozoru u razgovoru: po zemljama, kalendar, praćenje cena, uradi sam.",
+  "long_description": "Napiši u chatu „pokaži mi putovanja“ ili „putovanja za Grčku“. Otvara se cela aplikacija: ponude agencija po zemljama sa cenom po osobi i ukupno za putnike, detalji sa sajta agencije, kalendar polazaka, praćenje cena i uradi sam (prevoz + smeštaj). Podaci ostaju na tvom računaru.",
+  "author": {
+    "name": "Miljan Stanković"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MiljanStankovic/Trip-planner"
+  },
   "icon": "icon.png",
   "server": {
     "type": "uv",
     "entry_point": "src/server.py",
     "mcp_config": {
       "command": "uv",
-      "args": ["run", "--directory", "${__dirname}", "src/server.py"]
+      "args": [
+        "run",
+        "--directory",
+        "${__dirname}",
+        "src/server.py"
+      ]
     }
   },
   "tools": [
-    { "name": "pokazi_putovanja", "description": "Prikazuje ponude agencija u prozoru, preporučene ili za jednu zemlju." }
+    {
+      "name": "otvori_putovanja",
+      "description": "Otvara aplikaciju Putovanja u razgovoru (preporučeno ili zemlja)."
+    },
+    {
+      "name": "detalji_ponude",
+      "description": "Detalji ponude sa sajta agencije i ukupna cena za putnike."
+    },
+    {
+      "name": "skeniraj_agencije",
+      "description": "Skenira sajtove agencija u pozadini."
+    },
+    {
+      "name": "putovanja_podaci",
+      "description": "Interno za prozor."
+    }
   ],
   "compatibility": {
-    "platforms": ["darwin", "win32"],
-    "runtimes": { "python": ">=3.10" }
+    "platforms": [
+      "darwin",
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.10"
+    }
   },
-  "keywords": ["putovanja", "turističke agencije", "aranžmani", "Srbija"],
+  "keywords": [
+    "putovanja",
+    "turističke agencije",
+    "aranžmani",
+    "Srbija"
+  ],
   "license": "MIT"
 }

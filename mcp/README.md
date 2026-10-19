@@ -4,7 +4,7 @@ Dodatak za Claude desktop aplikaciju: u običnom razgovoru napišeš „pokaži 
 ili „putovanja za Grčku“ i u poruci se otvori prozor sa ponudama agencija (datum, prevoz,
 trajanje, cena po osobi i ukupno za putnike). Klik na ponudu traži od Claude-a da je otvori i uporedi.
 
-Ovo je **korak 0**: radi nad snimkom ponuda (`src/demo.json`), bez skeniranja. Proverava:
+Prozor je cela aplikacija: ponude po zemljama, detalj ponude sa ukupnom cenom, kalendar, praćenje, uradi sam i izvori. Koristi istu bazu kao terminal (`~/.local/share/putovanja`). Na koraku 0 smo proverili:
 
 1. da li Claude aplikacija prikazuje prozor za lokalni dodatak,
 2. da li radi na besplatnom nalogu,
@@ -12,14 +12,14 @@ Ovo je **korak 0**: radi nad snimkom ponuda (`src/demo.json`), bez skeniranja. P
 
 ## Instalacija
 
-1. Skini `Putovanja-proba.mcpb` (GitHub, Releases, ili fajl koji ti pošaljem).
+1. Skini `Putovanja.mcpb` (GitHub, Releases, ili fajl koji ti pošaljem).
 2. Dvoklik na fajl, ili u Claude aplikaciji: Settings → Extensions → Advanced settings → Install Extension….
 3. Install. U novom razgovoru napiši: **pokaži mi putovanja**.
 
 ## Pravljenje paketa
 
 ```bash
-python mcp/napravi.py --paket   # mcp/dist/Putovanja-proba.mcpb (treba npm/npx)
+python mcp/napravi.py --paket   # mcp/dist/Putovanja.mcpb (treba npm/npx)
 ```
 
 `napravi.py` ugradi MCP Apps SDK u `src/prozor.html` (prozor nema pristup internetu)
