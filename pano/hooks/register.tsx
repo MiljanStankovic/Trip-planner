@@ -494,10 +494,12 @@ async function crtaj($: any, e: any) {
           return (
             <Box flexDirection="column" marginTop={1}>
               <Box flexDirection="row" justifyContent="space-between">
-                <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
-                  {IKONA[p.transport ?? ''] ?? '·'} <Text bold>{kratko(ime(p), Math.max(10, w - c.length - 4))}</Text>
-                </Button>
-                <Text bold color="success">{c}</Text>
+                <Box flexShrink={1}>
+                  <Button plain key={`t-${p.id}`} onPress={() => otvoriPonudu($, p)}>
+                    {IKONA[p.transport ?? ''] ?? '·'} <Text bold>{kratko(ime(p), Math.max(10, w - c.length - 4))}</Text>
+                  </Button>
+                </Box>
+                <Box flexShrink={0} paddingLeft={1}><Text bold color="success">{c}</Text></Box>
               </Box>
               <Box flexDirection="row" gap={1}>
                 {bedz(pp)}
@@ -520,8 +522,8 @@ async function crtaj($: any, e: any) {
         {statusRed}
         {saStranom && siroko ? (
           <Box flexDirection="row" gap={1}>
-            <Box flexDirection="column" flexGrow={1}>{glavno}</Box>
-            {strana}
+            <Box flexDirection="column" width={sirinaGlavno} flexShrink={1} overflow="hidden">{glavno}</Box>
+            <Box flexShrink={0}>{strana}</Box>
           </Box>
         ) : (
           <Box flexDirection="column" gap={1}>
@@ -714,8 +716,8 @@ async function crtaj($: any, e: any) {
       <Text><Text dimColor>{label} </Text><Text bold>{d[key] || '—'}</Text></Text>
     ) : (
       <Box width={sir}>
-        <Input key={`diy-${key}`} label={label} placeholder={ph} value={d[key]} submitLabel="ok"
-          onInput={(v: string) => postaviDiy($, key, v)} onSubmit={(v: string) => postaviDiy($, key, v, ucitaj)} />
+        <Input key={`diy-${key}`} label={label} placeholder={d[key] || ph} value={d[key]} submitLabel="ok"
+          onSubmit={(v: string) => postaviDiy($, key, v.trim(), ucitaj)} />
       </Box>
     )
     const blizina = (t: Tura) => !x.ok ? 0 : Math.min(...t.svi.map(s => s.date_from ? Math.abs(Date.parse(s.date_from) - Date.parse(x.od)) / 864e5 : 999))
@@ -734,13 +736,13 @@ async function crtaj($: any, e: any) {
         <Box flexDirection="column" borderStyle="round" borderColor="claude" paddingX={1} marginTop={1}>
           <Text bold>🧭 Uradi sam <Text dimColor>· prevoz i smeštaj po svom izboru, uporedo sa agencijama</Text></Text>
           <Box flexDirection={telefon ? 'column' : 'row'} columnGap={2} flexWrap="wrap" marginTop={1}>
-            {polje('odakle', 'Odakle', 'Beograd', 24)}
-            {polje('kuda', 'Kuda', 'npr. Budimpešta', 30, true)}
+            {polje('odakle', 'Odakle', 'Beograd', 28)}
+            {polje('kuda', 'Kuda', 'grad ili zemlja', 34, true)}
           </Box>
           <Box flexDirection={telefon ? 'column' : 'row'} columnGap={2} flexWrap="wrap">
-            {polje('od', 'Polazak', '5.12.', 18)}
-            {polje('do', 'Povratak', '7.12.', 18)}
-            {polje('osoba', 'Osoba', '2', 12)}
+            {polje('od', 'Polazak', 'npr. 5.12.', 26)}
+            {polje('do', 'Povratak', 'npr. 7.12.', 26)}
+            {polje('osoba', 'Osoba', '2', 16)}
           </Box>
           <Text dimColor>
             {x.ok ? `✓ ${d.kuda} · ${datum(x.od)} – ${datum(x.do)} · ${x.osoba} os.`
