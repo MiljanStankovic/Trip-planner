@@ -37,6 +37,9 @@
   :focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
   [hidden] { display: none !important; }
   .app { padding: 10px 4px 6px; }
+  .app { padding-bottom: calc(var(--dno, 0px) + 6px); }
+  .app.siroko { padding-bottom: calc(var(--dno, 0px) + 96px) !important; }
+  .verzija { color: var(--t3); font-size: 11px; }
   .app.siroko { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 24px; padding: 14px 18px; min-height: 100vh; align-items: start; }
   .glavno { min-width: 0; }
   svg.ik { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -233,11 +236,12 @@ const S = {
   kal: null, prac: [], obav: null, izvori: null, sken: null, diy: procitaj('diy', { odakle: 'Beograd', kuda: '', od: '', do: '' }), diyLista: [], diyAg: [],
   prikaz: 'inline', modovi: [],
 };
+const VERZIJA = '0.3.1';
 const siroko = () => S.prikaz === 'fullscreen';
 const poStrani = () => siroko() ? 10 : 6;
 
 // ---------- veza sa Claude-om ----------
-const app = new App({ name: 'Putovanja', version: '0.3.0' }, { availableDisplayModes: ['inline', 'fullscreen'] });
+const app = new App({ name: 'Putovanja', version: VERZIJA }, { availableDisplayModes: ['inline', 'fullscreen'] });
 async function pozovi(name, args = {}) {
   const r = await app.callServerTool({ name, arguments: args });
   const d = r?.structuredContent ?? (() => { try { return JSON.parse(r?.content?.[0]?.text ?? '{}'); } catch { return {}; } })();
@@ -361,7 +365,7 @@ function crtajPonude() {
     </div>
     ${prazna && !S.ucitava ? `<div class="poruka">Baza je prazna. Prvo skeniraj agencije (1–3 min). <button class="dugme" data-akcija="sken">Skeniraj sada</button></div>` : ''}
     <ol class="lista" id="lista">${vid.length ? vid.map((t, i) => redPonude(t, S.strana * ps + i, n)).join('') : `<li class="prazno">${S.ucitava ? 'Učitavam…' : 'Nema ponuda za ovaj izbor.'}</li>`}</ol>
-    <div class="strane"><span>Cene po osobi, sa sajtova agencija</span>
+    <div class="strane"><span>Cene po osobi, sa sajtova agencija <span class="verzija">· v${VERZIJA}</span></span>
       ${strane > 1 ? `<span class="dugmad"><button class="malo" data-str="-1" ${S.strana === 0 ? 'disabled' : ''}>‹</button><span>${S.strana + 1} od ${strane}</span><button class="malo" data-str="1" ${S.strana >= strane - 1 ? 'disabled' : ''}>›</button></span>` : ''}
     </div>`;
 }
@@ -492,6 +496,7 @@ function crtajBocno() {
         <button class="kont" data-k="${esc(k)}" aria-expanded="${k === otv}"><span class="str">›</span>${esc(k)}<small>${Object.values(z).reduce((a, b) => a + b, 0)}</small></button>
         ${k === otv ? Object.entries(z).sort((a, b) => b[1] - a[1]).map(([zz, c]) => `<button class="zem" data-z="${esc(zz)}" aria-pressed="${zz === S.zemlja}">${esc(zz)}<small>${c}</small></button>`).join('') : ''}`).join('')}` : ''}
     <div class="dno-bocno">
+      <span class="verzija">Putovanja ${VERZIJA}</span>
       <span>${S.stanje?.ponuda ?? 0} ponuda${sken != null ? `, sken ${sken === 0 ? 'danas' : `pre ${sken} d`}` : ''}</span>
       ${S.modovi.includes('fullscreen') ? `<button class="malo" data-prikaz="1">${S.prikaz === 'fullscreen' ? 'Vrati u razgovor' : 'Proširi'}</button>` : ''}
     </div>`;
@@ -574,6 +579,8 @@ function tema(ctx) {
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
   if (ctx.displayMode) S.prikaz = ctx.displayMode;
+  const sa = ctx.safeAreaInsets;
+  if (sa) document.documentElement.style.setProperty('--dno', `${Math.max(sa.bottom || 0, 0)}px`);
   if (ctx.availableDisplayModes) S.modovi = ctx.availableDisplayModes;
 }
 app.onhostcontextchanged = (ctx) => { tema({ ...app.getHostContext(), ...ctx }); crtaj(); };

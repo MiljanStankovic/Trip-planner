@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "putovanja",
   "display_name": "Putovanja",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Ponude domaćih turističkih agencija u prozoru u razgovoru: po zemljama, kalendar, praćenje cena, uradi sam.",
   "long_description": "Napiši u chatu „pokaži mi putovanja“ ili „putovanja za Grčku“. Otvara se cela aplikacija: ponude agencija po zemljama sa cenom po osobi i ukupno za putnike, detalji sa sajta agencije, kalendar polazaka, praćenje cena i uradi sam (prevoz + smeštaj). Podaci ostaju na tvom računaru.",
   "author": {
