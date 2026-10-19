@@ -28,7 +28,9 @@ Projekat ima Python alat `pt` (instaliran iz ovog repoa). Uvek ga zovi sa `--jso
 - `pt --json agencije skeniraj` — sveže ponude (traje ~1 min)
 - `pt --json zemlje` — broj ponuda po kontinentu i zemlji
 - `pt --json zemlja <naziv>` — sve ponude za zemlju ili grad (sa zemljom, kontinentom, svim terminima)
-- `pt --json ponuda <ID> --detalji` — jedna ponuda + program, šta cena obuhvata i ne obuhvata, sa sajta agencije
+- `pt --json ponuda <ID> --detalji` — jedna ponuda + program, šta cena obuhvata i ne obuhvata, sa sajta agencije, i `ukupno`: procena za sve putnike (osnovno × osobe + takse i obavezne doplate; preporučeno osiguranje posebno; fakultativno se ne sabira)
+- `pt --json stanje` — kad je bio poslednji sken, koliko ponuda, koliko putnika
+- `pt --json uradisam lista [kuda]` / `uradisam sacuvaj <fajl|->` — kombinacije prevoz + smeštaj (skill **uradi-sam**)
 - `pt --json top <preporuka|popust|jeftino|specijal|uskoro|izlet>` — najbolje ponude po kriterijumu
 - `pt --json kalendar [YYYY-MM]` — svi polasci tog meseca po danima (i broj polazaka po mesecima)
 - `pt --json prati [ID]` — sa ID-jem uključi/isključi praćenje cene aranžmana; bez ID-a spisak praćenih (cena kad je dodato → sada)
@@ -58,7 +60,7 @@ Pokreni nezavisne pretrage odjednom, ne jednu po jednu.
 |---|---|
 | Letovi | SlickTrip, eDreams, Expedia konektori. Bez konektora: web pretraga. Uvek proveri BEG i alternativni aerodrom ako budžet to traži |
 | Smeštaj | Booking.com, Expedia, SlickTrip hoteli. Daj 3 kvarta sa kompromisom, pa 3 smeštaja |
-| Paket aranžmani | Domaće agencije (vidi sekciju ispod). Uporedi sa "uradi sam" cenom (let + smeštaj) |
+| Paket aranžmani | Domaće agencije (vidi sekciju ispod). Uporedi sa "uradi sam" cenom (skill **uradi-sam**) |
 | Ture i aktivnosti | Civitatis (uvek `lang: "en"`), Google Places, web pretraga |
 | Vreme vožnje i rute | Web pretraga ili TomTom konektor. Vremena iz mapa su bez gužve, dodaj rezervu i reci da si je dodao. Granični prelaz (Horgoš, Kelebija, Batrovci) računaj posebno |
 | Vreme | Prognoza samo ako je izlazak u narednih ~10 dana, inače prosečne vrednosti za mesec |

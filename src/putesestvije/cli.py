@@ -33,7 +33,7 @@ from zoneinfo import ZoneInfo
 
 from rich.console import Console
 
-from . import catalog, db, details, watch
+from . import catalog, db, details, diy, ukupno, watch
 from .config import Config, load
 from .dashboard import offer_table
 from .match import recommend
@@ -251,6 +251,7 @@ def cmd_offer(cfg: Config, args) -> int:
     data["pratim"] = bool(it and watch.je_praceno(conn, it))
     if args.detalji:
         data["sa_sajta"] = details.get(conn, row["id"], row["url"], refresh=args.osvezi)
+    data["ukupno"] = ukupno.proceni(data, data.get("sa_sajta"), cfg.profile.putnika)
     _out(data, args.json, lambda: console.print_json(data=data))
     return 0
 
@@ -282,6 +283,36 @@ def cmd_top(cfg: Config, args) -> int:
         out.append(d)
     _out({"kriterijumi": catalog.TOP_CRITERIA, "ponude": out}, args.json,
          lambda: [console.print(f"{d['id'][:8]}  {d.get('date_from') or '—'}  {d['destination']}  ({d['agencija']})  {d['zasto']}") for d in out])
+    return 0
+
+
+def cmd_diy(cfg: Config, args) -> int:
+    conn = db.connect()
+    if args.sub == "sacuvaj":
+        raw = sys.stdin.read() if args.fajl == "-" else Path(args.fajl).read_text(encoding="utf-8-sig")
+        data = json.loads(raw)
+        ids = diy.sacuvaj(conn, data if isinstance(data, list) else [data], cfg.profile.rsd_per_eur)
+        _out({"sacuvano": ids}, args.json, lambda: console.print(f"Sačuvano: {', '.join(ids)}"))
+    elif args.sub == "obrisi":
+        ok = diy.obrisi(conn, args.id)
+        _out({"obrisano": ok}, args.json, lambda: console.print("Obrisano." if ok else "Nema te kombinacije."))
+    else:
+        data = diy.lista(conn, " ".join(args.kuda) if args.kuda else None)
+        _out(data, args.json, lambda: [console.print(
+            f"{k['id']}  {k.get('kuda')}  {k.get('od')}–{k.get('do')}  {k.get('naslov') or ''}  ukupno ~{k['ukupno']:.0f} €")
+            for k in data])
+    return 0
+
+
+def cmd_state(cfg: Config, args) -> int:
+    conn = db.connect()
+    last = conn.execute("SELECT MAX(started_at) FROM runs").fetchone()[0]
+    n = len(catalog.load(conn))
+    from datetime import datetime
+    dana = (datetime.now() - datetime.fromisoformat(last)).days if last else None
+    data = {"poslednji_sken": last, "pre_dana": dana, "ponuda": n, "agencija": len(SCRAPERS),
+            "putnika": cfg.profile.putnika}
+    _out(data, args.json, lambda: console.print(f"Poslednji sken: {last or 'nikad'} · {n} ponuda"))
     return 0
 
 
@@ -363,6 +394,12 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("zemlja"); s.add_argument("naziv", nargs="+"); s.set_defaults(fn=cmd_country)
     s = sub.add_parser("ponuda"); s.add_argument("id"); s.add_argument("--detalji", action="store_true")
     s.add_argument("--osvezi", action="store_true"); s.set_defaults(fn=cmd_offer)
+    us = sub.add_parser("uradisam", help="kombinacije prevoz + smeštaj (uradi sam)").add_subparsers(dest="sub", required=True)
+    s = us.add_parser("lista"); s.add_argument("kuda", nargs="*"); s.set_defaults(fn=cmd_diy)
+    s = us.add_parser("sacuvaj", help="JSON fajl (ili - za stdin) sa jednom kombinacijom ili listom")
+    s.add_argument("fajl"); s.set_defaults(fn=cmd_diy)
+    s = us.add_parser("obrisi"); s.add_argument("id"); s.set_defaults(fn=cmd_diy)
+    s = sub.add_parser("stanje", help="kad je bio poslednji sken, koliko ponuda"); s.set_defaults(fn=cmd_state)
     s = sub.add_parser("kalendar", help="polasci po danima za mesec"); s.add_argument("mesec", nargs="?", help="YYYY-MM")
     s.set_defaults(fn=cmd_calendar)
     s = sub.add_parser("prati", help="uključi/isključi praćenje cene; bez ID-a: spisak praćenih")

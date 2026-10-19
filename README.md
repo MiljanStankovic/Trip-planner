@@ -63,6 +63,7 @@ Glavna je **`/putovanja`** (pano). `/putovanja Tajland` otvara pano odmah na Taj
 | `/putesestvije:zemlja Tajland` | Sve ponude za zemlju ili grad, najbolji termini i detalji sa sajtova (šta cena obuhvata, doplate) |
 | `/putesestvije:istrazi <tema>` | Istraživanje: letovi, smeštaj, aranžmani, vize, poređenje sa "uradi sam" |
 | `/putesestvije:predlozi [vikend\|mesec]` | Ideje sa vaše Trello table koje sad imaju smisla, plus ponude agencija |
+| `/putesestvije:uradi-sam <kuda> <od> <do>` | Prevoz + smeštaj u sopstvenoj režiji, ukupna cena, poređenje sa agencijama |
 | `/putesestvije:planiraj <kartica>` | Plan za karticu, prebacivanje u Planirano, datum, kalendar |
 | `/putesestvije:agencije` | Sveže skeniranje (i agencije koje čita Claude) |
 | `/putesestvije:pregled [auto]` | Nedeljni pregled: izveštaj + predlozi u Trello |
@@ -151,3 +152,16 @@ pip install -e ".[dev]" && pytest
 ```
 
 Delovi workflow-a (sedam faza planiranja, provera pre polaska, "tri opcije sa stavom") su inspirisani skillovima [apljacob/travel-agent](https://github.com/apljacob/travel-agent), [Filip-Kin/travel-agent-skill](https://github.com/Filip-Kin/travel-agent-skill) i [d-wwei/trip-planner](https://github.com/d-wwei/trip-planner); kod nije kopiran.
+
+## Pano: odeljci
+
+`/putovanja` u Claude Code-u otvara pano sa tri odeljka:
+
+- **🏢 Agencije**: destinacije po kontinentima i zemljama, 📅 kalendar polazaka (sa praznicima), detalji ponude sa
+  **💶 ukupnom cenom za vas dvoje** (aranžman + takse i obavezne doplate, osiguranje kao preporučeno, fakultativno posebno).
+  Desno stoje najbolje ponude po kriterijumu.
+- **🧭 Uradi sam**: upišeš kuda i datume, dobiješ linkove za avion, autobus, voz, auto, Booking, Trivago, Airbnb i
+  dugme da Claude nađe i sačuva 2–3 kombinacije prevoz + smeštaj sa ukupnom cenom, uporedo sa agencijama za istu destinaciju.
+- **👁 Praćeno**: praćene cene i obaveštenja (pojeftinilo, nestalo, novo po vašim željama).
+
+U zaglavlju piše kad je bio poslednji sken (žuto kad je stariji od 7 dana).

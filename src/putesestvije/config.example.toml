@@ -15,6 +15,7 @@ max_nights = 10
 likes = ["advent", "budimpešta", "segedin", "divčibare"]   # sa naše table; dopuni
 dislikes = []
 rsd_per_eur = 117                      # kurs za poređenje cena u dinarima sa budžetom
+putnika = 2                            # koliko vas putuje (za "ukupno za sve")
 
 [agencije]
 # Python čita sve agencije koje alat zna (i nove, kad se dodaju). Filip Travel, Ponte i Plana čita Claude.

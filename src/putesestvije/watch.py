@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import calendar as _cal
 import sqlite3
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from . import catalog
 from .config import Config
@@ -50,6 +50,32 @@ def _now() -> str:
 
 # ---------- kalendar ----------
 
+def pravoslavni_uskrs(godina: int) -> date:
+    a, b, c = godina % 4, godina % 7, godina % 19
+    d = (19 * c + 15) % 30
+    e = (2 * a + 4 * b - d + 34) % 7
+    mesec, dan = divmod(d + e + 114, 31)
+    return date(godina, mesec, dan + 1) + timedelta(days=13)  # julijanski → gregorijanski (1900–2099)
+
+
+def praznici(godina: int) -> dict[str, str]:
+    """Neradni državni praznici u Srbiji (sa prenosom na ponedeljak kad padnu u nedelju)."""
+    out: dict[str, str] = {}
+
+    def dodaj(d: date, ime: str, prenos: bool = True):
+        out[d.isoformat()] = ime
+        if prenos and d.weekday() == 6:
+            out[(d + timedelta(days=1)).isoformat()] = ime + " (prenos)"
+
+    for dd, ime in [((1, 1), "Nova godina"), ((1, 2), "Nova godina"), ((2, 15), "Sretenje"), ((2, 16), "Sretenje"),
+                    ((5, 1), "Praznik rada"), ((5, 2), "Praznik rada"), ((11, 11), "Dan primirja")]:
+        dodaj(date(godina, *dd), ime)
+    dodaj(date(godina, 1, 7), "Božić", prenos=False)
+    u = pravoslavni_uskrs(godina)
+    for k, ime in [(-2, "Veliki petak"), (-1, "Velika subota"), (0, "Uskrs"), (1, "Uskršnji ponedeljak")]:
+        dodaj(u + timedelta(days=k), ime, prenos=False)
+    return out
+
 def kalendar(items: list[catalog.Item], mesec: str | None = None, meseci_napred: int = 12) -> dict:
     """{mesec, meseci: [{mesec, broj}], dani: {datum: [ponude]}}; jedan red po aranžmanu i datumu."""
     today = date.today()
@@ -80,7 +106,8 @@ def kalendar(items: list[catalog.Item], mesec: str | None = None, meseci_napred:
         y, m = (y + 1, 1) if m == 12 else (y, m + 1)
     for d in dani:
         dani[d].sort(key=lambda x: (x["price"] is None, (x["price"] or 0) / (117 if x["currency"] == "RSD" else 1)))
-    return {"mesec": mesec, "dana_u_mesecu": _cal.monthrange(int(mesec[:4]), int(mesec[5:]))[1],
+    pr = {**praznici(int(mesec[:4])), **praznici(int(mesec[:4]) + 1)}
+    return {"mesec": mesec, "praznici": {d: n for d, n in pr.items() if d[:7] == mesec}, "dana_u_mesecu": _cal.monthrange(int(mesec[:4]), int(mesec[5:]))[1],
             "meseci": meseci, "dani": dict(sorted(dani.items()))}
 
 

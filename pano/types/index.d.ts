@@ -22,7 +22,45 @@ export type Ponuda = {
   pratim?: boolean
   broj_termina?: number
   ceo_mesec?: boolean
+  naziv?: string
+  ukupno?: Ukupno | null
 }
+
+export type Stavka = { naziv: string; iznos: number; valuta: string; racun: string; tip: 'obavezno' | 'preporučeno' | 'opciono'; izvor: string }
+
+export type Ukupno = {
+  osobe: number
+  valuta: string
+  osnovno: number
+  stavke: Stavka[]
+  ukupno: number
+  ukupno_sa_preporucenim: number
+  napomena: string
+}
+
+export type Stanje = { poslednji_sken: string | null; pre_dana: number | null; ponuda: number; agencija: number; putnika: number }
+
+export type DiyStavka = { tip?: string; naziv?: string; opis?: string; cena?: number | null; valuta?: string; ocena?: string; link?: string }
+
+export type Kombinacija = {
+  id: string
+  kuda: string
+  odakle?: string
+  od?: string
+  do?: string
+  osoba: number
+  naslov?: string
+  prevoz: DiyStavka[]
+  smestaj: DiyStavka[]
+  ostalo: DiyStavka[]
+  ukupno: number
+  po_osobi: number
+  nepotpuno: boolean
+  napomena?: string
+  sacuvano?: string
+}
+
+export type Diy = { odakle: string; kuda: string; od: string; do: string; osoba: string }
 
 export type Detalji = {
   opis?: string
@@ -39,7 +77,7 @@ export type Detalji = {
 
 export type ZemljeMapa = { [kontinent: string]: { [zemlja: string]: number } }
 
-export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda' | 'kalendar' | 'pracenje'
+export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda' | 'kalendar' | 'pracenje' | 'diy'
 
 export type Nav = {
   view: Pogled
@@ -51,12 +89,14 @@ export type Nav = {
   sort: 'datum' | 'cena' | 'popust'
   mesec: string
   kalStrana: number
+  diy: Diy
 }
 
 export type Kalendar = {
   mesec: string
   meseci: { mesec: string; broj: number }[]
   dani: { [datum: string]: Ponuda[] }
+  praznici?: { [datum: string]: string }
 }
 
 export type Pracena = Ponuda & {
@@ -89,6 +129,9 @@ declare module 'claude-code' {
       kal: Kalendar | null
       prac: Pracena[]
       obav: Obavestenja | null
+      stanje: Stanje | null
+      diyLista: Kombinacija[]
+      diyAgencije: Ponuda[]
     }
   }
 }

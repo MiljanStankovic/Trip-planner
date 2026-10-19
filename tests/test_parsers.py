@@ -233,3 +233,39 @@ def test_pracenje_pad_cene_i_nove_po_zeljama(tmp_path):
     assert watch.obavestenja(conn, catalog.load(conn), cfg)["ukupno"] == 0  # pročitano
     kal = watch.kalendar(catalog.load(conn), "2099-12")
     assert list(kal["dani"]) == ["2099-12-05", "2099-12-12"]
+
+
+def test_ukupno_za_dvoje():
+    from putesestvije.ukupno import proceni
+    offer = {"price": 99.0, "currency": "EUR", "nights": 2, "date_from": "2099-10-21", "date_to": None}
+    det = {"termini": "21.10.2099. – 25.10.2099.",
+           "ne_obuhvata": "* putno osiguranje u iznosu od 1,5€ po osobi/ dnevno (17-74.99g)\n"
+                          "Boravišna taksa 4 € po noćenju po osobi\n"
+                          "Doplata za 1/1 sobu 80 €\n"
+                          "FAKULTATIVNI IZLETI:\nSent Andreja – 20 €/deca 15€\n"
+                          "Polisa osiguranja 470000049594 suma 50.000 €"}
+    r = proceni(offer, det, 2)
+    po = {s["naziv"]: (s["tip"], s["iznos"]) for s in r["stavke"]}
+    assert po["Putno osiguranje"] == ("preporučeno", 15.0)        # 1,5 € × 5 dana × 2
+    assert po["Boravišna taksa"] == ("obavezno", 16.0)            # 4 € × 2 noći × 2
+    assert po["Sent Andreja"] == ("opciono", 40.0)
+    assert not any("1/1" in n or "Polisa" in n for n in po)
+    assert (r["osnovno"], r["ukupno"], r["ukupno_sa_preporucenim"]) == (198.0, 214.0, 229.0)
+
+
+def test_naziv_aranzmana():
+    from putesestvije.catalog import naziv
+    assert naziv("Putovanje Budimpešta 2 noći, 2026 - autobus") == "Budimpešta"
+    assert naziv("DAN PRIMIRJA SIGURNI: BUDIMPEŠTA - 10.11. od 119€") == "Dan Primirja Sigurni: Budimpešta"
+    assert naziv("Budimpešta-Advent / Hit cena: 4.500din") == "Budimpešta-Advent"
+    assert naziv("Rim (31.12.2026.)") == "Rim"
+    assert naziv("Maldivi") == "Maldivi"
+    assert naziv("Gold Zanzibar Beach House & Spa 5*- paket aranžman") == "Gold Zanzibar Beach House & Spa 5*"
+
+
+def test_praznici_srbija():
+    from putesestvije.watch import praznici, pravoslavni_uskrs
+    assert pravoslavni_uskrs(2026).isoformat() == "2026-04-12"
+    assert pravoslavni_uskrs(2027).isoformat() == "2027-05-02"
+    p = praznici(2026)
+    assert p["2026-11-11"] == "Dan primirja" and p["2026-01-07"] == "Božić"

@@ -150,3 +150,40 @@ test('kalendar i praćenje', async ($, on) => {
   expect(await ui.find({ key: 'prati', text: /Pratim cenu/ })).toBeDefined()
   await ui.unmount()
 })
+
+test('uradi sam: forma, linkovi, zahtev Claude-u; ponuda: ukupno za dvoje', async ($, on) => {
+  const poslato: string[] = []
+  const komb = [{ id: 'k1', kuda: 'Budimpešta', od: '2026-12-05', do: '2026-12-07', osoba: 2, naslov: 'Voz + hotel',
+    prevoz: [{ tip: 'voz', opis: 'Soko + MÁV', cena: 64, valuta: 'EUR' }], smestaj: [{ naziv: 'Hotel M', cena: 212, valuta: 'EUR' }],
+    ostalo: [], ukupno: 276, po_osobi: 138, nepotpuno: false }]
+  const uk = { osobe: 2, valuta: 'EUR', osnovno: 3098, stavke: [{ naziv: 'Boravišna taksa', iznos: 24, valuta: 'EUR', racun: '1 € × 12 noći × 2 os.', tip: 'obavezno', izvor: '' }],
+    ukupno: 3122, ukupno_sa_preporucenim: 3122, napomena: '' }
+  mock.store(on)
+  on('process.run', async (_$, e: any) => {
+    const a = e.argv.slice(2)
+    const out = a[0] === 'uradisam' ? JSON.stringify(komb) : a[0] === 'ponuda' ? JSON.stringify({ ...PONUDA, ukupno: uk, sa_sajta: {} }) : odgovor(e.argv)
+    return { value: { exitCode: 0, stdout: out, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+  })
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  on('prompt.submit', async (_$, e) => { poslato.push(e.text); return { drop: 't' } as any })
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  await ui.press({ key: 'diy' })
+  await ui.input({ key: 'diy-kuda', text: 'Budimpešta' })
+  await ui.input({ key: 'diy-od', text: '5.12.2026' })
+  await ui.input({ key: 'diy-do', text: '7.12.2026' })
+  await ui.advance(50)
+  const linkovi = await ui.findAll({ type: 'Link' })
+  expect(linkovi.some((l: any) => /booking\.com.*checkin=2026-12-05.*checkout=2026-12-07.*group_adults=2/.test(JSON.stringify(l)))).toBe(true)
+  expect(await ui.find({ text: /Voz \+ hotel/ })).toBeDefined()
+  await ui.press({ key: 'diy-trazi' })
+  expect(poslato.at(-1)).toContain('Budimpešta')
+  expect(poslato.at(-1)).toContain('uradi-sam')
+  // ponuda: okvir sa ukupnom cenom za dvoje
+  await ui.press({ key: `diy-ag-${PONUDA.id}` })
+  await ui.advance(50)
+  expect(await ui.find({ text: /Za vas dvoje/ })).toBeDefined()
+  expect(await ui.find({ text: /3\.122 €/ })).toBeDefined()
+  await ui.unmount()
+})

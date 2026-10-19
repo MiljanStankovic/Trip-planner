@@ -34,6 +34,7 @@ class Profile:
     likes: list[str] = field(default_factory=list)  # ključne reči: "pariz", "wellness", "advent"
     dislikes: list[str] = field(default_factory=list)  # "krstarenje", "daleka putovanja"
     rsd_per_eur: float = 117.0  # za poređenje dinarskih cena sa budžetom u EUR
+    putnika: int = 2  # koliko vas putuje; za ukupnu cenu
 
 
 @dataclass

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -22,6 +23,35 @@ AGENCY_NAMES = {
 
 CONTINENT_ORDER = ["Evropa", "Azija", "Afrika", "Karibi i Centralna Amerika", "Severna Amerika",
                    "Južna Amerika", "Okeanija", "Ostalo"]
+
+
+_TRANSPORT_RE = r"(avio(nom)?|avion|autobus(om)?|bus|sopstveni prevoz|brod(om)?)"
+
+
+def naziv(title: str, destination: str = "") -> str:
+    """Kratak, čitljiv naziv aranžmana: bez "Putovanje", godine, broja noći, datuma, cene i prevoza."""
+    t = title or ""
+    t = re.sub(r"\s+od\s+\d[\d.,]*\s*(€|eur|din).*$", "", t, flags=re.I)                   # "od 119€"
+    t = re.sub(r"\(?\b\d{1,2}(\s*-\s*\d{1,2})?\.\d{1,2}\b\.?(\d{4}\.?)?\)?", " ", t)       # datumi
+    t = re.sub(r"(\s*(,|\bi\b)\s*)+(?=\s*[-–:/|]|\s*$)", " ", t)                             # ostaci liste datuma
+    t = re.sub(r"\b(20\d\d)\b", " ", t)                                                     # godina
+    t = re.sub(r"\b\d+\s*(dana|dan|noći|noci|noćenja|noćenje|nocenja)\b", " ", t, flags=re.I)
+    t = re.sub(rf"[-–,/]?\s*\b{_TRANSPORT_RE}\b", " ", t, flags=re.I)
+    t = re.sub(r"^\s*(putovanje|putovanja)\s+(u|na|za)?\s*", "", t, flags=re.I)
+    t = re.sub(r"\b(termin putovanja|više termina|vise termina|izlet)\b\s*:?", " ", t, flags=re.I)
+    t = re.sub(r"\s*[-–:,/|]+\s*(?=[-–:,/|]|$)", " ", t)                                        # višak crtica
+    t = re.sub(r"[-–]?\s*paket aran[žz]man\b", " ", t, flags=re.I)
+    t = re.sub(r"\s*/\s*(hit\s+)?cena\b.*$", "", t, flags=re.I)                               # "/ Cena: 4.000din"
+    t = re.sub(r"\s*/\s*\w{1,3}$", "", t)                                                     # odsečen ostatak "/ Hi"
+    t = re.sub(r"\(\s*\)", " ", t)
+    t = re.sub(r"\s+([,.])", r"\1", t)
+    if t.count("(") > t.count(")"):
+        t += ")"
+    t = re.sub(r"\s{2,}", " ", t).strip(" -–:,/|.")
+    t = re.sub(r"\s+(i|u|na|za)$", "", t)
+    if t.isupper():
+        t = t.title()
+    return t or (destination or title).strip()
 
 
 @dataclass
@@ -57,7 +87,7 @@ class Item:
 
     def to_dict(self) -> dict:
         d = dict(self.row)
-        d.update(zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates,
+        d.update(naziv=naziv(self.row["title"], self.row["destination"] or ""), zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates,
                  termini=self.termini())
         return d
 
