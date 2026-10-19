@@ -155,10 +155,18 @@
   .agencija .st-los { color: var(--upoz); }
 
   /* ---------- telefon ---------- */
-  /* preko celog ekrana Claude crta svoje dugme za zatvaranje i naslov preko vrha, a polje za pisanje preko dna:
-     sadržaj počinje ispod njih (bezbedna zona od Claude-a, a ako je ne pošalje, makar 76 px gore i 120 px dole) */
-  body.mob.ceo .app { padding-top: max(var(--gore, 0px), 76px); padding-bottom: max(var(--dno, 0px), 120px);
-    padding-left: max(var(--levo, 0px), 4px); padding-right: max(var(--desno, 0px), 4px); }
+  /* preko celog ekrana na telefonu i tabletu (dodir) Claude crta svoje dugme za zatvaranje i naslov preko vrha,
+     a polje za pisanje preko dna: sadržaj počinje ispod njih. Važi i za uspravan (kao telefon) i položen tablet (sa bočnom trakom).
+     Bezbedna zona od Claude-a plus mesto za njegovo zaglavlje, a ako je ne pošalje, makar 96 px gore. */
+  /* Android pregledač sam uvećava tekst u širim karticama (pa cena izlazi iz kartice); veličine su već podešene */
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  .kartica .cena { min-width: 0; text-align: right; }
+  .kartica .cena span, .kartica .cena small { white-space: nowrap; }
+  body.dodir.ceo { --vrh-claude: max(calc(var(--gore, 0px) + 64px), 96px); }
+  body.dodir.ceo .app { padding-top: var(--vrh-claude) !important; padding-bottom: max(var(--dno, 0px), 120px) !important; }
+  body.dodir.ceo .app.siroko { min-height: 0; }
+  body.dodir.ceo .bocno { top: var(--vrh-claude); max-height: calc(100vh - var(--vrh-claude) - 14px); }
+  body.mob.ceo .app { padding-left: max(var(--levo, 0px), 4px); padding-right: max(var(--desno, 0px), 4px); }
   .mob .app, .app.mob { padding: 6px 2px 10px; }
   .mob .vrh { margin-bottom: 6px; flex-wrap: nowrap; }
   .mob .vrh { display: block; }
@@ -619,6 +627,7 @@ function crtaj() {
   const sir = siroko();
   document.body.classList.toggle('mob', mob());
   document.body.classList.toggle('ceo', S.prikaz === 'fullscreen');
+  document.body.classList.toggle('dodir', matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 1 && matchMedia('(hover: none)').matches);
   $('app').classList.toggle('siroko', sir);
   $('bocno').hidden = !sir;
   if (sir) $('bocno').innerHTML = crtajBocno();
