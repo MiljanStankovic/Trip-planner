@@ -269,3 +269,16 @@ def test_praznici_srbija():
     assert pravoslavni_uskrs(2027).isoformat() == "2027-05-02"
     p = praznici(2026)
     assert p["2026-11-11"] == "Dan primirja" and p["2026-01-07"] == "Božić"
+
+
+def test_popusti_iz_teksta_i_soba():
+    from putovanja import popusti
+    d = {"ne_obuhvata": "Doplata za 1/1 sobu 50%\nPopust za decu do 12 godina u pratnji dve odrasle osobe 10%\n"
+                        "Treća odrasla osoba u 1/2+1 sobi ima popust 5%\nObilazak dvorca 40 €, deca 30 € (do 12 godina)",
+         "sobe": "Dvokrevetna soba, Standard: € 249 po osobi\nJednokrevetna soba, Standard: € 409 po osobi"}
+    p = popusti.iz_detalja(d)
+    assert "1/1 soba: +50%" in p and "deca do 12 god.: −10%" in p and "3. osoba: −5%" in p
+    assert not any("30" in x for x in p)  # cena izleta za decu nije popust
+    assert popusti.iz_soba(d["sobe"]) == ["1/1 soba: +160 €"]
+    assert popusti.iz_ponude("FIRST MINUTE ponuda", "") == ["rani booking"]
+    assert popusti.iz_detalja({"opis": "Lep hotel blizu plaže."}) == []

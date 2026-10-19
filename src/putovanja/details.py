@@ -141,6 +141,8 @@ def get(conn, offer_id: str, url: str, max_age_h: int = 24, refresh: bool = Fals
         data = {"greska": f"stranica nije dostupna ({e.__class__.__name__})"}
     data["v"] = VERZIJA
     data["provereno"] = datetime.now().isoformat(timespec="minutes")
+    if "greska" in data:
+        return data  # greška se ne pamti, da sledeće otvaranje proba ponovo
     conn.execute("INSERT OR REPLACE INTO details VALUES (?,?,?)",
                  (offer_id, data["provereno"], json.dumps(data, ensure_ascii=False)))
     conn.commit()

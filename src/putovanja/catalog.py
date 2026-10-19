@@ -8,10 +8,19 @@ import sqlite3
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 
-from . import db
+from . import db, popusti
 from .config import Config
 from .geo import classify, fold
 from .match import recommend
+
+AGENCY_SITES = {
+    "travelland": "https://www.travelland.rs/", "argus": "https://argus.rs/", "grandtours": "https://grandtours.rs/",
+    "halotours": "https://www.halotours.rs/", "belvi": "https://www.belvi.rs/", "felix": "https://www.felixtravel.rs/",
+    "fibula": "https://www.fibula.rs/", "jungletribe": "https://www.jungletribe.rs/", "kontiki": "https://kontiki.rs/",
+    "bigblue": "https://bigblue.rs/", "odeon": "https://www.odeontravel.rs/", "filip": "https://www.filiptravel.rs/",
+    "ponte": "https://www.ponte.rs/", "plana": "https://www.planatours.rs/", "viva": "https://www.vivatravel.rs/",
+    "rapsody": "https://www.rapsodytravel.rs/", "itravel": "https://itravel.rs/", "jumbo": "https://www.jumbo.rs/",
+}
 
 AGENCY_NAMES = {
     "travelland": "Travelland", "argus": "Argus Tours", "grandtours": "Grand Tours", "halotours": "Halo Tours",
@@ -88,7 +97,7 @@ class Item:
     def to_dict(self) -> dict:
         d = dict(self.row)
         d.update(naziv=naziv(self.row["title"], self.row["destination"] or ""), zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates,
-                 termini=self.termini())
+                 termini=self.termini(), popusti=popusti.iz_ponude(self.row["note"] or "", self.row["title"] or ""))
         return d
 
     def termini(self) -> list[dict]:

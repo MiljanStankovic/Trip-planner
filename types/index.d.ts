@@ -24,6 +24,8 @@ export type Ponuda = {
   ceo_mesec?: boolean
   naziv?: string
   ukupno?: Ukupno | null
+  popusti?: string[]
+  popusti_provereni?: boolean
 }
 
 export type Stavka = { naziv: string; iznos: number; valuta: string; racun: string; tip: 'obavezno' | 'preporučeno' | 'opciono'; izvor: string }
@@ -38,7 +40,13 @@ export type Ukupno = {
   napomena: string
 }
 
-export type Stanje = { poslednji_sken: string | null; pre_dana: number | null; ponuda: number; agencija: number; putnika: number }
+export type Stanje = { poslednji_sken: string | null; pre_dana: number | null; ponuda: number; agencija: number; putnika: number; odraslih?: number; dece?: number }
+
+export type Izvor = { id: string; naziv: string; sajt: string; ponuda: number; skenirano: string | null; stanje: 'ok' | 'delimicno' | 'greska' | 'nije_skenirano'; greske: string[] }
+
+export type Izvori = { agencije: Izvor[]; cita_claude: { id: string; naziv: string; sajt: string }[]; poslednji_sken: string | null }
+
+export type Konektor = { ime: string; sta: string; povezan: boolean }
 
 export type DiyStavka = { tip?: string; naziv?: string; opis?: string; cena?: number | null; valuta?: string; ocena?: string; link?: string }
 
@@ -90,6 +98,8 @@ export type Nav = {
   mesec: string
   kalStrana: number
   diy: Diy
+  putnici: string
+  izvoriOtvoreni: boolean
 }
 
 export type Kalendar = {
@@ -132,6 +142,12 @@ declare module 'claude-code' {
       stanje: Stanje | null
       diyLista: Kombinacija[]
       diyAgencije: Ponuda[]
+      izvori: Izvori | null
+      konektori: Konektor[]
+      jeftino: Ponuda[]
+      popustiMapa: { [id: string]: string[] }
+      trello: boolean
+      alat: string
     }
   }
 }

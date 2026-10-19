@@ -33,7 +33,7 @@ from zoneinfo import ZoneInfo
 
 from rich.console import Console
 
-from . import catalog, db, details, diy, ukupno, watch
+from . import catalog, db, details, diy, popusti, ukupno, watch
 from .config import Config, load
 from .dashboard import offer_table
 from .match import recommend
@@ -222,9 +222,118 @@ def cmd_countries(cfg: Config, args) -> int:
     return 0
 
 
+def _kes_popusta(conn, ids: list[str]) -> dict[str, list[str]]:
+    """Popusti iz već sačuvanih detalja (bez mreže)."""
+    conn.execute("CREATE TABLE IF NOT EXISTS details (offer_id TEXT PRIMARY KEY, fetched_at TEXT, data TEXT)")
+    out: dict[str, list[str]] = {}
+    for i in range(0, len(ids), 500):
+        part = ids[i:i + 500]
+        q = "SELECT offer_id, data FROM details WHERE offer_id IN (%s)" % ",".join("?" * len(part))
+        for oid, data in conn.execute(q, part):
+            try:
+                out[oid] = popusti.iz_detalja(json.loads(data))
+            except ValueError:
+                pass
+    return out
+
+
+def _dodaj_popuste(conn, rows: list[dict]) -> list[dict]:
+    """U svaki red upiše `popusti` (sa liste + iz sačuvanih detalja) i `popusti_provereni`."""
+    ids = []
+    for r in rows:
+        ids += [t["id"] for t in r.get("termini") or []] or [r["id"]]
+    kes = _kes_popusta(conn, list(dict.fromkeys(ids)))
+    for r in rows:
+        svi = list(r.get("popusti") or [])
+        provereno = False
+        for oid in [t["id"] for t in r.get("termini") or []] or [r["id"]]:
+            if oid in kes:
+                provereno = True
+                svi += [x for x in kes[oid] if x not in svi]
+        r["popusti"], r["popusti_provereni"] = svi[:5], provereno
+    return rows
+
+
+def cmd_discounts(cfg: Config, args) -> int:
+    """Popusti za date ponude: čita stranice koje nisu u kešu (paralelno), vraća {id: [oznake]}."""
+    from concurrent.futures import ThreadPoolExecutor
+    conn = db.connect()
+    rows = []
+    for oid in args.id[: args.limit]:
+        r = _find_offer(conn, oid)
+        if r:
+            rows.append(r)
+    kes = _kes_popusta(conn, [r["id"] for r in rows])
+    fale = [r for r in rows if r["id"] not in kes and r["url"]]
+
+    def citaj(r):
+        try:
+            return r, details.extract(details.fetch(r["url"]))
+        except Exception as e:  # mreža, robots, 403
+            return r, {"greska": e.__class__.__name__}
+
+    with ThreadPoolExecutor(max_workers=6) as ex:
+        for r, data in ex.map(citaj, fale):
+            if "greska" in data:  # ne pamti grešku; sledeći put probaj ponovo
+                continue
+            data["v"] = details.VERZIJA
+            data["provereno"] = datetime.now().isoformat(timespec="minutes")
+            conn.execute("INSERT OR REPLACE INTO details VALUES (?,?,?)",
+                         (r["id"], data["provereno"], json.dumps(data, ensure_ascii=False)))
+            kes[r["id"]] = popusti.iz_detalja(data)
+    conn.commit()
+    data = {r["id"]: popusti.iz_ponude(r["note"] or "", r["title"] or "") + [x for x in kes.get(r["id"], [])] for r in rows}
+    data = {k: list(dict.fromkeys(v))[:5] for k, v in data.items()}
+    _out(data, args.json, lambda: console.print_json(data=data))
+    return 0
+
+
+def cmd_sources(cfg: Config, args) -> int:
+    """Izvori podataka: svaka agencija, broj ponuda, poslednji sken i greške."""
+    conn = db.connect()
+    po_agenciji: dict[str, int] = {}
+    for it in catalog.load(conn):
+        po_agenciji[it.row["source"]] = po_agenciji.get(it.row["source"], 0) + 1
+    poslednji = {}
+    for started, src, n, errors in conn.execute("SELECT started_at, source, offers, errors FROM runs ORDER BY started_at"):
+        poslednji[src] = (started, n, errors)
+    out = []
+    for src in cfg.agencies:
+        started, n, errors = poslednji.get(src, (None, 0, "[]"))
+        try:
+            greske = json.loads(errors or "[]")
+        except ValueError:
+            greske = [str(errors)]
+        stanje = "greska" if started and not n and greske else "delimicno" if greske else "ok" if started else "nije_skenirano"
+        out.append({"id": src, "naziv": catalog.AGENCY_NAMES.get(src, src), "sajt": catalog.AGENCY_SITES.get(src, ""),
+                    "ponuda": po_agenciji.get(src, 0), "skenirano": started, "stanje": stanje,
+                    "greske": [_kratka_greska(g) for g in greske][:3]})
+    claude = [{"id": k, "naziv": v["name"], "sajt": catalog.AGENCY_SITES.get(k, v["pages"][0])} for k, v in CLAUDE_SOURCES.items()]
+    data = {"agencije": out, "cita_claude": claude, "preskoceno": SKIPPED,
+            "poslednji_sken": max((a["skenirano"] for a in out if a["skenirano"]), default=None)}
+
+    def render():
+        for a in out:
+            znak = {"ok": "✓", "delimicno": "!", "greska": "✗"}.get(a["stanje"], "·")
+            console.print(f"{znak} {a['naziv']:16} {a['ponuda']:4}  {a['skenirano'] or 'nikad'}  {'; '.join(a['greske'])}")
+    _out(data, args.json, render)
+    return 0
+
+
+def _kratka_greska(g: str) -> str:
+    """'https://.../stranica/kruzne-ture: (ConnectionResetError...)' -> 'stranica „kruzne-ture” nije učitana'."""
+    import re
+    m = re.match(r"(https?://\S+?):\s", str(g))
+    if m:
+        deo = m.group(1).rstrip("/").rsplit("/", 1)[-1]
+        return f"stranica „{deo}” nije učitana"
+    return str(g)[:80]
+
+
 def cmd_country(cfg: Config, args) -> int:
-    items = catalog.sort_items(catalog.by_country(catalog.load(db.connect()), " ".join(args.naziv)), "datum")
-    rows = [it.to_dict() for it in items]
+    conn = db.connect()
+    items = catalog.sort_items(catalog.by_country(catalog.load(conn), " ".join(args.naziv)), "datum")
+    rows = _dodaj_popuste(conn, [it.to_dict() for it in items])
 
     def render():
         from rich.table import Table
@@ -251,7 +360,9 @@ def cmd_offer(cfg: Config, args) -> int:
     data["pratim"] = bool(it and watch.je_praceno(conn, it))
     if args.detalji:
         data["sa_sajta"] = details.get(conn, row["id"], row["url"], refresh=args.osvezi)
-    data["ukupno"] = ukupno.proceni(data, data.get("sa_sajta"), cfg.profile.putnika)
+    osobe = args.osobe or cfg.profile.putnika
+    data["ukupno"] = ukupno.proceni(data, data.get("sa_sajta"), osobe)
+    _dodaj_popuste(conn, [data])
     _out(data, args.json, lambda: console.print_json(data=data))
     return 0
 
@@ -311,7 +422,7 @@ def cmd_state(cfg: Config, args) -> int:
     from datetime import datetime
     dana = (datetime.now() - datetime.fromisoformat(last)).days if last else None
     data = {"poslednji_sken": last, "pre_dana": dana, "ponuda": n, "agencija": len(SCRAPERS),
-            "putnika": cfg.profile.putnika}
+            "putnika": cfg.profile.putnika, "odraslih": cfg.profile.odraslih, "dece": cfg.profile.dece}
     _out(data, args.json, lambda: console.print(f"Poslednji sken: {last or 'nikad'} · {n} ponuda"))
     return 0
 
@@ -402,7 +513,11 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("--limit", type=int, default=12); s.set_defaults(fn=cmd_top)
     s = sub.add_parser("zemlja"); s.add_argument("naziv", nargs="+"); s.set_defaults(fn=cmd_country)
     s = sub.add_parser("ponuda"); s.add_argument("id"); s.add_argument("--detalji", action="store_true")
-    s.add_argument("--osvezi", action="store_true"); s.set_defaults(fn=cmd_offer)
+    s.add_argument("--osvezi", action="store_true"); s.add_argument("--osobe", type=int, help="broj putnika za ukupnu cenu")
+    s.set_defaults(fn=cmd_offer)
+    s = sub.add_parser("popusti", help="popusti za više osoba (čita stranice ponuda)"); s.add_argument("id", nargs="+")
+    s.add_argument("--limit", type=int, default=40); s.set_defaults(fn=cmd_discounts)
+    s = sub.add_parser("izvori", help="agencije: broj ponuda, poslednji sken, greške"); s.set_defaults(fn=cmd_sources)
     us = sub.add_parser("uradisam", help="kombinacije prevoz + smeštaj (uradi sam)").add_subparsers(dest="sub", required=True)
     s = us.add_parser("lista"); s.add_argument("kuda", nargs="*"); s.set_defaults(fn=cmd_diy)
     s = us.add_parser("sacuvaj", help="JSON fajl (ili - za stdin) sa jednom kombinacijom ili listom")
