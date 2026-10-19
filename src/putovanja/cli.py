@@ -366,8 +366,17 @@ def cmd_alerts(cfg: Config, args) -> int:
     return 0
 
 
+def _verzija() -> str:
+    try:
+        from importlib.metadata import version
+        return version("putovanja")
+    except Exception:
+        return "0"
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="pt", description="Putovanja: planer putovanja")
+    p = argparse.ArgumentParser(prog="putovanja", description="Putovanja: planer putovanja (skraćeno: pt)")
+    p.add_argument("--version", action="version", version=_verzija())
     p.add_argument("--json", action="store_true", help="mašinski izlaz")
     sub = p.add_subparsers(dest="cmd")
 

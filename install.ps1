@@ -1,102 +1,113 @@
 # Putovanja: instalacija i ažuriranje jednom komandom (Windows / PowerShell)
 #
-#   Prvi put:   git clone https://github.com/MiljanStankovic/Trip-planner.git $HOME\Putesestvije
-#               powershell -ExecutionPolicy Bypass -File $HOME\Putesestvije\install.ps1
-#   Ažuriranje: ista druga komanda (povuče izmene i osveži sve).
+#   irm https://raw.githubusercontent.com/MiljanStankovic/Trip-planner/main/install.ps1 | iex
 #
-# Šta radi: povuče najnoviji kod, napravi Python okruženje i instalira alat pt, napravi
-# podešavanja (ako ih nema), doda pt u PATH, instalira oba Claude Code plugina
-# (putovanja + pano /putovanja) i upiše im putanju do pt, pa skenira agencije.
-param(
-    [switch]$BezSkena,                                   # preskoči prvo skeniranje agencija
-    [string]$Folder = "$HOME\Putesestvije",              # gde da klonira ako se skripta ne pokreće iz repoa
-    [string]$Repo = "https://github.com/MiljanStankovic/Trip-planner.git"
-)
-$ErrorActionPreference = "Continue"   # native komande (git, claude) pišu na stderr; greške proveravamo preko $LASTEXITCODE
-function Korak($t) { Write-Host "`n==> $t" -ForegroundColor Cyan }
-function Ima($cmd) { [bool](Get-Command $cmd -ErrorAction SilentlyContinue) }
-function Greska($t) { Write-Host "X $t" -ForegroundColor Red; exit 1 }
+# Šta radi: instalira uv (on sam donese Python), doda Putovanja u Claude Code (marketplace + plugin),
+# instalira alat "putovanja" (skraćeno pt), napravi podešavanja i skenira agencije.
+# Ponovno pokretanje iste komande ažurira sve. Ništa se ne briše i ne menja van ovoga.
+#
+# Opcije (preko promenljivih okruženja, jer irm | iex ne prima parametre):
+#   $env:PUTOVANJA_GRANA = "ime-grane"   instaliraj sa druge grane (za probu pre spajanja u main)
+#   $env:PUTOVANJA_BEZ_SKENA = "1"       preskoči prvo skeniranje agencija
+#   $env:PUTOVANJA_TRELLO = "1"          uključi i dodatak putovanja-trello
 
-# --- 0. preduslovi ---
-Korak "Provera: git, Python 3.11+, Claude Code"
-if (-not (Ima git)) { Greska "Nema git-a. Instaliraj: winget install Git.Git  (pa otvori novi PowerShell)" }
-$py = $null
-foreach ($k in @("py -3", "python", "python3")) {
-    $exe, $arg = $k.Split(" ", 2)
-    if (Ima $exe) {
-        $v = & $exe $(if ($arg) { $arg }) -c "import sys;print('%d.%d'%sys.version_info[:2])" 2>$null
-        if ($v -and [version]$v -ge [version]"3.11") { $py = $k; break }
+$ErrorActionPreference = "Continue"   # native komande pišu na stderr; greške proveravamo preko $LASTEXITCODE
+$Repo = "MiljanStankovic/Trip-planner"
+$Grana = $env:PUTOVANJA_GRANA
+function Korak($t) { Write-Host "`n==> $t" -ForegroundColor Cyan }
+function Ok($t) { Write-Host "   $t" }
+function Ima($cmd) { [bool](Get-Command $cmd -ErrorAction SilentlyContinue) }
+function Greska($t) { Write-Host "X $t" -ForegroundColor Red; throw "Instalacija prekinuta" }
+
+try {
+
+Korak "Claude Code"
+if (-not (Ima claude)) {
+    Greska "Nema Claude Code-a. Instaliraj ga ovom komandom, otvori novi PowerShell i pokreni ovu instalaciju ponovo:`n   irm https://claude.ai/install.ps1 | iex"
+}
+Ok "claude OK"
+
+Korak "uv (donosi Python, ne moraš da ga instaliraš)"
+$uvBin = Join-Path $HOME ".local\bin"
+if (-not (Ima uv)) {
+    if (Test-Path (Join-Path $uvBin "uv.exe")) {
+        $env:Path = "$uvBin;$env:Path"
+    } else {
+        powershell -ExecutionPolicy ByPass -NoProfile -Command "irm https://astral.sh/uv/install.ps1 | iex"
+        $env:Path = "$uvBin;$env:Path"
     }
 }
-if (-not $py) { Greska "Treba Python 3.11 ili noviji. Instaliraj: winget install Python.Python.3.12  (pa otvori novi PowerShell)" }
-if (-not (Ima claude)) { Greska "Nema Claude Code-a. Uputstvo: https://docs.claude.com/en/docs/claude-code/overview" }
-Write-Host "   git OK, Python ($py) OK, claude OK"
+if (-not (Ima uv)) { Greska "uv se nije instalirao. Probaj ručno: powershell -ExecutionPolicy ByPass -c `"irm https://astral.sh/uv/install.ps1 | iex`"" }
+Ok ("uv " + ((uv --version) -replace '^uv ', ''))
 
-# --- 1. kod ---
-$Folder = [System.IO.Path]::GetFullPath($Folder)
-$ovde = if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot "pyproject.toml"))) { $PSScriptRoot } else { $null }
-if ($ovde) {
-    $Folder = $ovde
-} elseif (-not (Test-Path (Join-Path $Folder ".git"))) {
-    Korak "Kloniram $Repo u $Folder"
-    git clone $Repo $Folder
-    if ($LASTEXITCODE) { Greska "git clone nije uspeo (privatni repo traži pristup na GitHub-u)" }
+Korak "Putovanja u Claude Code-u"
+if ($Grana) {
+    # proba sa grane: lokalna kopija repoa, marketplace iz tog foldera
+    if (-not (Ima git)) { Greska "Za instalaciju sa grane treba git: winget install --id Git.Git -e" }
+    $izvor = Join-Path $HOME ".putovanja\izvor"
+    if (Test-Path (Join-Path $izvor ".git")) {
+        git -C $izvor fetch --quiet origin $Grana
+        git -C $izvor checkout --quiet $Grana
+        git -C $izvor reset --quiet --hard "origin/$Grana"
+    } else {
+        git clone --quiet --branch $Grana "https://github.com/$Repo.git" $izvor
+    }
+    if ($LASTEXITCODE) { Greska "Ne mogu da preuzmem granu $Grana" }
+    $marketplace = $izvor
+    Ok "grana: $Grana ($izvor)"
+} else {
+    $marketplace = $Repo
 }
-Set-Location $Folder
-Korak "Povlačim najnoviji kod"
-git pull --ff-only
-if ($LASTEXITCODE) { Write-Host "   (git pull nije prošao: lokalne izmene? nastavljam sa postojećim kodom)" -ForegroundColor Yellow }
+$lista = claude plugin marketplace list 2>$null | Out-String
+if ($lista -notmatch "putovanja") {
+    claude plugin marketplace add $marketplace 2>&1 | Out-Null
+    if ($LASTEXITCODE) {
+        if (-not (Ima git)) { Greska "Claude Code ne može da preuzme plugin bez git-a. Instaliraj ga (winget install --id Git.Git -e), otvori novi PowerShell i pokreni ponovo." }
+        Greska "Ne mogu da dodam marketplace $marketplace"
+    }
+}
+claude plugin marketplace update putovanja 2>&1 | Out-Null
+claude plugin install "putovanja@putovanja" 2>&1 | Out-Null
+claude plugin update "putovanja@putovanja" 2>&1 | Out-Null
+$plugini = claude plugin list 2>$null | Out-String
+if ($plugini -notmatch "putovanja@putovanja") { Greska "Plugin putovanja se nije instalirao (probaj u Claude Code-u: /plugin)" }
+Ok "plugin putovanja OK"
+if ($env:PUTOVANJA_TRELLO -eq "1") {
+    claude plugin install "putovanja-trello@putovanja" 2>&1 | Out-Null
+    claude plugin enable "putovanja-trello@putovanja" 2>&1 | Out-Null
+    Ok "dodatak putovanja-trello uključen"
+}
 
-# --- 2. Python alat pt ---
-Korak "Python okruženje i alat pt"
-$naWindows = $env:OS -eq "Windows_NT"
-$venvBin = if ($naWindows) { Join-Path $Folder ".venv\Scripts" } else { Join-Path $Folder ".venv/bin" }
-$venvPy = Join-Path $venvBin $(if ($naWindows) { "python.exe" } else { "python" })
-if (-not (Test-Path $venvPy)) {
-    $exe, $arg = $py.Split(" ", 2)
-    & $exe $(if ($arg) { $arg }) -m venv .venv
-    if ($LASTEXITCODE) { Greska "Ne mogu da napravim Python okruženje (.venv)" }
-}
-& $venvPy -m pip install --quiet --upgrade pip
-& $venvPy -m pip install --quiet -e .
-if ($LASTEXITCODE) { Greska "pip install nije uspeo" }
-$pt = Join-Path $venvBin $(if ($naWindows) { "pt.exe" } else { "pt" })
+Korak "Alat putovanja (pt)"
+if ($Grana) { $paket = $izvor } else { $paket = "https://github.com/$Repo/archive/refs/heads/main.zip" }
+uv tool install --force --quiet --python 3.12 $paket 2>&1 | Out-Null
+if ($LASTEXITCODE) { Greska "uv tool install nije uspeo" }
+$toolBin = (uv tool dir --bin).Trim()
+$pt = Join-Path $toolBin "putovanja.exe"
 if (-not (Test-Path $pt)) { Greska "Nema $pt posle instalacije" }
-Write-Host "   pt: $pt"
-
-$cfg = Join-Path $HOME ".config\putovanja\config.toml"
-if (-not (Test-Path $cfg)) { & $pt init | Out-Null; Write-Host "   podešavanja: $cfg (otvori i upiši šta volite, budžet...)" }
-
-# pt u PATH (za nove terminale), da radi i "pt ..." iz bilo kog foldera
-$bin = Split-Path $pt
 $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if ($naWindows -and -not ($userPath -split ";" | Where-Object { $_ -eq $bin })) {
-    [Environment]::SetEnvironmentVariable("Path", (($userPath.TrimEnd(";")) + ";" + $bin).TrimStart(";"), "User")
-    Write-Host "   pt dodat u PATH (važi u novim terminalima)"
+if (-not ($userPath -split ";" | Where-Object { $_ -eq $toolBin })) {
+    [Environment]::SetEnvironmentVariable("Path", (($userPath.TrimEnd(";")) + ";" + $toolBin).TrimStart(";"), "User")
 }
+Ok ("putovanja " + (& $pt --version))
+$cfg = Join-Path $HOME ".config\putovanja\config.toml"
+if (-not (Test-Path $cfg)) { & $pt init | Out-Null; Ok "podešavanja: $cfg" }
 
-# --- 3. Claude Code pluginovi ---
-Korak "Claude Code: marketplace i pluginovi"
-claude plugin marketplace add $Folder 2>$null | Out-Null
-claude plugin marketplace update putovanja 2>$null | Out-Null
-if ($LASTEXITCODE) { Greska "Ne mogu da dodam marketplace iz $Folder (claude plugin marketplace add)" }
-foreach ($p in @("putovanja", "putovanja")) {
-    claude plugin install "$p@putovanja" 2>$null | Out-Null
-    claude plugin update "$p@putovanja" 2>$null | Out-Null
-    $lista = claude plugin list 2>$null | Out-String
-    if ($lista -notmatch [regex]::Escape("$p@putovanja")) { Greska "Plugin $p se nije instalirao (probaj u Claude Code-u: /plugin)" }
-    Write-Host "   $p OK"
-}
-# pano zna gde je pt (bez obzira na PATH)
-@{ ptPath = $pt } | ConvertTo-Json -Compress | claude plugin configure "putovanja@putovanja" --values-stdin 2>$null | Out-Null
-if ($LASTEXITCODE) { Write-Host "   (nisam upisao ptPath; u Claude Code-u ukucaj: /putovanja pt $pt)" -ForegroundColor Yellow }
-Write-Host "   pano podešen: ptPath = $pt"
-
-# --- 4. prvo skeniranje ---
-if (-not $BezSkena) {
-    Korak "Skeniram agencije (1–2 min)"
+if ($env:PUTOVANJA_BEZ_SKENA -ne "1") {
+    Korak "Skeniram agencije (1-2 min)"
     & $pt agencije skeniraj
 }
 
-Write-Host "`nGotovo. Otvori (ili restartuj) Claude Code i ukucaj:  /putovanja" -ForegroundColor Green
-Write-Host ("Ažuriranje kasnije: powershell -ExecutionPolicy Bypass -File " + (Join-Path $Folder "install.ps1"))
+Korak "Terminal"
+if ($env:WT_SESSION -or (Ima wt)) {
+    Ok "Windows Terminal OK"
+} else {
+    Write-Host "   Pano najbolje izgleda u Windows Terminal-u (boje, ivice). Instalacija: winget install --id Microsoft.WindowsTerminal -e" -ForegroundColor Yellow
+}
+
+Write-Host "`nGotovo. Otvori novi terminal, pokreni claude i ukucaj:  /putovanja" -ForegroundColor Green
+Write-Host "Ažuriranje kasnije: ista komanda kao za instalaciju."
+
+} catch {
+    Write-Host "`nInstalacija nije završena. Popravi ono što piše iznad i pokreni komandu ponovo." -ForegroundColor Red
+}
