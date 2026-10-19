@@ -11,6 +11,7 @@
 #   PUTOVANJA_GRANA=ime-grane   instaliraj sa druge grane (proba pre spajanja u main)
 #   PUTOVANJA_BEZ_SKENA=1       preskoči prvo skeniranje agencija
 #   PUTOVANJA_TRELLO=1          uključi i dodatak putovanja-trello
+#   PUTOVANJA_CHAT=1            skini i otvori i dodatak za običan Claude chat (Putovanja.mcpb)
 set -euo pipefail
 REPO="MiljanStankovic/Trip-planner"
 GRANA="${PUTOVANJA_GRANA:-}"
@@ -75,6 +76,13 @@ if [[ ! -f "$CFG" ]]; then "$PT" init >/dev/null; ok "podešavanja: $CFG"; fi
 if [[ "${PUTOVANJA_BEZ_SKENA:-0}" != "1" ]]; then
   korak "Skeniram agencije (1-2 min)"
   "$PT" agencije skeniraj
+fi
+
+if [[ "${PUTOVANJA_CHAT:-0}" == "1" ]]; then
+  korak "Dodatak za običan Claude chat"
+  MCPB="${TMPDIR:-/tmp}/Putovanja.mcpb"
+  curl -fsSL "https://github.com/$REPO/raw/${GRANA:-main}/mcp/Putovanja.mcpb" -o "$MCPB"
+  if command -v open >/dev/null; then open "$MCPB"; ok "Otvoren je prozor za instalaciju u Claude aplikaciji: klikni Install"; else ok "Skinuto: $MCPB (otvori ga u Claude aplikaciji)"; fi
 fi
 
 printf '\n\033[32mGotovo. Otvori novi terminal, pokreni claude i ukucaj:  /putovanja\033[0m\n'

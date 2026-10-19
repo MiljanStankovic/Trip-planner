@@ -10,6 +10,7 @@
 #   $env:PUTOVANJA_GRANA = "ime-grane"   instaliraj sa druge grane (za probu pre spajanja u main)
 #   $env:PUTOVANJA_BEZ_SKENA = "1"       preskoči prvo skeniranje agencija
 #   $env:PUTOVANJA_TRELLO = "1"          uključi i dodatak putovanja-trello
+#   $env:PUTOVANJA_CHAT = "1"            skini i otvori i dodatak za običan Claude chat (Putovanja.mcpb)
 
 $ErrorActionPreference = "Continue"   # native komande pišu na stderr; greške proveravamo preko $LASTEXITCODE
 $Repo = "MiljanStankovic/Trip-planner"
@@ -105,6 +106,15 @@ if ($env:WT_SESSION -or (Ima wt)) {
     Ok "Windows Terminal OK"
 } else {
     Write-Host "   Pano najbolje izgleda u Windows Terminal-u (boje, ivice). Instalacija: winget install --id Microsoft.WindowsTerminal -e" -ForegroundColor Yellow
+}
+
+if ($env:PUTOVANJA_CHAT -eq "1") {
+    Korak "Dodatak za običan Claude chat"
+    $mcpb = Join-Path $env:TEMP "Putovanja.mcpb"
+    $grana = if ($Grana) { $Grana } else { "main" }
+    Invoke-WebRequest -UseBasicParsing "https://github.com/$Repo/raw/$grana/mcp/Putovanja.mcpb" -OutFile $mcpb
+    Start-Process $mcpb
+    Ok "Otvoren je prozor za instalaciju u Claude aplikaciji: klikni Install"
 }
 
 Write-Host "`nGotovo. Otvori novi terminal, pokreni claude i ukucaj:  /putovanja" -ForegroundColor Green

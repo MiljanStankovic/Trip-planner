@@ -34,6 +34,9 @@ Otvara se cela aplikacija preko prozora: ponude po zemljama (cena po osobi i uku
 sa sajta agencije, kalendar polazaka, praćenje cena, uradi sam (prevoz + smeštaj) i izvori. Prvi put klikni
 „Skeniraj sada“ (1–3 min). Podaci ostaju na računaru, u istoj bazi koju koristi i terminal.
 
+Ko već instalira Putovanja za Claude Code, može oba odjednom: pre komande za instalaciju dodaj
+`$env:PUTOVANJA_CHAT="1";` (PowerShell) ili `PUTOVANJA_CHAT=1` (macOS).
+
 Ažuriranje: skini noviji `Putovanja.mcpb` sa istog linka i instaliraj preko starog. Detalji u [mcp/README.md](mcp/README.md).
 
 ## Instalacija za Claude Code (jedna komanda)
