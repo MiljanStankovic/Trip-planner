@@ -5,7 +5,7 @@ name: Server na Cloudflare
 on:
   workflow_dispatch:
   push:
-    branches: [server]
+    branches: [main, server]
     paths: ["server/worker/**", "mcp/ui/**", "mcp/napravi.py", ".github/workflows/server.yml"]
 
 concurrency:

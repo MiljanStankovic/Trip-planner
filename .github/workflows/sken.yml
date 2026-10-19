@@ -11,7 +11,7 @@ on:
         description: "Koliko ponuda da čita detalje sa sajta (0 = bez)"
         default: "5000"
   push:
-    branches: [server]
+    branches: [main, server]
     paths: [".github/workflows/sken.yml", "server/izvezi.py"]
 
 permissions:
