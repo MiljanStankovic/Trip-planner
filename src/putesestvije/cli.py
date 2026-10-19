@@ -33,7 +33,7 @@ from zoneinfo import ZoneInfo
 
 from rich.console import Console
 
-from . import catalog, db, details
+from . import catalog, db, details, watch
 from .config import Config, load
 from .dashboard import offer_table
 from .match import recommend
@@ -248,6 +248,7 @@ def cmd_offer(cfg: Config, args) -> int:
     it = next((i for i in catalog.load(conn, 3650) if i.id == row["id"]), None)
     data = it.to_dict() if it else dict(row)
     data["istorija_cene"] = [dict(h) for h in db.price_history(conn, row["id"])]
+    data["pratim"] = bool(it and watch.je_praceno(conn, it))
     if args.detalji:
         data["sa_sajta"] = details.get(conn, row["id"], row["url"], refresh=args.osvezi)
     _out(data, args.json, lambda: console.print_json(data=data))
@@ -284,6 +285,56 @@ def cmd_top(cfg: Config, args) -> int:
     return 0
 
 
+def cmd_calendar(cfg: Config, args) -> int:
+    data = watch.kalendar(catalog.load(db.connect()), args.mesec)
+
+    def render():
+        console.print(" · ".join(f"{m['mesec']} ({m['broj']})" for m in data["meseci"]))
+        for d, lst in data["dani"].items():
+            console.print(f"[bold]{d}[/]")
+            for x in lst[:8]:
+                console.print(f"   {x['id'][:8]}  {(x['destination'] or '')[:30]:30}  {x['agencija']:14}  {x['price'] or '—'}")
+    _out(data, args.json, render)
+    return 0
+
+
+def cmd_watch(cfg: Config, args) -> int:
+    conn = db.connect()
+    items = catalog.load(conn)
+    if args.id:
+        row = _find_offer(conn, args.id)
+        it = next((i for i in items if row and i.id == row["id"]), None)
+        if not it:
+            console.print("[red]Nema te ponude među aktivnim.[/]")
+            return 1
+        on = watch.prati(conn, it)
+        _out({"id": it.id, "pratim": on}, args.json,
+             lambda: console.print(("👁 Pratim: " if on else "Više ne pratim: ") + it.row["title"]))
+        return 0
+    data = watch.pracenje(conn, items)
+    _out(data, args.json, lambda: [console.print(
+        f"{d['id'][:8]}  {d['title'][:40]:40}  {d['agencija']:14}  {d['cena_pocetna']} → {d['cena_sada'] or 'nema'}")
+        for d in data])
+    return 0
+
+
+def cmd_alerts(cfg: Config, args) -> int:
+    conn = db.connect()
+    data = watch.obavestenja(conn, catalog.load(conn), cfg, procitano=args.procitano)
+
+    def render():
+        for p in data["padovi"]:
+            console.print(f"📉 {p['title'][:50]}  {p['javljena_cena']:.0f} → {p['cena_sada']:.0f}  ({p['agencija']})")
+        for p in data["nestali"]:
+            console.print(f"⚠️ nestalo sa sajta: {p['title'][:50]} ({p['agencija']})")
+        for p in data["nove_po_zeljama"]:
+            console.print(f"🆕 [{p['zelja']}] {p['title'][:50]}  {p.get('date_from') or ''}  ({p['agencija']})")
+        if not data["ukupno"]:
+            console.print("Nema novih obaveštenja.")
+    _out(data, args.json, render)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="pt", description="Putešestvije: planer putovanja")
     p.add_argument("--json", action="store_true", help="mašinski izlaz")
@@ -312,6 +363,12 @@ def build_parser() -> argparse.ArgumentParser:
     s = sub.add_parser("zemlja"); s.add_argument("naziv", nargs="+"); s.set_defaults(fn=cmd_country)
     s = sub.add_parser("ponuda"); s.add_argument("id"); s.add_argument("--detalji", action="store_true")
     s.add_argument("--osvezi", action="store_true"); s.set_defaults(fn=cmd_offer)
+    s = sub.add_parser("kalendar", help="polasci po danima za mesec"); s.add_argument("mesec", nargs="?", help="YYYY-MM")
+    s.set_defaults(fn=cmd_calendar)
+    s = sub.add_parser("prati", help="uključi/isključi praćenje cene; bez ID-a: spisak praćenih")
+    s.add_argument("id", nargs="?"); s.set_defaults(fn=cmd_watch)
+    s = sub.add_parser("obavestenja", help="pad cene praćenih, nove ponude po željama")
+    s.add_argument("--procitano", action="store_true", help="označi kao viđeno"); s.set_defaults(fn=cmd_alerts)
     s = sub.add_parser("izabrano"); s.add_argument("--poslato", nargs="*"); s.set_defaults(fn=cmd_picked)
 
     s = sub.add_parser("profil"); s.set_defaults(fn=cmd_profile)

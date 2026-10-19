@@ -19,6 +19,9 @@ export type Ponuda = {
   note: string
   zasto?: string
   termini?: Termin[]
+  pratim?: boolean
+  broj_termina?: number
+  ceo_mesec?: boolean
 }
 
 export type Detalji = {
@@ -36,7 +39,7 @@ export type Detalji = {
 
 export type ZemljeMapa = { [kontinent: string]: { [zemlja: string]: number } }
 
-export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda'
+export type Pogled = 'pocetna' | 'kontinent' | 'zemlja' | 'ponuda' | 'kalendar' | 'pracenje'
 
 export type Nav = {
   view: Pogled
@@ -46,6 +49,31 @@ export type Nav = {
   kriterijum: string
   strana: number
   sort: 'datum' | 'cena' | 'popust'
+  mesec: string
+  kalStrana: number
+}
+
+export type Kalendar = {
+  mesec: string
+  meseci: { mesec: string; broj: number }[]
+  dani: { [datum: string]: Ponuda[] }
+}
+
+export type Pracena = Ponuda & {
+  kljuc: string
+  cena_pocetna: number | null
+  cena_sada: number | null
+  javljena_cena: number | null
+  aktivno: boolean
+  promena: number | null
+  zelja?: string
+}
+
+export type Obavestenja = {
+  padovi: Pracena[]
+  nestali: Pracena[]
+  nove_po_zeljama: Pracena[]
+  ukupno: number
 }
 
 declare module 'claude-code' {
@@ -58,6 +86,9 @@ declare module 'claude-code' {
       ponuda: Ponuda | null
       detalji: Detalji | null
       status: string
+      kal: Kalendar | null
+      prac: Pracena[]
+      obav: Obavestenja | null
     }
   }
 }

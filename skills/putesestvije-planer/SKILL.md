@@ -30,6 +30,9 @@ Projekat ima Python alat `pt` (instaliran iz ovog repoa). Uvek ga zovi sa `--jso
 - `pt --json zemlja <naziv>` — sve ponude za zemlju ili grad (sa zemljom, kontinentom, svim terminima)
 - `pt --json ponuda <ID> --detalji` — jedna ponuda + program, šta cena obuhvata i ne obuhvata, sa sajta agencije
 - `pt --json top <preporuka|popust|jeftino|specijal|uskoro|izlet>` — najbolje ponude po kriterijumu
+- `pt --json kalendar [YYYY-MM]` — svi polasci tog meseca po danima (i broj polazaka po mesecima)
+- `pt --json prati [ID]` — sa ID-jem uključi/isključi praćenje cene aranžmana; bez ID-a spisak praćenih (cena kad je dodato → sada)
+- `pt --json obavestenja` — pad cene praćenih, praćeni koji su nestali, nove ponude po našim željama (likes) od poslednjeg pregleda
 
 Korisnik često radi iz panoa `/putovanja`: poruke "Stavi ponudu <ID> u Trello listu 📬 Predlozi" i "Uporedi ponudu <ID>…" dolaze odatle. Klik u panou je potvrda: uradi odmah.
 
@@ -70,6 +73,10 @@ Prvo `pt --json preporuke` i `pt --json agencije nove`. Baza pamti istoriju cena
 | Travelland, Argus, Grand Tours, Halo Tours, Belvi, Felix, Fibula | `pt` | Cene u statičnom HTML-u. Grand Tours i Halo Tours imaju izlete i advente u dinarima |
 | Jungle Tribe | `pt` | Daleka putovanja (Azija, Karibi, Afrika...), svi polasci sa cenama i popustima |
 | Kontiki, Big Blue, Odeon | `pt` | Datumi da, cene uglavnom na sajtu (otvori stranicu ponude sa `WebFetch`) |
+| Viva Travel, Rapsody Travel | `pt` | Ture, gradovi, praznici, adventi (Rapsody: i omladinska putovanja); svi polasci i cena "od" |
+| I Travel | `pt` | Daleke destinacije (Maldivi, Sejšeli, Mauricijus...): primer ponude po mesecu, dan polaska po izboru |
+| Jumbo Travel | `pt` | Tropski paketi let + hotel, cena po osobi, bez fiksnog datuma |
+| Play Travel | — | Sajtu je istekao HTTPS sertifikat; alat ga preskače dok ga ne obnove |
 | Filip Travel, Ponte, Plana Tours | Claude (`WebFetch`), pa `pt agencije ubaci` | Vidi komandu /putesestvije:agencije |
 
 Kad korisnik pomene agenciju koje nema na spisku, proveri njen sajt (`WebFetch`) i ponudi da se doda.

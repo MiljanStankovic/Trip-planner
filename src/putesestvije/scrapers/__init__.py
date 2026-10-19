@@ -13,13 +13,17 @@ from .felix import Felix
 from .fibula import Fibula
 from .grandtours import GrandTours
 from .halotours import HaloTours
+from .itravel import ITravel
+from .jumbo import Jumbo
 from .jungletribe import JungleTribe
 from .kontiki import Kontiki
+from .lemax import Rapsody, VivaTravel
 from .odeon import Odeon
 from .travelland import Travelland
 
 SCRAPERS: dict[str, type[Scraper]] = {
-    s.source: s for s in (Travelland, Argus, GrandTours, HaloTours, Belvi, Felix, Fibula, JungleTribe, Kontiki, BigBlue, Odeon)
+    s.source: s for s in (Travelland, Argus, GrandTours, HaloTours, Belvi, Felix, Fibula, JungleTribe, Kontiki, BigBlue, Odeon,
+                     VivaTravel, Rapsody, ITravel, Jumbo)
 }
 
 # Agencije koje čita Claude (WebFetch), ne Python.
@@ -36,6 +40,8 @@ CLAUDE_SOURCES = {
     "plana": {"name": "Plana Tours", "pages": ["https://www.planatours.rs/"]},
 }
 
-SKIPPED: dict[str, str] = {}
+SKIPPED: dict[str, str] = {
+    "playtravel": "Play Travel (playtravel.rs): sajtu je istekao bezbednosni sertifikat (HTTPS), pa ga alat ne čita. Proveri ponovo kasnije.",
+}
 
 __all__ = ["SCRAPERS", "CLAUDE_SOURCES", "SKIPPED", "Scraper", "ScrapeResult", "BlockedByRobots"]

@@ -40,7 +40,8 @@ def allowed_by_robots(url: str) -> bool:
 def fetch(url: str, timeout: int = 30) -> str:
     if not allowed_by_robots(url):
         raise BlockedByRobots(url)
-    r = requests.get(url, headers={"User-Agent": USER_AGENT, "Accept-Language": "sr,en;q=0.8"}, timeout=timeout)
+    r = requests.get(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
+                                    "Accept-Language": "sr,en;q=0.8"}, timeout=timeout)
     r.raise_for_status()
     r.encoding = r.apparent_encoding or r.encoding
     return r.text

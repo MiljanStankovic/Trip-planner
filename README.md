@@ -114,6 +114,11 @@ Bez ključa sve radi; Claude komande koriste Trello MCP.
 | Kontiki | `pt` | ture i Nova godina; datumi, cene na sajtu |
 | Big Blue | `pt` | evropske metropole; datumi, cene na sajtu |
 | Odeon World Travel | `pt` | ture i wellness (i Segedin); datumi, cene retko |
+| Viva Travel | `pt` (`/services/list/`) | ture, gradovi, praznici; svi polasci, cena "od" |
+| Rapsody Travel | `pt` (`/services/list/`) | gradovi, adventi, Nova godina, omladinska putovanja |
+| I Travel | `pt` | daleke destinacije, primer ponude po mesecu |
+| Jumbo Travel | `pt` | tropski paketi let + hotel, bez fiksnog datuma |
+| Play Travel | preskočeno | sajtu je istekao HTTPS sertifikat |
 | Filip Travel, Ponte, Plana Tours | Claude, samo kad pozoveš `/putesestvije:agencije` ili `/putesestvije:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
 
 Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putesestvije/scrapers/` i dodaj je u `scrapers/__init__.py`.

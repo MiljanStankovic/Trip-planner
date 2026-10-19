@@ -19,9 +19,17 @@ class Travelland(Scraper):
         "https://www.travelland.rs/",  # HIT ponude sa cenama
         "https://www.travelland.rs/specijalna-ponuda/",
         "https://www.travelland.rs/praznici/",
+        # sva putovanja (ture, gradovi, praznici) kao na stranici /putovanja/
+        "https://www.travelland.rs/services/list/?objectGroupId=6&perPage=100&_page=1",
+        "https://www.travelland.rs/services/list/?objectGroupId=6&perPage=100&_page=2",
     ]
 
     def parse(self, html: str, url: str) -> list[Offer]:
+        if "/services/list/" in url:
+            from .lemax import LemaxList
+            lst = LemaxList()
+            lst.source, lst.site = self.source, "https://www.travelland.rs"
+            return lst.parse(html, url)
         soup = BeautifulSoup(html, "html.parser")
         offers: list[Offer] = []
         for a in soup.select("a.card-list-item[href]"):

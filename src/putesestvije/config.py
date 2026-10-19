@@ -66,9 +66,14 @@ class TrelloCfg:
 class Config:
     profile: Profile = field(default_factory=Profile)
     trello: TrelloCfg = field(default_factory=TrelloCfg)
-    agencies: list[str] = field(default_factory=lambda: [
-        "travelland", "argus", "grandtours", "halotours", "belvi", "felix", "fibula", "jungletribe", "kontiki", "bigblue", "odeon"])
+    excluded: list[str] = field(default_factory=list)
     path: Path | None = None
+
+    @property
+    def agencies(self) -> list[str]:
+        """Sve agencije koje alat zna, osim isključenih; nove agencije se uključuju same."""
+        from .scrapers import SCRAPERS
+        return [s for s in SCRAPERS if s not in self.excluded]
 
 
 def load() -> Config:
@@ -84,6 +89,6 @@ def load() -> Config:
                 cfg.trello.board_id = t["board_id"]
             cfg.trello.lists.update(t.get("lists", {}))
             if "agencije" in raw:
-                cfg.agencies = raw["agencije"].get("ukljucene", cfg.agencies)
+                cfg.excluded = list(raw["agencije"].get("iskljucene", []))
             return cfg
     return Config()

@@ -173,3 +173,63 @@ def test_details_polasci_i_sobe():
     d = extract(html)
     assert d["termini"] == "22.10.2026. – 26.10.2026.\n11.11.2026. – 15.11.2026."
     assert d["sobe"] == "Dvokrevetna soba, Standard: € 99 po osobi (bilo € 159)"
+
+
+def test_lemax_kartice_viva_i_rapsody():
+    import json
+    from putesestvije.scrapers.lemax import VivaTravel, Rapsody
+    viva = """<a class="card card-travel" href="/putovanja/malta/putovanje-malta-3-noci-avion-2026/1190/">
+      <h4 class="title">Putovanje Malta 3 noći - AVION 2099</h4><div class="col small">4 dana | 3 noći</div>
+      <div class="departure" data-dateFrom="2099-10-23" data-dateTo="2099-10-26">23.10.</div>
+      <div class="departure" data-dateFrom="2099-11-27" data-dateTo="2099-11-30">27.11.</div>
+      <i class="las la-plane"></i><div class="unit-price-total">€479</div></a>"""
+    o = VivaTravel().parse(json.dumps({"html": viva, "total": 1}), "x")[0]
+    assert (o.date_from, o.extra_dates, o.price, o.transport, o.nights, o.destination) == \
+        ("2099-10-23", ["2099-11-27"], 479.0, "avion", 3, "Malta")
+    rap = """<a class="card shadow" href="/putovanja/amsterdam/nova-godina/1372/"><h2 class="card-title">Amsterdam NG</h2>
+      <span>8 dana | 3 noći</span><i class="las la-bus la-lg"></i>
+      <div class="departure-link" data-href="/putovanja/amsterdam/nova-godina/1372/#dateFrom=2099-12-28">28.12.</div>
+      <del class="text-primary">€ 389</del><span class="h4 text-danger">€ 339</span></a>"""
+    o = Rapsody().parse(json.dumps({"html": rap}), "x")[0]
+    assert (o.date_from, o.price, o.old_price, o.transport, o.url) == \
+        ("2099-12-28", 339.0, 389.0, "autobus", "https://www.rapsodytravel.rs/putovanja/amsterdam/nova-godina/1372/")
+
+
+def test_itravel_mesec_i_jumbo():
+    from datetime import date
+    from putesestvije.scrapers.itravel import mesec_u_datum
+    from putesestvije.scrapers.jumbo import Jumbo
+    t = date(2026, 10, 19)
+    assert mesec_u_datum("Oktobar 2026.", t) == "2026-10-19"
+    assert mesec_u_datum("Decembar 2026.", t) == "2026-12-01"
+    assert mesec_u_datum("Jun 2026.", t) is None
+    html = """<div class="pt-cv-content-item"><h4 class="pt-cv-title"><a href="https://www.jumbo.rs/tropske_destinacije/maldivi/x/">X 4*</a></h4>
+      <div class="pt-cv-ctf-opis_aranzmana">avio karta, 7 noćenja</div><div class="pt-cv-ctf-cena_po_osobi">2.400</div></div>"""
+    o = Jumbo().parse(html, "https://www.jumbo.rs/tropske_destinacije/destinacija_za_tropsko_letovanje/maldivi/")[0]
+    assert (o.destination, o.price, o.nights, o.date_from) == ("Maldivi", 2400.0, 7, None)
+
+
+def test_pracenje_pad_cene_i_nove_po_zeljama(tmp_path):
+    import time
+    from putesestvije import catalog, db, watch
+    from putesestvije.config import Config
+    from putesestvije.models import Offer
+    conn = db.connect(tmp_path / "t.db")
+    o = Offer(source="viva", title="Budimpešta advent", url="https://x.rs/putovanja/b/1/", destination="Budimpešta",
+              date_from="2099-12-05", price=120.0)
+    db.upsert(conn, [o])
+    cfg = Config()
+    cfg.profile.likes = ["advent"]
+    it = catalog.load(conn)[0]
+    assert watch.prati(conn, it) is True
+    assert watch.obavestenja(conn, catalog.load(conn), cfg)["ukupno"] == 0  # prvi pregled postavlja početak
+    time.sleep(1.1)
+    o.price = 99.0
+    db.upsert(conn, [o, Offer(source="rapsody", title="Advent Beč", url="https://y.rs/putovanja/bec/2/",
+                              destination="Beč", date_from="2099-12-12", price=80.0)])
+    ob = watch.obavestenja(conn, catalog.load(conn), cfg, procitano=True)
+    assert [p["cena_sada"] for p in ob["padovi"]] == [99.0]
+    assert [p["title"] for p in ob["nove_po_zeljama"]] == ["Advent Beč"]
+    assert watch.obavestenja(conn, catalog.load(conn), cfg)["ukupno"] == 0  # pročitano
+    kal = watch.kalendar(catalog.load(conn), "2099-12")
+    assert list(kal["dani"]) == ["2099-12-05", "2099-12-12"]

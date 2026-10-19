@@ -32,6 +32,7 @@ CONTINENT = {
     "Kuba": "Karibi i Centralna Amerika", "Dominikanska Republika": "Karibi i Centralna Amerika",
     "Jamajka": "Karibi i Centralna Amerika", "Kostarika": "Karibi i Centralna Amerika",
     "Panama": "Karibi i Centralna Amerika", "Aruba": "Karibi i Centralna Amerika",
+    "Sveti Martin": "Karibi i Centralna Amerika",
     "Brazil": "Južna Amerika", "Argentina": "Južna Amerika", "Peru": "Južna Amerika", "Čile": "Južna Amerika",
     "Kolumbija": "Južna Amerika", "Ekvador": "Južna Amerika", "Bolivija": "Južna Amerika",
     # Okeanija
@@ -158,6 +159,10 @@ REGIONS = {
     "baltik": ("Više zemalja", "Evropa"),
 }
 
+_add("Španija", "ljoret", "lloret")
+_add("Francuska", "les orres", "les 2 alpes", "deux alpes", "villarodin", "serre chevalier", "risoul", "val thorens", "tignes")
+_add("Dominikanska Republika", "bayahibe", "bavaro", "la romana")
+_add("Sveti Martin", "st martin", "saint martin", "sint maarten")
 _SORTED = sorted(KEYWORDS.items(), key=lambda kv: -len(kv[0]))
 
 

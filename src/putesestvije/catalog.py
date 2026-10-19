@@ -17,6 +17,7 @@ AGENCY_NAMES = {
     "belvi": "Belvi Travel", "felix": "Felix Travel", "fibula": "Fibula", "jungletribe": "Jungle Tribe",
     "kontiki": "Kontiki", "bigblue": "Big Blue", "odeon": "Odeon", "filip": "Filip Travel",
     "ponte": "Ponte Travel", "plana": "Plana Tours",
+    "viva": "Viva Travel", "rapsody": "Rapsody Travel", "itravel": "I Travel", "jumbo": "Jumbo Travel",
 }
 
 CONTINENT_ORDER = ["Evropa", "Azija", "Afrika", "Karibi i Centralna Amerika", "Severna Amerika",

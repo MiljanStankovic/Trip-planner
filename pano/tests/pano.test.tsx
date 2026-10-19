@@ -116,3 +116,37 @@ test('preporučeno: opseg cena, datumi sa cenom, klik na datum otvara taj polaza
   expect(await ui.find({ type: 'Markdown', text: /→ 02\.12\.2026\./ })).toBeDefined()
   await ui.unmount()
 })
+
+test('kalendar i praćenje', async ($, on) => {
+  const prac = { ...PONUDA, kljuc: 'k', cena_pocetna: 1649, cena_sada: 1549, javljena_cena: 1649, aktivno: true, promena: -100 }
+  const pozivi: string[][] = []
+  mock.store(on)
+  on('process.run', async (_$, e: any) => {
+    const a = e.argv.slice(2)
+    pozivi.push(a)
+    const out = a[0] === 'kalendar' ? JSON.stringify({ mesec: '2026-11', meseci: [{ mesec: '2026-11', broj: 1 }, { mesec: '2026-12', broj: 0 }], dani: { '2026-11-08': [PONUDA] } })
+      : a[0] === 'obavestenja' ? JSON.stringify({ padovi: [prac], nestali: [], nove_po_zeljama: [], ukupno: 1 })
+      : a[0] === 'prati' ? (a[1] ? JSON.stringify({ id: PONUDA.id, pratim: true }) : JSON.stringify([prac]))
+      : odgovor(e.argv)
+    return { value: { exitCode: 0, stdout: out, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+  })
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  await ui.press({ key: 'kal' })
+  await ui.advance(50)
+  expect(await ui.find({ key: `kd-${PONUDA.id}-2026-11-08-0` })).toBeDefined()
+  await ui.press({ key: 'prac' })
+  await ui.advance(50)
+  expect(await ui.find({ key: `ob-pad-${PONUDA.id}` })).toBeDefined()
+  expect(await ui.find({ key: `pr-${PONUDA.id}` })).toBeDefined()
+  expect(pozivi.some(a => a[0] === 'obavestenja' && a[1] === '--procitano')).toBe(true)
+  await ui.press({ key: `pr-${PONUDA.id}` })
+  await ui.advance(50)
+  await ui.press({ key: 'prati' })
+  await ui.advance(50)
+  expect(pozivi.some(a => a[0] === 'prati' && a[1] === PONUDA.id.slice(0, 12))).toBe(true)
+  expect(await ui.find({ key: 'prati', text: /Pratim cenu/ })).toBeDefined()
+  await ui.unmount()
+})

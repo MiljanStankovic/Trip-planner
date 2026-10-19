@@ -11,7 +11,7 @@ Cilj: jednom nedeljno (ili na dve nedelje) da dobijemo kratak, iskren pregled š
 
 1. **Profil.** `pt --json profil`. Ako nema config.toml, radi sa podrazumevanim i napomeni to na kraju.
 
-2. **Skeniraj agencije koje čita Python.** `pt --json agencije skeniraj`. Zabeleži greške po agenciji.
+2. **Skeniraj agencije koje čita Python.** `pt --json agencije skeniraj`. Zabeleži greške po agenciji. Zatim `pt --json obavestenja`: padovi cena praćenih aranžmana i nove ponude po našim željama idu prvi u pregled (pod "Promene cena" i "Preporuka nedelje").
 
 3. **Filip Travel, Ponte i Plana se u nedeljnom pregledu preskaču.** Njih čitaš samo kad korisnik pozove `/putesestvije:agencije` ili `/putesestvije:zemlja`. U izveštaju ih ne pominji kao grešku.
 
