@@ -207,6 +207,12 @@ def test_itravel_mesec_i_jumbo():
       <div class="pt-cv-ctf-opis_aranzmana">avio karta, 7 noćenja</div><div class="pt-cv-ctf-cena_po_osobi">2.400</div></div>"""
     o = Jumbo().parse(html, "https://www.jumbo.rs/tropske_destinacije/destinacija_za_tropsko_letovanje/maldivi/")[0]
     assert (o.destination, o.price, o.nights, o.date_from) == ("Maldivi", 2400.0, 7, None)
+    # samo hotel (bez paketa): cena „od 42” je po noćenju, ne aranžman
+    html2 = """<div class="pt-cv-content-item"><h4 class="pt-cv-title"><a href="https://www.jumbo.rs/tropske_destinacije/kostarika/banana-azul-3-kostarika/">Banana Azul 3* Kostarika</a></h4>
+      <div class="pt-cv-ctf-opis_aranzmana">Simpatičan hotel 3*.</div><div class="pt-cv-ctf-cena_po_osobi">42</div></div>"""
+    h = Jumbo().parse(html2, "https://www.jumbo.rs/tropske_destinacije/destinacija_za_tropsko_letovanje/kostarika/")[0]
+    assert (h.price, h.transport) == (None, None)
+    assert "po noćenju" in h.note and "42" in h.note
 
 
 def test_pracenje_pad_cene_i_nove_po_zeljama(tmp_path):

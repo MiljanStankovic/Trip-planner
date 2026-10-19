@@ -84,9 +84,9 @@ def upsert(conn: sqlite3.Connection, offers: list[Offer]) -> dict[str, int]:
             min_price = min(p for p in (o.price, row["min_price"]) if p is not None) if (o.price or row["min_price"]) else None
             conn.execute(
                 """UPDATE offers SET title=?, price=?, old_price=?, note=?, last_seen=?, min_price=?,
-                   extra_dates=?, status=CASE WHEN ? THEN 'nova' ELSE status END WHERE id=?""",
-                (o.title, o.price, o.old_price, o.note, now, min_price, json.dumps(o.extra_dates),
-                 dropped, o.offer_id),
+                   extra_dates=?, transport=?, nights=?, status=CASE WHEN ? THEN 'nova' ELSE status END WHERE id=?""",
+                (o.title, o.price, o.old_price, o.note, now, min_price if o.price is not None else None,
+                 json.dumps(o.extra_dates), o.transport, o.nights, dropped, o.offer_id),
             )
             stats["pojeftinile" if dropped else "poznate"] += 1
         if o.price is not None:

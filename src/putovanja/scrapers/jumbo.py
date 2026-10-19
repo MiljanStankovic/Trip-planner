@@ -62,6 +62,16 @@ class Jumbo(Scraper):
             cena_el = it.select_one(".pt-cv-ctf-cena_po_osobi")
             m = re.search(r"\d[\d.]*", cena_el.get_text(" ", strip=True)) if cena_el else None
             price = float(m.group(0).replace(".", "")) if m else None
+            paket = bool(re.search(r"paket|avio|\blet\b", f"{title} {opis}", re.I))
+            if not paket:
+                # samo hotel (bez leta): sajt piše „cene po osobi već od 42”, a to je cena noćenja, ne aranžmana.
+                # Takva cena se ne poredi sa paketima, pa ide u napomenu, a cena ostaje „na upit”.
+                napomena = (f"samo smeštaj, bez leta; od {m.group(0)} € po osobi po noćenju. " if price else "samo smeštaj, bez leta. ") + opis
+                offers.append(Offer(
+                    source=self.source, title=title, url=a["href"], destination=country,
+                    date_from=None, nights=None, transport=None, price=None, note=napomena[:200],
+                ))
+                continue
             offers.append(Offer(
                 source=self.source, title=title, url=a["href"], destination=country,
                 date_from=None, nights=parse_nights(opis) or parse_nights(title), transport="avion",
