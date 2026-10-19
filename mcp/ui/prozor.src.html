@@ -236,7 +236,7 @@ const S = {
   kal: null, prac: [], obav: null, izvori: null, sken: null, diy: procitaj('diy', { odakle: 'Beograd', kuda: '', od: '', do: '' }), diyLista: [], diyAg: [],
   prikaz: 'inline', modovi: [],
 };
-const VERZIJA = '0.3.2';
+let VERZIJA = '0.3.2';
 const siroko = () => S.prikaz === 'fullscreen';
 const poStrani = () => siroko() ? 10 : 6;
 
@@ -270,7 +270,7 @@ async function otvoriZemlju(z) {
 async function otvoriPonudu(p) {
   S.ponuda = { ...p, ucitano: false };
   await radi('Čitam ponudu sa sajta agencije…', async () => {
-    const d = await pt('ponuda', p.id.slice(0, 12), '--detalji', '--osobe', putnici(S.putnici).ukupno);
+    const d = await pt('ponuda', p.id, '--detalji', '--osobe', putnici(S.putnici).ukupno);
     if (d) S.ponuda = { ...p, ...d, ucitano: true };
   });
 }
@@ -294,7 +294,7 @@ async function otvoriDiy() {
   });
 }
 async function prati(p) {
-  await radi('', async () => { const r = await pt('prati', p.id.slice(0, 12)); if (S.ponuda?.id === p.id) S.ponuda.pratim = !!r?.pratim; });
+  await radi('', async () => { const r = await pt('prati', p.id); if (S.ponuda?.id === p.id) S.ponuda.pratim = !!r?.pratim; });
 }
 let tajmer = null;
 async function skeniraj() {
@@ -558,7 +558,7 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (a === 'nazad') { S.ponuda = null; return crtaj(); }
   if (a === 'prati') return prati(p);
   if (a === 'sajt') return link(p.url);
-  if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id.slice(0, 12)}.`);
+  if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id}.`);
   if (a === 'diy') { S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od: kratakDatum(p.date_from) }; sacuvaj('diy', S.diy); return otvoriDiy(); }
   if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${S.diy.od}–${S.diy.do}, ${n.ukupno} osobe. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
   if (a === 'pitaj-mesec') return pitaj(`Pogledaj polaske za ${MES_PUNO[Number(S.kal.mesec.slice(5)) - 1]} (kalendar u Putovanjima) i predloži 3 najbolje opcije za vikend ili praznik, sa cenom po osobi i ukupno za ${n.ukupno}.`);
@@ -587,6 +587,7 @@ app.onhostcontextchanged = (ctx) => { tema({ ...app.getHostContext(), ...ctx });
 app.ontoolresult = (r) => {
   const d = r?.structuredContent; if (!d?.lista) return;
   S.lista = d.lista; S.zemlje = d.zemlje ?? {}; S.stanje = d.stanje; S.zemlja = d.zemlja ?? ''; S.sken = d.skeniranje;
+  if (d.verzija) VERZIJA = d.verzija;
   const k = Object.entries(S.zemlje).find(([, z]) => S.zemlja in z)?.[0]; if (k) S.kontinent = k;
   if (d.prikaz === 'kalendar') return otvoriKalendar();
   if (d.prikaz === 'praceno') return otvoriPraceno();

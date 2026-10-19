@@ -9,7 +9,7 @@ on:
     inputs:
       detalji:
         description: "Koliko ponuda da čita detalje sa sajta (0 = bez)"
-        default: "40"
+        default: "5000"
   push:
     branches: [server]
     paths: [".github/workflows/sken.yml", "server/izvezi.py"]
@@ -47,7 +47,7 @@ jobs:
         run: putovanja agencije skeniraj || true
 
       - name: Izvoz
-        run: python server/izvezi.py izlaz --detalji "${{ github.event.inputs.detalji || '40' }}"
+        run: python server/izvezi.py izlaz --detalji "${{ github.event.inputs.detalji || '5000' }}" --niti 8
 
       - name: Objavi na granu podaci
         run: |
@@ -66,7 +66,7 @@ jobs:
           import json
           iz = json.load(open("izlaz/izvori.json"))
           st = json.load(open("izlaz/stanje.json"))
-          print(f"Ponuda: {st.get('ponuda')}")
+          print(f"Ponuda: {st.get('ponuda')}, poslednji sken: {st.get('poslednji_sken')}")
           for a in iz["agencije"]:
               print(f"{a['stanje']:>14}  {a['naziv']:<16} {a['ponuda']:>4}  {'; '.join(a['greske'][:1])}")
           E

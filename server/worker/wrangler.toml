@@ -1,0 +1,15 @@
+name = "putovanja"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# prozor (HTML sa ugrađenim SDK-om) ide u server kao tekst
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+# lične stvari (šta ko prati); id upisuje GitHub Actions pri postavljanju
+[[kv_namespaces]]
+binding = "KV"
+id = "KV_ID"

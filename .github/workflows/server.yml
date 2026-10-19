@@ -1,0 +1,55 @@
+name: Server na Cloudflare
+
+# Postavlja MCP server (server/worker) na Cloudflare Workers.
+# Treba dva secreta u repou: CLOUDFLARE_API_TOKEN i CLOUDFLARE_ACCOUNT_ID.
+on:
+  workflow_dispatch:
+  push:
+    branches: [server]
+    paths: ["server/worker/**", "mcp/ui/**", "mcp/napravi.py", ".github/workflows/server.yml"]
+
+concurrency:
+  group: server
+  cancel-in-progress: true
+
+jobs:
+  postavi:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - uses: actions/setup-node@v4
+        with: { node-version: "22" }
+
+      - name: Prozor (isti kao u dodatku za desktop)
+        run: |
+          python mcp/napravi.py
+          cp mcp/src/prozor.html server/worker/src/prozor.html
+
+      - name: KV za lične stvari (napravi ako ne postoji)
+        run: |
+          API="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces"
+          ID=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$API?per_page=100" | jq -r '.result[] | select(.title=="putovanja-korisnici") | .id' | head -1)
+          if [ -z "$ID" ]; then
+            ID=$(curl -fsS -X POST -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+              -d '{"title":"putovanja-korisnici"}' "$API" | jq -r '.result.id')
+          fi
+          test -n "$ID" && test "$ID" != "null"
+          sed -i "s/KV_ID/$ID/" server/worker/wrangler.toml
+
+      - name: Postavi
+        working-directory: server/worker
+        run: npx -y wrangler@4 deploy 2>&1 | tee deploy.log
+
+      - name: Adresa
+        working-directory: server/worker
+        run: |
+          URL=$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' deploy.log | head -1)
+          echo "Server: $URL"
+          echo "Adresa za Claude: $URL/mcp" >> "$GITHUB_STEP_SUMMARY"
+          curl -fsS "$URL/" || true
