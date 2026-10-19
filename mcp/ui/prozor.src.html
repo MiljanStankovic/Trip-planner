@@ -40,6 +40,7 @@
   .segment button { border: 0; background: transparent; padding: 4px 10px; border-radius: var(--zaobl-mali); color: var(--tekst-2); cursor: pointer; font-size: 13px; }
   .segment button[aria-pressed="true"] { background: var(--pozadina); color: var(--tekst); box-shadow: var(--shadow-hairline, 0 0 0 1px var(--linija)); font-weight: 600; }
   .segment button:focus-visible, .zemlja:focus-visible, .red:focus-visible, select:focus-visible { outline: 2px solid var(--info); outline-offset: 1px; }
+  .oznaka { align-self: center; padding: 0 6px 0 8px; color: var(--tekst-2); font-size: 13px; }
   select { background: var(--pozadina-2); border: 0; border-radius: var(--zaobl); padding: 5px 8px; font-size: 13px; cursor: pointer; }
 
   .zemlje { display: flex; gap: 6px; overflow-x: auto; padding: 12px 0 10px; scrollbar-width: none; }
@@ -94,10 +95,14 @@
         <button data-v="datum">Najranije</button>
         <button data-v="popust">Popust</button>
       </div>
-      <select id="putnika" aria-label="Broj putnika">
-        <option value="1">1 osoba</option><option value="2">2 osobe</option><option value="3">3 osobe</option>
-        <option value="4">4 osobe</option><option value="5">5 osoba</option><option value="6">6 osoba</option>
-      </select>
+      <div class="segment" role="group" aria-label="Broj putnika" id="putnika">
+        <span class="oznaka">Osoba</span><button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button><button data-n="4">4</button><button data-n="5">5+</button>
+      </div>
+      <div class="segment" id="prikaz" hidden>
+        <button data-m="fullscreen" title="Otvori preko celog prozora, razgovor ostaje dole">Proširi</button>
+        <button data-m="pip" title="Mali prozor koji ostaje dok pišeš">Sa strane</button>
+        <button data-m="inline" title="Vrati u razgovor">U razgovoru</button>
+      </div>
     </div>
   </header>
   <nav class="zemlje" id="zemlje" aria-label="Zemlje"></nav>
@@ -130,7 +135,7 @@ function crtaj() {
   const n = stanje;
   $('podnaslov').textContent = n.zemlja ? `${n.zemlja}, ${n.broj} aranžmana` : `preporučeno, ${n.broj} ponuda`;
   for (const b of $('sort').querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.v === n.sortiraj));
-  $('putnika').value = String(n.putnika);
+  for (const b of $('putnika').querySelectorAll('button')) b.setAttribute('aria-pressed', String(Number(b.dataset.n) === Math.min(n.putnika, 5)));
   $('zemlje').innerHTML = ['', ...n.dostupne].map((z) =>
     `<button class="zemlja" data-z="${esc(z)}" aria-pressed="${z === n.zemlja}">${z ? esc(z) : 'Sve preporučene'}</button>`).join('');
   if (!n.ponude.length) { $('lista').innerHTML = '<li class="prazno">Nema ponuda za ovaj izbor.</li>'; return; }
@@ -159,12 +164,13 @@ function prihvati(rez) {
   crtaj();
 }
 
-const app = new App({ name: 'Putovanja', version: '0.1.0' }, {});
+const app = new App({ name: 'Putovanja', version: '0.1.1' }, { availableDisplayModes: ['inline', 'fullscreen', 'pip'] });
 function tema(ctx) {
   if (!ctx) return;
   if (ctx.theme) applyDocumentTheme(ctx.theme);
   if (ctx.styles?.variables) applyHostStyleVariables(ctx.styles.variables);
   if (ctx.styles?.css?.fonts) applyHostFonts(ctx.styles.css.fonts);
+  prikazi(app.getHostContext());
 }
 app.ontoolresult = prihvati;
 app.onhostcontextchanged = tema;
@@ -178,7 +184,21 @@ async function ucitaj(izmena) {
 }
 
 $('sort').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.v; if (v) ucitaj({ sortiraj: v }); });
-$('putnika').addEventListener('change', (e) => { stanje.putnika = Number(e.target.value); crtaj(); });
+$('putnika').addEventListener('click', (e) => { const v = e.target.closest('button')?.dataset.n; if (v) { stanje.putnika = Number(v); crtaj(); } });
+function prikazi(ctx) {
+  const ima = ctx?.availableDisplayModes ?? [];
+  const sad = ctx?.displayMode ?? 'inline';
+  let vidljivo = 0;
+  for (const b of $('prikaz').querySelectorAll('button')) {
+    const da = ima.includes(b.dataset.m) && b.dataset.m !== sad;
+    b.hidden = !da; vidljivo += da ? 1 : 0;
+  }
+  $('prikaz').hidden = vidljivo === 0;
+}
+$('prikaz').addEventListener('click', async (e) => {
+  const m = e.target.closest('button')?.dataset.m; if (!m) return;
+  try { const r = await app.requestDisplayMode({ mode: m }); prikazi({ ...app.getHostContext(), displayMode: r?.mode ?? m }); } catch (err) { $('stanje').textContent = 'Ovaj prikaz nije dostupan.'; }
+});
 $('zemlje').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) ucitaj({ zemlja: b.dataset.z }); });
 async function otvori(el) {
   const p = stanje.ponude[Number(el.dataset.i)];

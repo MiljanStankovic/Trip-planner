@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "putovanja",
   "display_name": "Putovanja (proba)",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ponude domaćih turističkih agencija u prozoru u razgovoru: cene po osobi, prevoz, polasci.",
   "long_description": "Probna verzija: prikazuje snimak ponuda srpskih turističkih agencija. Napiši u chatu, na primer, „pokaži mi putovanja“ ili „putovanja za Grčku“.",
   "author": { "name": "Miljan Stanković" },
