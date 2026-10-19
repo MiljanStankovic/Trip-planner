@@ -12,14 +12,14 @@ Prozor je cela aplikacija: ponude po zemljama, detalj ponude sa ukupnom cenom, k
 
 ## Instalacija
 
-1. Skini [Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/releases/latest/download/Putovanja.mcpb) (poslednja verzija).
+1. Skini [Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb) (poslednja verzija).
 2. Dvoklik na fajl, ili u Claude aplikaciji: Settings → Extensions → Advanced settings → Install Extension….
 3. Install. U novom razgovoru napiši: **pokaži mi putovanja**.
 
 ## Pravljenje paketa
 
 ```bash
-python mcp/napravi.py --paket   # mcp/dist/Putovanja.mcpb (treba npm/npx)
+python mcp/napravi.py --paket   # mcp/Putovanja.mcpb (treba npm/npx)
 ```
 
 `napravi.py` ugradi MCP Apps SDK u `src/prozor.html` (prozor nema pristup internetu)
@@ -30,4 +30,4 @@ i spakuje folder alatom `@anthropic-ai/mcpb`.
 1. Podigni verziju na tri mesta: `manifest.json`, `pyproject.toml`, `VERZIJA` u `src/server.py` i u `ui/prozor.src.html`
    (adresa prozora sadrži verziju, inače Claude prikazuje stari, zapamćeni prozor).
 2. `python mcp/napravi.py --paket`
-3. Novi GitHub release sa tagom `mcp-vX.Y.Z` i fajlom `mcp/dist/Putovanja.mcpb` (link „latest“ u README-u ga sam prati).
+3. Commit `mcp/Putovanja.mcpb` u `main`: link za preuzimanje u README-u uvek vodi na taj fajl.

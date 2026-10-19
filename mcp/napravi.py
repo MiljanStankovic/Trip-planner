@@ -60,9 +60,10 @@ def prozor() -> Path:
 
 
 def paket() -> Path:
-    dist = OVDE / "dist"
-    dist.mkdir(exist_ok=True)
-    cilj = dist / "Putovanja.mcpb"
+    # gotov paket stoji u repou, da bi link za preuzimanje uvek vodio na poslednju verziju
+    cilj = OVDE / "Putovanja.mcpb"
+    if cilj.exists():
+        cilj.unlink()
     with tempfile.TemporaryDirectory() as t:
         p = Path(t) / "putovanja"
         p.mkdir()

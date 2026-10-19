@@ -26,7 +26,7 @@ i odgovara panou i Claude-u.
 
 Za porodicu i prijatelje: radi u Claude desktop aplikaciji, u običnom razgovoru, bez terminala.
 
-1. Skini **[Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/releases/latest/download/Putovanja.mcpb)**.
+1. Skini **[Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb)**.
 2. Dvoklik na fajl (ili prevuci ga u Claude aplikaciju), pa **Install**. Python ne treba, Claude ga sam namesti.
 3. Potpuno zatvori i ponovo otvori Claude, pa u novom razgovoru napiši: **pokaži mi putovanja**.
 
