@@ -187,3 +187,19 @@ test('uradi sam: forma, linkovi, zahtev Claude-u; ponuda: ukupno za dvoje', asyn
   expect(await ui.find({ text: /3\.122 €/ })).toBeDefined()
   await ui.unmount()
 })
+
+test('putanja do pt iz podešavanja plugina (upisuje je install skripta)', { options: { ptPath: 'C:/Putesestvije/.venv/Scripts/pt.exe' } } as any, async ($, on) => {
+  const pokrenuto: string[] = []
+  mock.store(on)
+  on('process.run', async (_$, e: any) => {
+    pokrenuto.push(e.argv[0])
+    return { value: { exitCode: 0, stdout: odgovor(e.argv), stderr: '', isStdoutTruncated: false, isStderrTruncated: false } } as any
+  })
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putesestvije-pano', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  expect(pokrenuto.length).toBeGreaterThan(0)
+  expect(pokrenuto.every(b => b === 'C:/Putesestvije/.venv/Scripts/pt.exe')).toBe(true)
+  await ui.unmount()
+})

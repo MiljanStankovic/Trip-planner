@@ -182,8 +182,11 @@ function grupisi(list: Ponuda[], sort: Nav['sort']): Tura[] {
 
 // ---------- pozivi alata pt ----------
 
+let OPCIJE: Record<string, unknown> = {}
+
 async function pt($: any, args: string[], timeoutMs = 60000): Promise<any> {
-  const bin = ((await $.store.get('ptPath')) as string | undefined) || 'pt'
+  // redosled: /putovanja pt <putanja>, pa podešavanje plugina (upisuje ga install skripta), pa pt iz PATH-a
+  const bin = ((await $.store.get('ptPath')) as string | undefined) || (OPCIJE.ptPath as string | undefined) || 'pt'
   try {
     const r = await $.process.run([bin, '--json', ...args], { timeoutMs, env: { PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' } })
     if (r.exitCode !== 0) {
@@ -193,7 +196,7 @@ async function pt($: any, args: string[], timeoutMs = 60000): Promise<any> {
     return JSON.parse(r.stdout)
   } catch (err) {
     await update($, status, () =>
-      `⚠️ Ne mogu da pokrenem "${bin}". Instaliraj alat (pip install -e . u folderu Trip-planner) ili upiši putanju: /putovanja pt <putanja do pt>`)
+      `⚠️ Ne mogu da pokrenem "${bin}". Pokreni instalaciju ponovo (install.ps1 / install.sh u folderu Trip-planner) ili upiši putanju: /putovanja pt <putanja do pt>`)
     return null
   }
 }
@@ -323,7 +326,8 @@ function pitaj($: any, text: string) {
 
 // ---------- registracija ----------
 
-export const register: Register = on => {
+export const register: Register = (on, options) => {
+  OPCIJE = { ...(options ?? {}) }
   on('session.start', async ($, e, next) => {
     await $.command.register({
       name: 'putovanja',

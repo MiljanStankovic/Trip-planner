@@ -14,44 +14,48 @@ U Claude Code-u ukucaš **`/putovanja`** i pored razgovora se otvori **pano**: k
 
 Na početnoj su i **najbolje ponude** sa izborom kriterijuma: preporučeno za vas, najveći popust, najjeftinije, specijalne i poslednja mesta, polazi uskoro, izleti i vikendi.
 
-Ispod panoa radi mali Python alat **`pt`**: skida ponude 11 agencija, čuva istoriju cena i odgovara panou i Claude-u. Trello ostaje tabla za vaše ideje.
+Ispod panoa radi mali Python alat **`pt`**: skida ponude 15 agencija, čuva istoriju cena i odgovara panou i Claude-u. Trello ostaje tabla za vaše ideje.
 
-## Instalacija
+## Instalacija (jedna komanda)
 
-Treba: Python 3.11+, [Claude Code](https://docs.claude.com/en/docs/claude-code/overview).
+Treba: [git](https://git-scm.com), Python 3.11+, [Claude Code](https://docs.claude.com/en/docs/claude-code/overview).
+Na Windows-u, ako nešto fali: `winget install Git.Git Python.Python.3.12`.
+
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/MiljanStankovic/Trip-planner.git $HOME\Putesestvije; powershell -ExecutionPolicy Bypass -File $HOME\Putesestvije\install.ps1
+```
+
+**macOS / Linux:**
 
 ```bash
-git clone https://github.com/MiljanStankovic/Trip-planner.git
-cd Trip-planner
-python3 -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -e .
-pt init                     # pravi ~/.config/putesestvije/config.toml – otvori i podesi profil
-pt agencije skeniraj        # prvo skeniranje (~1 min)
+git clone https://github.com/MiljanStankovic/Trip-planner.git ~/Putesestvije && ~/Putesestvije/install.sh
 ```
 
-### Claude Code plugin
+Skripta sama: napravi Python okruženje i instalira alat `pt`, napravi podešavanja
+(`~/.config/putesestvije/config.toml`), doda `pt` u PATH, instalira oba Claude Code plugina
+(`putesestvije` i pano `/putovanja`), upiše panou putanju do `pt` i skenira agencije (~1–2 min).
+Zatim otvori Claude Code i ukucaj **`/putovanja`**.
 
-U Claude Code-u (iz bilo kog foldera):
+**Ažuriranje:** ista skripta još jednom (`install.ps1` / `install.sh`): povuče izmene i osveži sve. Posle toga restartuj Claude Code.
 
-```
-/plugin marketplace add MiljanStankovic/Trip-planner
-/plugin install putesestvije@putesestvije
-/plugin install putesestvije-pano@putesestvije
-```
+Opcije: `-BezSkena` / `--bez-skena` preskače skeniranje.
 
-Pano poziva `pt`, pa `pt` mora da bude dostupan kad pokrećeš `claude`: aktiviraj venv pre `claude`, ili jednom u Claude Code-u upiši putanju: `/putovanja pt C:\Users\Miljan\Projects\Trip-planner\.venv\Scripts\pt.exe`.
+> Repo je privatan: ko instalira mora imati pristup na GitHub-u (Settings → Collaborators), a `git clone` će tražiti prijavu.
 
-Ako je repo privatan, `marketplace add` traži pristup GitHub-u; tada umesto imena repoa upiši putanju do foldera (`/plugin marketplace add C:\Users\Miljan\Projects\Trip-planner`).
-
-Trello (jednom, za sve projekte):
+<details><summary>Ručna instalacija (ako skripta ne može)</summary>
 
 ```bash
-claude mcp add --scope user --transport http trello https://mcp.trello.com/v1
+git clone https://github.com/MiljanStankovic/Trip-planner.git && cd Trip-planner
+python3 -m venv .venv && .venv/bin/pip install -e .      # Windows: .venv\Scripts\pip install -e .
+.venv/bin/pt init && .venv/bin/pt agencije skeniraj
+claude plugin marketplace add "$(pwd)"
+claude plugin install putesestvije@putesestvije
+claude plugin install putesestvije-pano@putesestvije
 ```
-
-Pa u Claude Code-u `/mcp` → trello → prijava na Trello.
-
-Preporučeni konektori za istraživanje (opciono, u Claude Code-u preko `claude mcp add`): SlickTrip, eDreams, Expedia (letovi i hoteli), Booking.com, Civitatis (ture), AccuWeather (vreme).
+U Claude Code-u, ako pano ne nađe `pt`: `/putovanja pt <puna putanja do pt>`.
+</details>
 
 ## Claude Code komande
 
