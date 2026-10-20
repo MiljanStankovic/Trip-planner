@@ -33,7 +33,7 @@ Lista **Predlozi** (ID iz `trello.lists.predlozi`). Naziv: `Destinacija · agenc
 
 Kad se korisnik vrati sa puta, ponudi da se kartica premesti u **Završeno** (ako tabla ima takvu listu) i da se dopiše utisak.
 
-## Uz nedeljni pregled (skill `putovanja:agencije-pregled`)
+## Uz pregled agencija (skill `putovanja:agencije-pregled`)
 
 1. Pročitaj tablu i nađi 2–3 ideje koje imaju smisla u narednih 14 dana: sezonske, sa skorim rokom, i one za koje je vreme dobro (prognoza samo za narednih ~10 dana). U izveštaj ih dodaj pod "## Sa table za narednih 14 dana".
 2. Izabrane ponude (najviše 5) stavi u **Predlozi** kao gore. U interaktivnom radu pitaj pre upisa; u zakazanom (`auto`) upiši bez pitanja.

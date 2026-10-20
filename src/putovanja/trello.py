@@ -44,11 +44,3 @@ class Trello:
         if url:
             self._req("POST", f"/cards/{card['id']}/attachments", url=url)  # type: ignore[index]
         return card  # type: ignore[return-value]
-
-    def find_card(self, text: str) -> list[dict]:
-        cards = self._req("GET", f"/boards/{self.cfg.board_id}/cards", fields="name,idList,url")
-        t = text.lower()
-        return [c for c in cards if t in c["name"].lower()]  # type: ignore[union-attr]
-
-    def move_card(self, card_id: str, list_key: str) -> dict:
-        return self._req("PUT", f"/cards/{card_id}", idList=self.cfg.lists.get(list_key, list_key))  # type: ignore[return-value]

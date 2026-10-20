@@ -151,12 +151,6 @@ def by_country(items: list[Item], name: str) -> list[Item]:
     return exact or search(items, name)
 
 
-def recommended(items: list[Item], cfg: Config, limit: int = 30) -> list[Item]:
-    by_id = {it.id: it for it in items}
-    return [by_id[s.row["id"]] for s in recommend([it.row for it in items], cfg.profile, limit=limit, per_source=4)
-            if s.row["id"] in by_id]
-
-
 def sort_items(items: list[Item], key: str) -> list[Item]:
     if key == "cena":
         def eur(it: Item) -> float:

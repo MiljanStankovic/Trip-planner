@@ -20,7 +20,7 @@ dece = 0                               # koliko dece putuje
 uzrast_dece = []                       # godine dece, npr. [5, 9] (za popuste za decu)
 
 [agencije]
-# Python čita sve agencije koje alat zna (i nove, kad se dodaju). Filip Travel, Ponte i Plana čita Claude.
+# Python čita sve agencije koje alat zna (i nove, kad se dodaju). Filip Travel čita Claude (njegov sajt odbija skripte).
 # Da neku preskočiš, upiši je ovde, npr. ["jumbo"]
 iskljucene = []
 

@@ -5,7 +5,6 @@
   pt top [kriterijum]              najbolje ponude: preporuka, popust, jeftino, specijal, uskoro, izlet
   pt zemlja NAZIV                  sve ponude za zemlju (ili grad, npr. "budimpešta")
   pt ponuda ID [--detalji]         sve o jednoj ponudi; --detalji čita program i cene sa sajta
-  pt izabrano [--poslato ID...]    ponude označene za Trello (u pregledaču taster t)
   pt agencije skeniraj [--samo X]  skini ponude agencija i sačuvaj istoriju cena
   pt agencije nove [--dana 7]      ponude prvi put viđene u poslednjih N dana
   pt agencije ubaci FAJL.json      ubaci ponude koje je Claude pročitao (npr. Filip Travel)
@@ -371,24 +370,6 @@ def cmd_offer(cfg: Config, args) -> int:
     return 0
 
 
-def cmd_picked(cfg: Config, args) -> int:
-    conn = db.connect()
-    for pid in args.poslato or []:
-        row = _find_offer(conn, pid)
-        if row:
-            db.mark_sent(conn, row["id"])
-    items = {i.id: i for i in catalog.load(conn, 3650)}
-    rows = [items[r["id"]].to_dict() if r["id"] in items else dict(r) for r in db.picked(conn)]
-
-    def render():
-        if not rows:
-            console.print("Nema označenih ponuda. U pregledaču (`pt`) označi ponudu tasterom [bold]t[/].")
-        for r in rows:
-            console.print(f"📌 {r['id'][:8]}  {r.get('date_from') or '—'}  {r.get('destination')}  ({r.get('agencija', r['source'])})  {r['url']}")
-    _out(rows, args.json, render)
-    return 0
-
-
 def cmd_top(cfg: Config, args) -> int:
     items = catalog.load(db.connect())
     out = []
@@ -534,7 +515,6 @@ def build_parser() -> argparse.ArgumentParser:
     s.add_argument("id", nargs="?"); s.set_defaults(fn=cmd_watch)
     s = sub.add_parser("obavestenja", help="pad cene praćenih, nove ponude po željama")
     s.add_argument("--procitano", action="store_true", help="označi kao viđeno"); s.set_defaults(fn=cmd_alerts)
-    s = sub.add_parser("izabrano"); s.add_argument("--poslato", nargs="*"); s.set_defaults(fn=cmd_picked)
 
     s = sub.add_parser("profil"); s.set_defaults(fn=cmd_profile)
     s = sub.add_parser("init"); s.add_argument("--force", action="store_true"); s.set_defaults(fn=cmd_init)

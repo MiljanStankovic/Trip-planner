@@ -727,7 +727,6 @@ async function crtaj($: any, e: any) {
   const n = await read($, nav)
   const st = await read($, status)
   const z = await read($, zemlje)
-  const sk = await read($, stanje)
   const ob = await read($, obav)
   const trello = await read($, trelloUkljucen)
   const cols: number = (e.props as any)?.bodyColumns ?? e.viewport?.columns ?? 70
@@ -785,7 +784,6 @@ async function crtaj($: any, e: any) {
   const vertikala = (vis: number) => mono
     ? <Box width={1} flexShrink={0}><Text color={C.bor}>{Array(Math.max(1, vis)).fill('│').join('\n')}</Text></Box>
     : <Box width={3} flexShrink={0} />
-  const red2 = (levo: any, desno: any, key?: string) => <Box flexDirection="row" justifyContent="space-between" columnGap={1} key={key}>{levo}{desno}</Box>
   // aplikacija: kartice sa blagom pozadinom i isticanje reda pod mišem (prozirne boje rade i u svetloj i u tamnoj temi)
   const KARTA = '#8080800d', ISTAKNUTO = '#80808024', IZABRANO = '#7FB8E62e'
   const naslovKarte = (t: string, desno?: any) => (

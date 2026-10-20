@@ -1,7 +1,7 @@
 [project]
 name = "putovanja"
-version = "0.5.1"
-description = "Pregledač ponuda domaćih turističkih agencija po kontinentima i zemljama, sa detaljima i slanjem u Trello"
+version = "1.0.0"
+description = "Ponude 20 domaćih turističkih agencija po kontinentima i zemljama: istorija cena, detalji sa sajtova, preporuke i Trello"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

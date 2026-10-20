@@ -1,7 +1,8 @@
-name: Sken agencija
+name: Dnevni sken agencija
 
-# Svako jutro skenira agencije i objavljuje katalog na granu `podaci`,
-# odakle ga čita server za Claude (web, telefon, Chromebook).
+# Dnevni sken: svako jutro (06:17) skenira sve agencije i objavljuje katalog na granu `podaci`,
+# odakle ga čita server na Cloudflare-u (konektor za Claude na telefonu, tabletu i računaru, i pano u Claude Code-u).
+# Ovo NIJE izveštaj sa preporukama; njega piše komanda /putovanja:pregled (vidi README).
 on:
   schedule:
     - cron: "17 4 * * *"   # 06:17 po beogradskom vremenu (leti)
@@ -11,8 +12,8 @@ on:
         description: "Koliko ponuda da čita detalje sa sajta (0 = bez)"
         default: "5000"
   push:
-    branches: [main, server]
-    paths: [".github/workflows/sken.yml", "server/izvezi.py"]
+    branches: [main]
+    paths: ["server/izvezi.py"]   # promena izvoza: novi katalog odmah; inače samo jutarnji sken
 
 permissions:
   contents: write

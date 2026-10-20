@@ -1,5 +1,5 @@
 ---
-description: Nedeljni pregled agencija, sažetak u izvestaji/
+description: Pregled novih i pojeftinjenih ponuda sa preporukama; izveštaj u izvestaji/
 argument-hint: "[auto]"
 ---
 

@@ -1,11 +1,11 @@
-name: Server na Cloudflare
+name: Objava servera na Cloudflare
 
 # Postavlja MCP server (server/worker) na Cloudflare Workers.
 # Treba dva secreta u repou: CLOUDFLARE_API_TOKEN i CLOUDFLARE_ACCOUNT_ID.
 on:
   workflow_dispatch:
   push:
-    branches: [main, server]
+    branches: [main]
     paths: ["server/worker/**", "mcp/ui/**", "mcp/napravi.py", ".github/workflows/server.yml"]
 
 concurrency:

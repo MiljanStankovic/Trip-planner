@@ -551,11 +551,6 @@ const putnici = (s) => { const [a, d] = (s || '2+0').split('+').map(Number); ret
 const sacuvaj = (k, v) => { try { localStorage.setItem('putovanja.' + k, JSON.stringify(v)); } catch {} };
 const procitaj = (k, def) => { try { const v = localStorage.getItem('putovanja.' + k); return v ? JSON.parse(v) : def; } catch { return def; } };
 
-function datumHtml(d) {
-  if (!d) return '<div class="datum bez">po izboru</div>';
-  const dt = new Date(d + 'T12:00:00');
-  return `<div class="datum"><span class="m">${MES[dt.getMonth()]}</span><span class="d">${dt.getDate()}</span><span class="n">${DAN[dt.getDay()]}</span></div>`;
-}
 function termini(p) {
   if (p.termini?.length) return p.termini;
   const d = p.svi_datumi?.length ? p.svi_datumi : [p.date_from];
@@ -586,7 +581,7 @@ const S = {
   prikaz: 'inline', modovi: [], filteri: false, sveZemlje: false, koliko: 8,
   pretraga: '', prevoz: '', mesec: '', preTrage: null, claude: null,
 };
-let VERZIJA = '0.3.2';
+let VERZIJA = '1.0.0';
 // telefon: uzak prozor; tablet (ekran na dodir): uspravno kao telefon, položeno kao računar.
 // Orijentacija se čita sa ekrana, ne iz prozora: prozor u razgovoru raste u visinu sa sadržajem.
 const naDodir = () => { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } };
@@ -761,7 +756,6 @@ function stavka(t, i, n, dodatno = '') {
     </div>
   </li>`;
 }
-const redPonude = stavka, kartica = stavka;
 let TURE = [];
 function naslovListe(n) {
   const ime_ = S.claude ? S.claude.naslov : S.pretraga ? `„${S.pretraga}”` : S.zemlja ? imeIzbora(S.zemlja) : 'Preporučeno za tebe';

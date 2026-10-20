@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.7.4';
+const VERZIJA = '1.0.0';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -66,7 +66,7 @@ const ALATI = [
   {
     name: 'pretrazi_ponude',
     title: 'Pretraži ponude',
-    description: 'Pretražuje SVE ponude (oko 1000, 15 agencija) po bilo kojoj kombinaciji: tekst, zemlje, kontinent, agencija, prevoz, datumi ili mesec, ' +
+    description: 'Pretražuje SVE ponude (oko 1500, 20 agencija) po bilo kojoj kombinaciji: tekst, zemlje, kontinent, agencija, prevoz, datumi ili mesec, ' +
       'jednodnevni izleti, broj noći, cena po osobi u evrima, samo sa popustom, datum po izboru; sort. Vraća broj i spisak. ' +
       'Kad je prikazi=true (podrazumevano) rezultat se pokaže i u prozoru Putovanja kao lista sa tvojim naslovom (npr. "Dnevni izleti", "Polasci u oktobru"); ' +
       'ako prozor nije otvoren, posle pozovi otvori_putovanja sa istim filter i naslov. Primeri: dnevni izleti → {dnevni_izlet:true}; sve u oktobru → {mesec:"2026-10"}; ' +

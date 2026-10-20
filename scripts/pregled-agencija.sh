@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Nedeljni pregled agencija i table Putovanja (macOS / Linux).
-# Pokreće Claude Code bez interfejsa i čuva izveštaj u izvestaji/.
+# Izveštaj o ponudama agencija (macOS / Linux): preporuke, promene cena, predlozi.
+# Pokreće Claude Code bez interfejsa i čuva izveštaj u izvestaji/. Nije potrebno za rad aplikacije:
+# ponude se same osvežavaju svako jutro na serveru; ovo je samo zakazani izveštaj na tvom računaru.
 #
-# cron (svake nedelje u 09:47):
-#   47 9 * * 0  /putanja/do/Trip-planner/scripts/nedeljni-pregled.sh
-# na dve nedelje: dodaj proveru parne nedelje ispod (PT_SVAKE_DVE=1).
+# cron (npr. svake nedelje u 09:47):
+#   47 9 * * 0  /putanja/do/Trip-planner/scripts/pregled-agencija.sh
+# na dve nedelje: PT_SVAKE_DVE=1 (preskače neparne nedelje).
 
 set -euo pipefail
 cd "$(dirname "$0")/.."
