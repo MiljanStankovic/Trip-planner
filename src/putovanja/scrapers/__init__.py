@@ -12,6 +12,8 @@ from .bigblue import BigBlue
 from .felix import Felix
 from .fibula import Fibula
 from .grandtours import GrandTours
+from .balkanfun import BalkanFun
+from .lider import Lider
 from .plana import Plana
 from .ponte import Ponte
 from .halotours import HaloTours
@@ -25,7 +27,7 @@ from .travelland import Travelland
 
 SCRAPERS: dict[str, type[Scraper]] = {
     s.source: s for s in (Travelland, Argus, GrandTours, HaloTours, Belvi, Felix, Fibula, JungleTribe, Kontiki, BigBlue, Odeon,
-                     VivaTravel, Rapsody, ITravel, Jumbo, Ponte, Plana)
+                     VivaTravel, Rapsody, ITravel, Jumbo, Ponte, Plana, Lider, BalkanFun)
 }
 
 # Agencije koje čita Claude (WebFetch), ne Python.

@@ -315,3 +315,27 @@ def test_plana_kartica():
     assert (o.title, o.nights, o.price, o.transport) == ("Budimpešta", 2, 129.0, "autobus")
     assert o.url == "https://www.planatravel.rs/putovanja/evropa/madjarska/budimpesta-01.html"
     assert o.date_from and o.date_from[5:] == "11-11"
+
+
+def test_lider_kalendar():
+    from putovanja.scrapers.lider import Lider
+    html = """<div id="ltcal-rows"><a class="ltcal__row" data-month="2036-11" data-start="2109628800" href="https://lidertravel.rs/temisvar-1-nocenje/">
+    <span class="ltcal__date">07.11 - 08.11</span><span class="ltcal__destination"><span class="ltcal__destination-copy">
+    <strong>Temišvar | 2 dana / 1 noćenje</strong></span></span><span class="ltcal__price"> od 79€ </span></a>
+    <a class="ltcal__row" data-month="2036-11" data-start="2109628800" href="https://lidertravel.rs/parndorf/">
+    <span class="ltcal__date">07.11 - 08.11</span><span class="ltcal__destination"><span class="ltcal__destination-copy">
+    <strong>Parndorf | Bez noćenja (Šoping tura)</strong></span></span><span class="ltcal__price"> od 55€ </span></a></div>"""
+    a, b = Lider().parse(html, "x")
+    assert (a.title, a.nights, a.price, a.date_from) == ("Temišvar", 1, 79.0, "2036-11-07")
+    assert (b.nights, b.note) == (0, "jednodnevni izlet")
+
+
+def test_balkanfun_kartica():
+    from putovanja.scrapers.balkanfun import BalkanFun
+    html = """<article class="node node--type-putovanje"><a href="/putovanja/novogodisnja/prag"><h2>Prag Nova godina 2037</h2></a>
+    <div class="price-content"><span>Cena od</span> 350 EUR <span class="nova-cena">219 EUR</span></div>
+    Polasci Prag Nova godina 29.12.2036. - 03.01.2037. Pogledaj ponudu</article>
+    <article class="node node--type-putovanje">NIJE AKTIVNO <a href="/putovanja/x"><h2>Stara</h2></a> Cena od 100 EUR</article>"""
+    o = BalkanFun().parse(html, "x")
+    assert len(o) == 1
+    assert (o[0].price, o[0].old_price, o[0].nights, o[0].date_from) == (219.0, 350.0, 5, "2036-12-29")
