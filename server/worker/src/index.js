@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.5.6';
+const VERZIJA = '0.6.0';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -72,6 +72,21 @@ async function zemlja(naziv) {
   const fajlovi = (await fajl('fajlovi.json')) ?? {};
   const kljuc = Object.keys(fajlovi).find((z) => z.toLowerCase() === String(naziv).trim().toLowerCase());
   return kljuc ? ((await fajl(`zemlja/${fajlovi[kljuc]}.json`)) ?? []) : [];
+}
+
+// pretraga po nazivu, mestu, zemlji i agenciji; bez kvačica i velikih slova, sve reči moraju da se nađu
+const bezKvacica = (t) => String(t ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'dj');
+async function pretraga(upit) {
+  const reci = bezKvacica(upit).split(/[^a-z0-9]+/).filter((r) => r.length > 1);
+  if (!reci.length) return [];
+  const sve = (await fajl('indeks.json')) ?? [];
+  const nadjeno = [];
+  for (const p of sve) {
+    const t = bezKvacica(`${p.naziv ?? ''} ${p.title ?? ''} ${p.destination ?? ''} ${p.zemlja ?? ''} ${p.kontinent ?? ''} ${p.agencija ?? ''}`);
+    if (reci.every((r) => t.includes(r))) nadjeno.push(p);
+    if (nadjeno.length >= 300) break;
+  }
+  return nadjeno;
 }
 
 async function kontinent(naziv) {
@@ -150,6 +165,7 @@ async function podaciZaProzor(env, korisnik, komanda, a = []) {
     }
     case 'zemlja': return zemlja(a.join(' '));
     case 'kontinent': return kontinent(a.join(' '));
+    case 'pretraga': return pretraga(a.join(' '));
     case 'ponuda': {
       const osobe = a.includes('--osobe') ? a[a.indexOf('--osobe') + 1] : 2;
       const p = await ponuda(a[0], osobe);

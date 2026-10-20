@@ -50,12 +50,19 @@ def main() -> int:
     stablo = {k: dict(v.most_common()) for k, v in catalog.tree(stavke).items()}
     pisi("zemlje.json", stablo)
     fajlovi = {}
+    indeks = []
     for zemlje in stablo.values():
         for z in zemlje:
             fajlovi[z] = ime_fajla(z)
             redovi = [it.to_dict() for it in catalog.sort_items(catalog.by_country(stavke, z), "datum")]
-            pisi(f"zemlja/{fajlovi[z]}.json", cli._dodaj_popuste(conn, redovi))
+            redovi = cli._dodaj_popuste(conn, redovi)
+            pisi(f"zemlja/{fajlovi[z]}.json", redovi)
+            indeks += redovi
     pisi("fajlovi.json", fajlovi)
+    # za pretragu: sve ponude u jednom fajlu, samo polja koja trebaju listi
+    POLJA = ("id", "title", "naziv", "destination", "zemlja", "kontinent", "agencija", "price", "old_price", "currency",
+             "date_from", "nights", "transport", "url", "svi_datumi", "termini", "popusti", "note")
+    pisi("indeks.json", [{k: r.get(k) for k in POLJA if r.get(k) not in (None, [], "")} for r in indeks])
 
     top = [{**it.to_dict(), "zasto": why} for it, why in catalog.top(stavke, cfg, "preporuka", limit=60)]
     pisi("top.json", {"ponude": cli._dodaj_popuste(conn, top)})
