@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.6.3';
+const VERZIJA = '0.6.4';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
