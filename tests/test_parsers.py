@@ -339,3 +339,29 @@ def test_balkanfun_kartica():
     o = BalkanFun().parse(html, "x")
     assert len(o) == 1
     assert (o[0].price, o[0].old_price, o[0].nights, o[0].date_from) == (219.0, 350.0, 5, "2036-12-29")
+
+
+def test_oktopod_polasci_i_cena():
+    from putovanja.scrapers.oktopod import Oktopod
+    html = """<html><body><h1>Milano autobusom - 6 dana / 3 noći</h1><p>Prevoz: Autobusom 6 dana | 3 noći
+    Polasci: 10.11.2036. 24.11.2036. Cena po osobi: od 169€ Preuzmite PDF</p></body></html>"""
+    o = Oktopod().parse(html, "https://www.oktopod.rs/sr/evropski-gradovi/milano/1")[0]
+    assert (o.nights, o.price, o.date_from, o.extra_dates, o.transport) == (3, 169.0, "2036-11-10", ["2036-11-24"], "autobus")
+    assert Oktopod().parse(html.replace("2036", "2020"), "x") == []
+
+
+def test_toptravel_izlet_u_dinarima():
+    from putovanja.scrapers.toptravel import TopTravel
+    html = """<html><head><title>Temišvar 2036 – Top Travel</title></head><body>TEMIŠVAR 2036 JEDNODNEVNI IZLET
+    TERMINI : 24.10. / 07.11. SIGURAN POLAZAK IZ NOVOG SADA ... CENA ARANŽMANA PO OSOBI: Polazak iz Novog Sada 2.300,00 dinara
+    Polazak iz Zrenjanina 2.100,00 dinara CENA ARANŽMANA UKLJUČUJE: prevoz</body></html>"""
+    o = TopTravel().parse(html, "x")
+    assert o and o[0].nights == 0 and o[0].currency == "RSD" and o[0].price == 2100.0
+
+
+def test_clocktravel_naslov_i_tabela():
+    from putovanja.scrapers.clocktravel import ClockTravel
+    html = """<html><body>clocktravelnis@gmail.com Toskana – 11.11.2036. OD 109€ Autobuski prevoz Toskana je lepa.
+    Termin putovanja Cena po osobi 11.11-15.11.2036 Iz Niša 139€ Iz Beograda 109€ ARANŽMANA OBUHVATA: 2 noćenja sa doručkom</body></html>"""
+    o = ClockTravel().parse(html, "https://clocktravel.rs/x/magicna-toskana-11-11-2036/")[0]
+    assert (o.price, o.date_from, o.date_to, o.nights, o.transport) == (109.0, "2036-11-11", "2036-11-15", 2, "autobus")
