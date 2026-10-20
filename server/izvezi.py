@@ -60,9 +60,11 @@ def main() -> int:
             indeks += redovi
     pisi("fajlovi.json", fajlovi)
     # za pretragu: sve ponude u jednom fajlu, samo polja koja trebaju listi
-    POLJA = ("id", "title", "naziv", "destination", "zemlja", "kontinent", "agencija", "price", "old_price", "currency",
-             "date_from", "nights", "transport", "url", "svi_datumi", "termini", "popusti", "note")
-    pisi("indeks.json", [{k: r.get(k) for k in POLJA if r.get(k) not in (None, [], "")} for r in indeks])
+    # (mali fajl: server ga čita za svaku pretragu, a besplatni Cloudflare daje malo procesorskog vremena)
+    POLJA = ("id", "title", "naziv", "destination", "zemlja", "agencija", "price", "old_price", "currency",
+             "date_from", "nights", "transport", "url", "svi_datumi")
+    pisi("indeks.json", [{k: (r.get(k)[:12] if k == "svi_datumi" else r.get(k)) for k in POLJA if r.get(k) not in (None, [], "")}
+                         for r in indeks])
 
     top = [{**it.to_dict(), "zasto": why} for it, why in catalog.top(stavke, cfg, "preporuka", limit=60)]
     pisi("top.json", {"ponude": cli._dodaj_popuste(conn, top)})
