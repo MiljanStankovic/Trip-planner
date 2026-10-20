@@ -4,158 +4,143 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Putovanja za Claude</title>
-<meta name="description" content="Ponude domaćih turističkih agencija u Claude-u, na telefonu, tabletu i računaru. Uputstvo za dodavanje korak po korak.">
+<meta name="description" content="Ponude domaćih turističkih agencija u Claude-u, na telefonu, tabletu i računaru. Dodavanje u četiri koraka.">
 <link rel="icon" href="/ikona.png" type="image/png">
 <style>
   :root {
-    --pozadina: #EEF1F4; --povrs: #FFFFFF; --povrs2: #F6F8FA; --t1: #16202E; --t2: #475467; --t3: #6A7586;
-    --linija: #D9DFE6; --tinta: #1D2E4A; --akcenat: #E3A13A; --akcenat-tekst: #8A5600; --ok: #2E7A4C;
+    --pozadina: #EEF1F4; --povrs: #FFFFFF; --povrs2: #F5F7F9; --t1: #16202E; --t2: #475467; --t3: #6A7586;
+    --linija: #DCE2E8; --tinta: #1D2E4A; --akcenat: #E3A13A; --akcenat-tekst: #8A5600; --ok: #2E7A4C;
     --ui-poz: #FAFAF8; --ui-linija: #E4E2DC; --ui-t: #2B2A27; --ui-t2: #807D75;
-    --senka: 0 18px 40px -22px rgba(22, 32, 46, .35);
   }
   @media (prefers-color-scheme: dark) {
     :root { --pozadina: #0F141B; --povrs: #161D27; --povrs2: #1B2330; --t1: #EDF1F6; --t2: #B4BECB; --t3: #8793A3; --linija: #273140;
       --tinta: #2A3D5E; --akcenat: #F0B252; --akcenat-tekst: #F0B252; --ok: #7FCB98;
-      --ui-poz: #262624; --ui-linija: #3A3936; --ui-t: #ECEBE6; --ui-t2: #A3A099; --senka: 0 18px 40px -22px rgba(0, 0, 0, .7); }
+      --ui-poz: #262624; --ui-linija: #3A3936; --ui-t: #ECEBE6; --ui-t2: #A3A099; }
   }
   * { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
-  body { margin: 0; min-height: 100dvh; background: var(--pozadina); color: var(--t1); font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    padding: max(env(safe-area-inset-top), 0px) 0 max(env(safe-area-inset-bottom), 0px); }
-  button, a.dugme { font: inherit; cursor: pointer; }
+  body { margin: 0; min-height: 100dvh; background: var(--pozadina); color: var(--t1); font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  button, a { font: inherit; }
   :focus-visible { outline: 3px solid var(--akcenat); outline-offset: 2px; }
-  .omot { max-width: 1180px; margin: 0 auto; padding: 0 16px 40px; display: grid; gap: 28px; }
-  @media (min-width: 980px) { .omot { grid-template-columns: 380px minmax(0, 1fr); gap: 56px; padding: 0 32px 64px; align-items: start; } .levo { position: sticky; top: 0; padding-top: 48px; } }
-
-  /* levo: šta je i izbor */
-  .levo { padding-top: 28px; display: grid; gap: 22px; }
-  .marka { display: flex; align-items: center; gap: 12px; }
-  .marka img { width: 48px; height: 48px; border-radius: 13px; }
-  .marka b { font-size: 21px; letter-spacing: -0.015em; }
-  .marka small { display: block; color: var(--t3); font-size: 13.5px; }
-  h1 { font-size: clamp(26px, 4.2vw, 34px); line-height: 1.12; letter-spacing: -0.025em; margin: 0; font-weight: 700; max-width: 18ch; }
-  .uvod { margin: 0; color: var(--t2); max-width: 42ch; }
-  .cinjenice { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; color: var(--t2); font-size: 14px; }
-  .cinjenice li { display: inline-flex; align-items: center; gap: 6px; }
-  .cinjenice svg { width: 16px; height: 16px; color: var(--akcenat-tekst); }
-  .grupa { display: grid; gap: 8px; }
-  .grupa > span { font-size: 13px; color: var(--t3); }
-  .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--povrs2); border: 1px solid var(--linija); border-radius: 12px; padding: 3px; gap: 3px; }
-  .seg button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; border: 0; border-radius: 9px; background: transparent; color: var(--t2); font-size: 14.5px; font-weight: 500; }
-  .seg button svg { width: 18px; height: 18px; }
-  .seg button[aria-pressed="true"] { background: var(--povrs); color: var(--t1); font-weight: 650; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px var(--linija); }
-  .seg button:active { transform: scale(0.98); }
-  .napomena { font-size: 13.5px; color: var(--t2); margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--povrs); border: 1px solid var(--linija); }
-  .napomena b { color: var(--t1); }
-
-  /* desno: koraci */
-  .desno { padding-top: 8px; }
-  @media (min-width: 980px) { .desno { padding-top: 48px; } }
-  .desno h2 { font-size: 22px; letter-spacing: -0.02em; margin: 0 0 4px; }
-  .desno .pod { color: var(--t2); margin: 0 0 22px; font-size: 15px; }
-  ol.koraci { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: k; }
-  .korak { counter-increment: k; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 4px 14px; background: var(--povrs); border: 1px solid var(--linija); border-radius: 18px; padding: 18px 18px 18px 14px; }
-  .korak::before { content: counter(k); grid-row: 1 / span 3; width: 30px; height: 30px; border-radius: 50%; background: var(--tinta); color: #fff; font-weight: 700; font-size: 14.5px; display: grid; place-items: center; }
-  .korak h3 { margin: 3px 0 0; font-size: 17px; letter-spacing: -0.01em; }
-  .korak p { margin: 4px 0 0; color: var(--t2); font-size: 15px; max-width: 60ch; }
-  .korak p b { color: var(--t1); }
-  .korak .telo { grid-column: 2; display: grid; gap: 12px; margin-top: 8px; min-width: 0; }
-  @media (min-width: 760px) { .korak.sa-slikom .telo { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 20px; } }
-  .ui-oznaka { display: inline-block; padding: 0 6px; border-radius: 6px; background: var(--povrs2); border: 1px solid var(--linija); font-size: 13.5px; font-weight: 600; color: var(--t1); white-space: nowrap; }
-
-  .adresa { display: flex; align-items: stretch; border: 1px solid var(--linija); border-radius: 12px; overflow: hidden; background: var(--povrs2); }
-  .adresa code { flex: 1; min-width: 0; padding: 12px; font: 13.5px/1.45 ui-monospace, "SF Mono", Consolas, monospace; overflow-wrap: anywhere; color: var(--t1); }
-  .kopiraj { flex: none; border: 0; background: var(--tinta); color: #fff; font-weight: 600; font-size: 14.5px; padding: 0 16px; min-width: 100px; min-height: 46px; }
-  .dugme { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 20px; border: 0; border-radius: 12px;
-    background: var(--akcenat); color: #1E1400; font-weight: 650; font-size: 15.5px; text-decoration: none; transition: transform .15s cubic-bezier(.16, 1, .3, 1); }
-  .dugme svg { width: 18px; height: 18px; }
-  .dugme { white-space: nowrap; }
-  .uredjaj.telefon .u-dug { padding: 4px 6px; font-size: 10.5px; }
-  .uredjaj.telefon { font-size: 11px; }
-  .dugme:active, .kopiraj:active { transform: scale(0.98); }
-  .status { font-size: 13.5px; color: var(--ok); min-height: 1em; }
-  .savet { font-size: 13.5px; color: var(--t3); margin: 0; }
-
-  /* šematski prikaz ekrana: pojednostavljen, samo ono što treba da nađeš */
-  .slika { display: grid; justify-items: center; }
-  .slika figcaption { font-size: 12px; color: var(--t3); margin-top: 6px; }
-  .uredjaj { background: var(--ui-poz); color: var(--ui-t); border: 1px solid var(--ui-linija); box-shadow: var(--senka); overflow: hidden; font-size: 11.5px; line-height: 1.35; }
-  .uredjaj.telefon { width: 210px; border-radius: 26px; border: 6px solid #20242B; padding: 14px 12px 16px; }
-  .uredjaj.tablet { width: 300px; border-radius: 18px; border: 7px solid #20242B; padding: 12px 14px 14px; }
-  .uredjaj.racunar { width: 320px; border-radius: 10px; }
-  .uredjaj.racunar .traka { height: 22px; background: var(--ui-linija); display: flex; align-items: center; padding: 0 8px; gap: 6px; font-size: 10px; color: var(--ui-t2); }
-  .uredjaj.racunar .traka i { width: 7px; height: 7px; border-radius: 50%; background: var(--ui-t2); opacity: .5; }
-  .uredjaj.racunar .ekr { padding: 12px 14px 14px; }
-  .ekr-red { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .u-nas { font-weight: 650; font-size: 12.5px; margin-bottom: 8px; }
-  .u-meni { display: grid; gap: 3px; }
-  .u-meni span { padding: 5px 8px; border-radius: 7px; color: var(--ui-t2); }
-  .u-meni span.akt { background: var(--ui-linija); color: var(--ui-t); font-weight: 600; }
-  .u-dug { display: inline-flex; align-items: center; justify-content: center; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--ui-linija); font-weight: 600; white-space: nowrap; }
-  .u-dug.glavno { background: var(--ui-t); color: var(--ui-poz); border-color: var(--ui-t); }
-  .u-polje { display: grid; gap: 3px; margin-bottom: 7px; }
-  .u-polje span { color: var(--ui-t2); font-size: 10.5px; }
-  .u-polje div { border: 1px solid var(--ui-linija); border-radius: 7px; padding: 5px 7px; background: var(--ui-poz); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .u-radio { display: flex; align-items: center; gap: 7px; padding: 6px 7px; border: 1px solid var(--ui-linija); border-radius: 8px; margin-bottom: 5px; color: var(--ui-t2); }
-  .u-radio i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid currentColor; flex: none; }
-  .u-radio.izabrano { color: var(--ui-t); font-weight: 600; }
-  .u-radio.izabrano i { background: currentColor; box-shadow: inset 0 0 0 2px var(--ui-poz); }
-  .u-konektor { display: flex; align-items: center; gap: 8px; padding: 7px; border: 1px solid var(--ui-linija); border-radius: 9px; }
-  .u-konektor img { width: 20px; height: 20px; border-radius: 6px; }
-  .u-konektor b { flex: 1; }
-  .u-chat { display: grid; gap: 7px; }
-  .u-mehur { justify-self: end; background: var(--ui-linija); border-radius: 12px 12px 3px 12px; padding: 6px 9px; }
-  .u-prozor { border: 1px solid var(--ui-linija); border-radius: 10px; padding: 7px; display: grid; gap: 5px; }
-  .u-prozor .r { display: flex; justify-content: space-between; gap: 6px; }
-  .u-prozor .r b { color: #C9861D; }
-  .istak { outline: 2px solid var(--akcenat); outline-offset: 2px; border-radius: 8px; animation: istak 2.4s ease-in-out infinite; }
-  @keyframes istak { 50% { outline-color: transparent; } }
-  @media (prefers-reduced-motion: reduce) { .istak { animation: none; } .dugme { transition: none; } }
-
-  .komande { display: grid; gap: 8px; }
-  .samo-racunar { padding: 16px; border-radius: 14px; background: var(--povrs); border: 1px dashed var(--linija); color: var(--t2); font-size: 15px; }
-  footer { grid-column: 1 / -1; color: var(--t3); font-size: 13px; padding-top: 8px; border-top: 1px solid var(--linija); }
   [hidden] { display: none !important; }
+  .omot { max-width: 1120px; margin: 0 auto; padding: 0 20px 40px; }
+
+  /* uvod */
+  .uvod { display: grid; gap: 14px; padding: 28px 0 22px; }
+  .marka { display: flex; align-items: center; gap: 12px; }
+  .marka img { width: 52px; height: 52px; border-radius: 14px; box-shadow: 0 6px 16px -8px rgba(22, 32, 46, .45); }
+  .marka b { display: block; font-size: 20px; letter-spacing: -0.015em; line-height: 1.15; }
+  .marka small { color: var(--t3); font-size: 13.5px; }
+  h1 { font-size: clamp(25px, 6.4vw, 36px); line-height: 1.12; letter-spacing: -0.025em; margin: 4px 0 0; font-weight: 700; max-width: 20ch; }
+  .uvod p { margin: 0; color: var(--t2); max-width: 46ch; }
+  .tacke { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 0; padding: 0; list-style: none; }
+  .tacke li { font-size: 13px; color: var(--t2); background: var(--povrs); border: 1px solid var(--linija); padding: 3px 10px; border-radius: 999px; }
+
+  /* izbor gde (samo na računaru) */
+  .gde { display: inline-grid; grid-auto-flow: column; background: var(--povrs2); border: 1px solid var(--linija); border-radius: 12px; padding: 3px; gap: 3px; margin-bottom: 18px; }
+  .gde button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: var(--t2); font-weight: 500; cursor: pointer; }
+  .gde button[aria-pressed="true"] { background: var(--povrs); color: var(--t1); font-weight: 650; box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px var(--linija); }
+
+  /* koraci */
+  .koraci-zag { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .koraci-zag h2 { font-size: 19px; letter-spacing: -0.015em; margin: 0; }
+  .za-uredjaj { font-size: 13px; color: var(--t3); }
+  .za-uredjaj button { border: 0; background: none; color: var(--t2); text-decoration: underline; text-underline-offset: 3px; padding: 4px 2px; cursor: pointer; }
+  .za-uredjaj button[aria-pressed="true"] { color: var(--t1); font-weight: 650; text-decoration: none; }
+  ol.koraci { list-style: none; margin: 0; padding: 0; counter-reset: k; background: var(--povrs); border: 1px solid var(--linija); border-radius: 18px; overflow: hidden; }
+  .korak { counter-increment: k; display: grid; grid-template-columns: 28px minmax(0, 1fr) 132px; gap: 12px; align-items: start; padding: 16px 14px 16px 16px; border-bottom: 1px solid var(--linija); }
+  .korak:last-child { border-bottom: 0; }
+  .korak::before { content: counter(k); align-self: start; width: 26px; height: 26px; border-radius: 50%; background: var(--tinta); color: #fff; font-weight: 700; font-size: 13.5px; display: grid; place-items: center; margin-top: 1px; }
+  .korak h3 { margin: 0 0 3px; font-size: 16px; letter-spacing: -0.01em; }
+  .korak p { margin: 0; color: var(--t2); font-size: 14.5px; line-height: 1.45; }
+  .korak p b { color: var(--t1); }
+  .oz { display: inline-block; padding: 0 5px; border-radius: 6px; background: var(--povrs2); border: 1px solid var(--linija); font-size: 13px; font-weight: 600; color: var(--t1); white-space: nowrap; }
+
+  /* šematski ekran (umanjen) */
+  .mini { width: 132px; height: 112px; position: relative; overflow: hidden; border-radius: 12px; background: var(--ui-poz); border: 1px solid var(--ui-linija); }
+  .mini .u { position: absolute; top: 0; left: 0; width: 264px; transform: scale(.5); transform-origin: 0 0; padding: 14px 16px; color: var(--ui-t); font-size: 13px; line-height: 1.35; }
+  .u-nas { font-weight: 650; font-size: 15px; margin-bottom: 10px; }
+  .u-red { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .u-dug { display: inline-flex; padding: 6px 11px; border-radius: 9px; border: 1px solid var(--ui-linija); font-weight: 600; white-space: nowrap; }
+  .u-dug.g { background: var(--ui-t); color: var(--ui-poz); border-color: var(--ui-t); }
+  .u-polje { display: grid; gap: 3px; margin-bottom: 8px; }
+  .u-polje span { color: var(--ui-t2); font-size: 12px; }
+  .u-polje div { border: 1px solid var(--ui-linija); border-radius: 8px; padding: 6px 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .u-radio { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border: 1px solid var(--ui-linija); border-radius: 9px; margin-bottom: 6px; color: var(--ui-t2); }
+  .u-radio i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid currentColor; flex: none; }
+  .u-radio.da { color: var(--ui-t); font-weight: 600; }
+  .u-radio.da i { background: currentColor; box-shadow: inset 0 0 0 2px var(--ui-poz); }
+  .u-kon { display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--ui-linija); border-radius: 10px; }
+  .u-kon img { width: 22px; height: 22px; border-radius: 6px; }
+  .u-kon b { flex: 1; }
+  .u-meh { margin-left: auto; width: fit-content; background: var(--ui-linija); border-radius: 12px 12px 3px 12px; padding: 6px 10px; margin-bottom: 8px; }
+  .u-pr { border: 1px solid var(--ui-linija); border-radius: 10px; padding: 8px; display: grid; gap: 6px; }
+  .u-pr div { display: flex; justify-content: space-between; } .u-pr b { color: #C9861D; }
+  .ist { outline: 2.5px solid var(--akcenat); outline-offset: 2px; border-radius: 9px; }
+
+  /* jedno dugme, posle koraka */
+  .akcija { margin-top: 18px; padding: 20px; border-radius: 18px; background: var(--tinta); color: #fff; display: grid; gap: 12px; }
+  .akcija h3 { margin: 0; font-size: 18px; letter-spacing: -0.01em; }
+  .akcija p { margin: 0; color: rgba(255, 255, 255, .78); font-size: 14.5px; }
+  .dugme { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 54px; padding: 0 20px; border: 0; border-radius: 14px;
+    background: var(--akcenat); color: #1E1400; font-weight: 700; font-size: 16.5px; text-decoration: none; cursor: pointer; transition: transform .15s cubic-bezier(.16, 1, .3, 1); }
+  .dugme svg { width: 19px; height: 19px; }
+  .dugme:active { transform: scale(0.98); }
+  .status { font-size: 14px; color: #A9E2BC; min-height: 1.2em; }
+  .adresa-mala { font-size: 12.5px; color: rgba(255, 255, 255, .62); overflow-wrap: anywhere; }
+  .adresa-mala code { font: 12.5px ui-monospace, "SF Mono", Consolas, monospace; color: rgba(255, 255, 255, .85); }
+  .savet { margin: 12px 2px 0; font-size: 13.5px; color: var(--t3); }
+
+  /* Claude Code (samo računar) */
+  .kom { display: grid; gap: 4px; }
+  .kom code { display: block; padding: 10px 12px; border-radius: 10px; background: var(--povrs2); border: 1px solid var(--linija); font: 13.5px/1.45 ui-monospace, "SF Mono", Consolas, monospace; overflow-wrap: anywhere; user-select: all; }
+  .korak.tekst { grid-template-columns: 28px minmax(0, 1fr); }
+  .akcija.code .dugme { background: #fff; color: var(--tinta); }
+
+  footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--linija); color: var(--t3); font-size: 12.5px; }
+
+  /* računar: dve kolone, uvod levo */
+  @media (min-width: 960px) {
+    .omot { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 56px; padding: 0 32px 56px; align-items: start; }
+    .uvod { position: sticky; top: 0; padding-top: 56px; }
+    .desno { padding-top: 56px; }
+    .korak { grid-template-columns: 30px minmax(0, 1fr) 200px; padding: 20px 20px 20px 18px; gap: 18px; }
+    .mini { width: 200px; height: 150px; } .mini .u { transform: scale(.76); width: 263px; }
+    footer { grid-column: 1 / -1; }
+  }
+  /* telefon: slika ispod teksta, preko cele širine koraka */
+  @media (max-width: 600px) {
+    .korak { grid-template-columns: 26px minmax(0, 1fr); gap: 10px 12px; }
+    .korak .mini { grid-column: 2; width: 100%; max-width: 320px; height: 118px; }
+    .korak .mini .u { width: 160%; transform: scale(.625); }
+  }
+  .korak .napomena-u { display: block; margin-top: 6px; font-size: 13px; color: var(--t3); }
+  @media (prefers-reduced-motion: reduce) { .dugme { transition: none; } }
 </style>
 </head>
 <body>
 <div class="omot">
-  <aside class="levo">
+  <header class="uvod">
     <div class="marka"><img src="/ikona.png" alt=""><span><b>Putovanja</b><small>za Claude</small></span></div>
-    <h1>Sve ponude naših agencija, u jednom razgovoru</h1>
-    <p class="uvod">Putovanja skupljaju aranžmane 15 turističkih agencija iz Srbije svako jutro. Otvaraš ih u Claude-u kao prozor: tražiš po mestu, porediš cene po osobi, pratiš pojeftinjenja i pitaš Claude-a šta je najbolje za vas.</p>
-    <ul class="cinjenice">
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>besplatno</li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>bez instalacije</li>
-      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>ne rezerviše i ne plaća ništa</li>
-    </ul>
+    <h1>Ponude naših turističkih agencija, u Claude-u</h1>
+    <p>Aranžmani 15 agencija iz Srbije, osveženi svako jutro. Tražiš po mestu, porediš cene po osobi, pratiš pojeftinjenja i pitaš Claude-a šta je najbolje za vas.</p>
+    <ul class="tacke"><li>besplatno</li><li>bez instalacije</li><li>telefon, tablet, računar</li></ul>
+  </header>
 
-    <div class="grupa">
-      <span id="oz-uredjaj">Na čemu dodaješ</span>
-      <div class="seg" role="group" aria-labelledby="oz-uredjaj">
-        <button data-uredjaj="telefon" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>Telefon</button>
-        <button data-uredjaj="tablet" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>Tablet</button>
-        <button data-uredjaj="racunar" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg>Računar</button>
-      </div>
+  <main class="desno">
+    <div class="gde" id="gde" role="group" aria-label="Gde koristiš Putovanja" hidden>
+      <button data-gde="claude" aria-pressed="true">U Claude-u</button>
+      <button data-gde="code" aria-pressed="false">U Claude Code-u</button>
     </div>
-    <div class="grupa">
-      <span id="oz-gde">Gde hoćeš Putovanja</span>
-      <div class="seg" role="group" aria-labelledby="oz-gde">
-        <button data-gde="claude" aria-pressed="true">U Claude-u</button>
-        <button data-gde="code" aria-pressed="false">U Claude Code-u</button>
-      </div>
-    </div>
-    <p class="napomena" id="nap-gde"><b>U Claude-u</b> dodaš jednom i Putovanja su ti na telefonu, tabletu i računaru, gde god si prijavljen.</p>
-  </aside>
+    <div id="sadrzaj"></div>
+  </main>
 
-  <main class="desno" id="koraci" aria-live="polite"></main>
-
-  <footer>Putovanja __VERZIJA__ · __PONUDA__ ponuda · poslednji sken __SKEN__. Prikazi ekrana Claude-a su šematski i pojednostavljeni; nazivi dugmadi su kao u Claude-u (na engleskom).</footer>
+  <footer>Putovanja __VERZIJA__ · __PONUDA__ ponuda · poslednji sken __SKEN__. Prikazi ekrana su šematski; nazivi dugmadi su kao u Claude-u. Putovanja ne rezervišu i ne plaćaju ništa.</footer>
 </div>
 
 <script>
 (() => {
-  // lična adresa: pravi je pregledač, ostaje ista na ovom pregledaču
   const osnova = location.origin + '/mcp/';
   let kljuc = '';
   try { kljuc = localStorage.getItem('putovanja-kljuc') || ''; } catch {}
@@ -165,108 +150,76 @@
     try { localStorage.setItem('putovanja-kljuc', kljuc); } catch {}
   }
   const ADRESA = osnova + kljuc;
-  const KONEKTORI = 'https://claude.ai/customize/connectors';
-
-  // uređaj: telefon, tablet ili računar (može da se promeni ručno)
   const dodir = matchMedia('(pointer: coarse)').matches || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
-  const kraca = Math.min(screen.width, screen.height);
-  let uredjaj = !dodir ? 'racunar' : kraca < 600 ? 'telefon' : 'tablet';
-  let gde = location.hash === '#claude-code' ? 'code' : 'claude';
-
+  let uredjaj = !dodir ? 'racunar' : Math.min(screen.width, screen.height) < 600 ? 'telefon' : 'tablet';
+  let gde = location.hash === '#claude-code' && uredjaj === 'racunar' ? 'code' : 'claude';
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const kratka = ADRESA.replace(/^https:\/\//, '').replace(/\/mcp\/(.{4}).*$/, '/mcp/$1…');
-  const okvir = (sadrzaj, opis) => {
-    const inner = uredjaj === 'racunar' ? `<div class="traka"><i></i><i></i><i></i><span>claude.ai</span></div><div class="ekr">${sadrzaj}</div>` : sadrzaj;
-    return `<figure class="slika"><div class="uredjaj ${uredjaj}" aria-hidden="true">${inner}</div><figcaption>${opis}</figcaption></figure>`;
+  const kratka = ADRESA.replace(/^https?:\/\//, '').replace(/\/mcp\/(.{4}).*$/, '/mcp/$1…');
+  const mini = (h) => `<div class="mini" aria-hidden="true"><div class="u">${h}</div></div>`;
+  const SL = {
+    otvori: mini(`<div class="u-nas">Connectors</div><div class="u-red" style="margin-bottom:10px"><span style="color:var(--ui-t2)">Customize</span></div><span class="u-dug g ist">Add custom connector</span>`),
+    forma: mini(`<div class="u-nas">Add custom connector</div><div class="u-polje"><span>Name</span><div class="ist">Putovanja</div></div><div class="u-polje"><span>Remote MCP server URL</span><div class="ist">${esc(kratka)}</div></div>`),
+    prijava: mini(`<div class="u-nas">Authentication</div><div class="u-radio"><i></i>Sign in now</div><div class="u-radio"><i></i>Sign in when needed</div><div class="u-radio da ist"><i></i>No sign-in</div>`),
+    connect: mini(`<div class="u-nas">Connectors</div><div class="u-kon"><img src="/ikona.png" alt=""><b>Putovanja</b><span class="u-dug g ist">Connect</span></div>`),
+    chat: mini(`<div class="u-meh">Otvori Putovanja</div><div class="u-pr ist"><div><span>Sevilja</span><b>499 €</b></div><div><span>Severna Italija</span><b>95 €</b></div><div><span>Kipar</span><b>337 €</b></div></div>`),
   };
-  const SLIKE = {
-    konektori: () => okvir(`<div class="u-nas">Connectors</div>
-      <div class="ekr-red" style="margin-bottom:8px"><span style="color:var(--ui-t2)">Customize</span><span class="u-dug glavno istak">Add custom connector</span></div>
-      <div class="u-meni"><span>Skills</span><span class="akt">Connectors</span><span>Styles</span></div>`, 'Podešavanja → Konektori'),
-    forma: () => okvir(`<div class="u-nas">Add custom connector</div>
-      <div class="u-polje"><span>Name</span><div class="istak">Putovanja</div></div>
-      <div class="u-polje"><span>Remote MCP server URL</span><div class="istak">${esc(kratka)}</div></div>
-      <div class="ekr-red"><span style="color:var(--ui-t2)">Advanced settings</span><span class="u-dug glavno">Add</span></div>`, 'ime i tvoja adresa'),
-    prijava: () => okvir(`<div class="u-nas">Authentication</div>
-      <div class="u-radio"><i></i>Sign in now</div><div class="u-radio"><i></i>Sign in when needed</div>
-      <div class="u-radio izabrano istak"><i></i>No sign-in</div>
-      <div class="ekr-red" style="justify-content:flex-end;margin-top:4px"><span class="u-dug glavno">Add</span></div>`, 'bez prijave'),
-    connect: () => okvir(`<div class="u-nas">Connectors</div>
-      <div class="u-konektor"><img src="/ikona.png" alt=""><b>Putovanja</b><span class="u-dug glavno istak">Connect</span></div>
-      <div style="color:var(--ui-t2);margin-top:8px">Custom</div>`, 'poveži'),
-    chat: () => okvir(`<div class="u-chat"><div class="u-mehur">Otvori Putovanja</div>
-      <div class="u-prozor istak"><div class="r"><span>Sevilja, 3.11.</span><b>499 €</b></div><div class="r"><span>Severna Italija</span><b>95 €</b></div><div class="r"><span>Kipar, Aja Napa</span><b>337 €</b></div></div></div>`, 'prozor u razgovoru'),
+  const tekst = {
+    telefon: { gde: 'na telefonu', dodir: 'Dodirni', otvara: 'Otvara se Claude. Ako se otvori aplikacija i nema ovog dugmeta, otvori claude.ai u pregledaču (Safari ili Chrome).' },
+    tablet: { gde: 'na tabletu', dodir: 'Dodirni', otvara: 'Otvara se Claude. Ako se otvori aplikacija i nema ovog dugmeta, otvori claude.ai u pregledaču.' },
+    racunar: { gde: 'na računaru', dodir: 'Klikni', otvara: 'Otvara se claude.ai u novom jezičku; u Claude aplikaciji za računar isto je u Customize → Connectors.' },
   };
 
-  function koraciClaude() {
-    const tel = uredjaj === 'telefon', tab = uredjaj === 'tablet', rac = uredjaj === 'racunar';
-    const gdeOtvori = rac
-      ? 'Otvara se claude.ai u novom jezičku. Ako koristiš Claude aplikaciju za računar, isto je: <b>Customize → Connectors</b>.'
-      : 'Najbolje u pregledaču (Safari ili Chrome), na claude.ai. Ako se otvori Claude aplikacija, a nema dugme <span class="ui-oznaka">Add custom connector</span>, drži prst na dugmetu ispod i izaberi „otvori u pregledaču”.';
+  function claude() {
+    const t = tekst[uredjaj];
     return `
-      <h2>Dodaj Putovanja u Claude</h2>
-      <p class="pod">${tel ? 'Na telefonu' : tab ? 'Na tabletu' : 'Na računaru'}, oko dva minuta. Posle se Putovanja sama pojave i na ostalim uređajima.</p>
+      <div class="koraci-zag"><h2>Kako se dodaje</h2>
+        <span class="za-uredjaj">Uputstvo za:
+          ${[['telefon', 'telefon'], ['tablet', 'tablet'], ['racunar', 'računar']].map(([v, l]) => `<button data-uredjaj="${v}" aria-pressed="${v === uredjaj}">${l}</button>`).join(' ')}</span></div>
       <ol class="koraci">
-        <li class="korak"><h3>Kopiraj svoju adresu</h3>
-          <p>Ova adresa je samo tvoja: po njoj Putovanja znaju šta ti pratiš. Niko drugi je ne vidi.</p>
-          <div class="telo"><div class="adresa"><code id="adresa">${esc(ADRESA)}</code><button class="kopiraj" data-kopiraj="adresa">Kopiraj</button></div></div></li>
-        <li class="korak sa-slikom"><h3>Otvori konektore u Claude-u</h3>
-          <p>${gdeOtvori} Prijavi se ako traži.</p>
-          <div class="telo"><div style="display:grid;gap:8px;justify-items:start">
-              <a class="dugme" id="otvori" href="${KONEKTORI}" target="_blank" rel="noopener">Kopiraj i otvori konektore
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
-              <span class="status" id="otvori-ok" role="status"></span></div>
-            ${SLIKE.konektori()}</div></li>
-        <li class="korak sa-slikom"><h3>Dodaj prilagođeni konektor</h3>
-          <p>Dodirni <span class="ui-oznaka">Add custom connector</span>. U <span class="ui-oznaka">Name</span> upiši <b>Putovanja</b>, a u <span class="ui-oznaka">Remote MCP server URL</span> nalepi adresu iz prvog koraka.</p>
-          <div class="telo"><p class="savet">Polja za OAuth (Client ID, Secret) ostavi prazna.</p>${SLIKE.forma()}</div></li>
-        <li class="korak sa-slikom"><h3>Izaberi „No sign-in”</h3>
-          <p>Ako Claude pita kako se prijavljuješ (<span class="ui-oznaka">Authentication</span>), izaberi <span class="ui-oznaka">No sign-in</span>, pa <span class="ui-oznaka">Add</span>. Putovanja ne traže nalog: tvoja adresa je dovoljna.</p>
-          <div class="telo"><p class="savet">Ako ovog pitanja nema, samo klikni <span class="ui-oznaka">Add</span>.</p>${SLIKE.prijava()}</div></li>
-        <li class="korak sa-slikom"><h3>Poveži</h3>
-          <p>Putovanja su sada u spisku konektora. Ako pored stoji <span class="ui-oznaka">Connect</span>, ${rac ? 'klikni' : 'dodirni'} ga. Ako piše da je povezano, preskoči ovo.</p>
-          <div class="telo"><p class="savet">Besplatan Claude dozvoljava jedan prilagođeni konektor.</p>${SLIKE.connect()}</div></li>
-        <li class="korak sa-slikom"><h3>Probaj u novom razgovoru</h3>
-          <p>Napiši <b>„Otvori Putovanja”</b> ili <b>„Šta ima za Grčku?”</b>. Prvi put Claude pita da li sme da koristi Putovanja: izaberi <span class="ui-oznaka">Always allow</span>.${tel || tab ? ' Prozor se otvara preko celog ekrana; X gore levo ga vraća u razgovor.' : ' Dugme <span class="ui-oznaka">Proširi</span> otvara ga preko celog prozora.'}</p>
-          <div class="telo"><p class="savet">${rac ? 'Isto radi i na telefonu i tabletu, bez ponovnog dodavanja.' : 'Isto radi i na računaru, bez ponovnog dodavanja.'}</p>${SLIKE.chat()}</div></li>
-      </ol>`;
-  }
-  function koraciCode() {
-    if (uredjaj !== 'racunar') return `
-      <h2>Putovanja u Claude Code-u</h2>
-      <p class="pod">Claude Code radi na računaru (terminal ili Code u Claude aplikaciji), ne na telefonu i tabletu.</p>
-      <div class="samo-racunar">Otvori ovu stranu na računaru i izaberi „U Claude Code-u”. Na telefonu i tabletu koristi Putovanja u Claude-u (izbor levo).</div>`;
-    const kom = (id, t) => `<div class="adresa"><code id="${id}">${esc(t)}</code><button class="kopiraj" data-kopiraj="${id}">Kopiraj</button></div>`;
-    return `
-      <h2>Putovanja u Claude Code-u</h2>
-      <p class="pod">Pano pored razgovora, u terminalu ili u Code delu Claude aplikacije. Ništa drugo ne treba da instaliraš.</p>
-      <ol class="koraci">
-        <li class="korak"><h3>Dodaj izvor plugina</h3><p>U Claude Code pošalji:</p><div class="telo komande">${kom('k1', '/plugin marketplace add MiljanStankovic/Trip-planner')}</div></li>
-        <li class="korak"><h3>Instaliraj Putovanja</h3><div class="telo komande">${kom('k2', '/plugin install putovanja@putovanja')}</div></li>
-        <li class="korak"><h3>Poveži sa svojim konektorom</h3><p>Da pano prati isto što i telefon. Ako si konektor dodao sa ovog pregledača, ovo je tvoja komanda; ako nisi, stavi adresu iz Claude-a (Customize → Connectors → Putovanja).</p>
-          <div class="telo komande">${kom('k4', '/putovanja adresa ' + ADRESA)}</div></li>
-        <li class="korak"><h3>Otvori pano</h3><p>Ponovo otvori Claude Code i otkucaj:</p><div class="telo komande">${kom('k3', '/putovanja')}</div></li>
+        <li class="korak"><div><h3>Otvori konektore</h3><p>Dugme na dnu kopira tvoju adresu i otvara konektore u Claude-u. Tamo ${t.dodir.toLowerCase()} <span class="oz">Add custom connector</span>.</p><span class="napomena-u">${t.otvara}</span></div>${SL.otvori}</li>
+        <li class="korak"><div><h3>Upiši ime i nalepi adresu</h3><p>U <span class="oz">Name</span> upiši <b>Putovanja</b>. U <span class="oz">Remote MCP server URL</span> nalepi adresu (već je kopirana).</p></div>${SL.forma}</li>
+        <li class="korak"><div><h3>Izaberi „No sign-in”</h3><p>Ako Claude pita za prijavu, izaberi <span class="oz">No sign-in</span>, pa <span class="oz">Add</span>. Ako ne pita, samo <span class="oz">Add</span>.</p></div>${SL.prijava}</li>
+        <li class="korak"><div><h3>Poveži i probaj</h3><p>${t.dodir} <span class="oz">Connect</span> ako stoji pored Putovanja. Onda u novom razgovoru napiši <b>„Otvori Putovanja”</b> i dozvoli sa <span class="oz">Always allow</span>.</p></div>${SL.connect}</li>
       </ol>
-      <p class="savet" style="margin-top:16px">Nemaš Claude Code? Windows (PowerShell): <code>irm https://claude.ai/install.ps1 | iex</code>. Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>`;
+      <section class="akcija" aria-labelledby="akc-nas">
+        <h3 id="akc-nas">Spremno?</h3>
+        <p>Jedan ${uredjaj === 'racunar' ? 'klik' : 'dodir'}: adresa ide u ${uredjaj === 'racunar' ? 'klipbord' : 'međuspremnik'}, a Claude se otvara na konektorima. Ovu stranu ostavi otvorenu ako zatreba.</p>
+        <a class="dugme" id="otvori" href="https://claude.ai/customize/connectors" target="_blank" rel="noopener">Kopiraj adresu i otvori Claude
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>
+        <span class="status" id="status" role="status"></span>
+        <span class="adresa-mala">Tvoja adresa (samo tvoja, po njoj Putovanja znaju šta pratiš): <code>${esc(ADRESA)}</code></span>
+      </section>
+      <p class="savet">Dodaš jednom, ${t.gde}, i Putovanja se pojave i na ostalim uređajima gde si prijavljen. Besplatan Claude dozvoljava jedan prilagođeni konektor.</p>`;
+  }
+  function code() {
+    const k = (s) => `<code>${esc(s)}</code>`;
+    return `
+      <div class="koraci-zag"><h2>Pano u Claude Code-u</h2></div>
+      <ol class="koraci">
+        <li class="korak tekst"><div class="kom"><h3>Dodaj izvor</h3><p>U Claude Code pošalji:</p>${k('/plugin marketplace add MiljanStankovic/Trip-planner')}</div></li>
+        <li class="korak tekst"><div class="kom"><h3>Instaliraj</h3>${k('/plugin install putovanja@putovanja')}</div></li>
+        <li class="korak tekst"><div class="kom"><h3>Poveži sa konektorom</h3><p>Da pano prati isto što i telefon (adresa je iz konektora, Customize → Connectors → Putovanja):</p>${k('/putovanja adresa ' + ADRESA)}</div></li>
+        <li class="korak tekst"><div class="kom"><h3>Otvori</h3><p>Ponovo pokreni Claude Code i otkucaj:</p>${k('/putovanja')}</div></li>
+      </ol>
+      <p class="savet">Komande se označe jednim klikom, pa kopiraj. Nemaš Claude Code? Windows: <code>irm https://claude.ai/install.ps1 | iex</code>, Mac ili Linux: <code>curl -fsSL https://claude.ai/install.sh | bash</code>.</p>`;
   }
   function crtaj() {
-    document.querySelectorAll('[data-uredjaj]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.uredjaj === uredjaj)));
+    const rac = uredjaj === 'racunar';
+    document.getElementById('gde').hidden = !rac || !dodirRacunar;
+    if (!rac) gde = 'claude';
     document.querySelectorAll('[data-gde]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.gde === gde)));
-    document.getElementById('nap-gde').innerHTML = gde === 'claude'
-      ? '<b>U Claude-u</b> dodaš jednom i Putovanja su ti na telefonu, tabletu i računaru, gde god si prijavljen.'
-      : '<b>U Claude Code-u</b> Putovanja stoje kao pano pored razgovora. Za one koji već koriste Claude Code na računaru.';
-    document.getElementById('koraci').innerHTML = gde === 'claude' ? koraciClaude() : koraciCode();
+    document.getElementById('sadrzaj').innerHTML = gde === 'code' ? code() : claude();
     try { history.replaceState(null, '', gde === 'code' ? '#claude-code' : location.pathname); } catch {}
   }
-  async function kopiraj(t) { try { await navigator.clipboard.writeText(t); return true; } catch { return false; } }
+  // izbor Claude Code postoji samo na pravom računaru
+  const dodirRacunar = !dodir;
   document.addEventListener('click', async (e) => {
     const u = e.target.closest('[data-uredjaj]'); if (u) { uredjaj = u.dataset.uredjaj; return crtaj(); }
     const g = e.target.closest('[data-gde]'); if (g) { gde = g.dataset.gde; return crtaj(); }
-    if (e.target.closest('#otvori')) { const ok = await kopiraj(ADRESA); document.getElementById('otvori-ok').textContent = ok ? 'Adresa je kopirana. U Claude-u je samo nalepi.' : ''; return; }
-    const b = e.target.closest('[data-kopiraj]'); if (!b) return;
-    const el = document.getElementById(b.dataset.kopiraj);
-    if (!(await kopiraj(el.textContent))) { const r = document.createRange(); r.selectNodeContents(el); const s = getSelection(); s.removeAllRanges(); s.addRange(r); document.execCommand('copy'); }
-    const bilo = b.textContent; b.textContent = 'Kopirano'; setTimeout(() => (b.textContent = bilo), 1600);
+    if (e.target.closest('#otvori')) {
+      let ok = false; try { await navigator.clipboard.writeText(ADRESA); ok = true; } catch {}
+      document.getElementById('status').textContent = ok ? 'Adresa je kopirana. U Claude-u je samo nalepi.' : 'Kopiranje nije uspelo: označi adresu ispod i kopiraj je ručno.';
+    }
   });
   crtaj();
 })();
