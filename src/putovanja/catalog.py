@@ -96,6 +96,7 @@ class Item:
 
     def to_dict(self) -> dict:
         d = dict(self.row)
+        d["extra_dates"] = json.loads(d.get("extra_dates") or "[]")  # u bazi je JSON tekst
         d.update(naziv=naziv(self.row["title"], self.row["destination"] or ""), zemlja=self.country, kontinent=self.continent, agencija=self.agency, svi_datumi=self.dates,
                  termini=self.termini(), popusti=popusti.iz_ponude(self.row["note"] or "", self.row["title"] or ""))
         return d

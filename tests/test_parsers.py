@@ -376,3 +376,26 @@ def test_zemlja_i_u_padezima():
     assert classify("Dvorci Bavarske")[0] == "Nemačka"
     assert classify("Porto")[0] == "Portugalija" and classify("Portorož")[0] == "Slovenija"
     assert classify("Dan primirja u Istanbulu")[0] == "Turska"  # „rim” ne sme da pogodi „primirja”
+
+
+def test_detalji_sekcije_po_pouzdanosti():
+    from putovanja.details import extract
+    html = """<h4>Plan puta</h4><h4>1. DAN / BEOGRAD</h4><p>Polazak iz Beograda oko 18h sa glavne autobuske stanice.</p>
+    <p><b>Napomena:</b> vreme polaska stiže u SMS poruci dan ranije, proverite telefon.</p>
+    <h4>4. DAN / RIMINI – RAVENA (fakultativno)</h4><p>Doručak. Slobodno vreme ili fakultativni izlet u Ravenu.</p>
+    <h3>Cena ne uključuje:</h3><p>međunarodno zdravstveno osiguranje, boravišnu taksu u Riminiju</p>
+    <h3>Napomena:</h3><p>Doplata za 1/1 sobu 60 evra (isključivo na upit), dete do 12 godina popust.</p>
+    <h3>Emilija Romanja fakultativni program:</h3><p>SAN MARINO 20 evra po osobi, Ravena i Bolonja 35 evra</p>"""
+    d = extract(html)
+    assert d["program"].startswith("1. DAN / BEOGRAD")
+    assert d["ne_obuhvata"].startswith("međunarodno zdravstveno")
+    assert d["napomene"].startswith("Doplata za 1/1")
+
+
+def test_detalji_podebljan_naslov_u_pasusu():
+    from putovanja.details import extract
+    html = """<p><strong>CENA&nbsp; ARANŽMANA&nbsp; OBUHVATA:</strong> – prevoz turističkim autobusom, – 2 noćenja sa doručkom u hotelu 3*</p>
+    <p><strong>ARANŽMANA &nbsp;NE OBUHVATA:</strong> – fakultativne izlete, – ulaznice za muzeje, – međunarodno osiguranje</p>"""
+    d = extract(html)
+    assert d["obuhvata"].startswith("– prevoz turističkim")
+    assert d["ne_obuhvata"].startswith("– fakultativne izlete")

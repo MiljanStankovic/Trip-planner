@@ -15,31 +15,59 @@ from . import db
 from .scrapers.base import BlockedByRobots, fetch
 
 SECTIONS = {
-    "program": ("program putovanja", "plan putovanja", "itinerer", "program"),
-    "obuhvata": ("cena obuhvata", "aranžman obuhvata", "aranzman obuhvata", "u cenu je uključeno",
+    "program": ("program putovanja", "plan putovanja", "plan puta", "itinerer", "program"),
+    "obuhvata": ("cena obuhvata", "aranžman obuhvata", "aranzman obuhvata", "aranžmana obuhvata", "aranzmana obuhvata", "u cenu je uključeno",
                  "cena uključuje", "uključeno u cenu", "ukljuceno"),
-    "ne_obuhvata": ("cena ne obuhvata", "aranžman ne obuhvata", "nije uključeno", "ne uključuje",
-                    "doplate", "fakultativ"),
+    "ne_obuhvata": ("cena ne obuhvata", "aranžman ne obuhvata", "aranžmana ne obuhvata", "aranzmana ne obuhvata", "nije uključeno", "ne uključuje",
+                    "doplate"),
     "termini": ("termini", "polasci", "datumi polaska", "cenovnik"),
     "napomene": ("napomena", "važne napomene", "uslovi putovanja", "dokumenta"),
 }
 MAX_SECTION = 1500
-VERZIJA = 2  # povećaj kad se promeni izvlačenje, da se keš osveži
+VERZIJA = 3  # povećaj kad se promeni izvlačenje, da se keš osveži
 
 
 def _text(el: Tag) -> str:
     return re.sub(r"[ \t]+", " ", el.get_text("\n", strip=True)).strip()
 
 
+def _labela(el: Tag) -> str:
+    return " ".join(el.get_text(" ", strip=True).lower().split())
+
+
+def _cenovni_naslov(el: Tag) -> bool:
+    """„Cena (ne) obuhvata” i slično: tu sigurno počinje nova sekcija, čak i kad je samo podebljano."""
+    t = _labela(el)
+    return len(t) < 60 and any(w in t for k in ("obuhvata", "ne_obuhvata") for w in SECTIONS[k])
+
+
 def _collect_after(head: Tag, limit: int = MAX_SECTION) -> str:
     """Tekst posle naslova do sledećeg naslova istog ili višeg nivoa."""
+    if head.name in ("strong", "b"):
+        # podebljan naslov sa tekstom u istom pasusu: „CENA OBUHVATA: – prevoz … NE OBUHVATA: …”
+        delovi = []
+        for sib in head.next_siblings:
+            if isinstance(sib, Tag) and sib.name in ("strong", "b") and (_cenovni_naslov(sib) or _labela(sib).endswith(":")):
+                break
+            t = _text(sib) if isinstance(sib, Tag) else str(sib).strip()
+            if t:
+                delovi.append(t)
+        tekst = "\n".join(delovi).strip(" :\n")
+        if len(tekst) > 30:
+            return tekst[:limit]
     out: list[str] = []
     level = int(head.name[1]) if re.fullmatch(r"h[1-6]", head.name or "") else 6
     for sib in head.find_all_next():
         if sib is head:
             continue
-        if re.fullmatch(r"h[1-6]", sib.name or "") and int(sib.name[1]) <= level:
+        if sib.name in ("strong", "b") and _cenovni_naslov(sib) and _labela(sib) != _labela(head):
             break
+        if re.fullmatch(r"h[1-6]", sib.name or "") and int(sib.name[1]) <= level:
+            dan = _text(sib)
+            if not re.match(r"\d{1,2}\.\s*dan\b", dan, re.I):
+                break
+            if dan not in out:  # „1. DAN / BEOGRAD” je deo programa, ne nova sekcija
+                out.append(dan)
         if sib.name in ("p", "li", "td"):
             t = _text(sib)
             if t and t not in out:
@@ -99,14 +127,24 @@ def extract(html: str) -> dict:
         "opis": (meta.get("content") or "").strip() if meta else "",
     }
     heads = soup.find_all(re.compile(r"^(h[1-6]|strong|b)$"))
+    # pravi naslovi (h1–h6) pre podebljanog teksta: „Napomena:” usred programa nije sekcija napomena
+    labels = sorted(((h, " ".join(h.get_text(" ", strip=True).lower().split())) for h in heads),
+                    key=lambda x: 0 if re.fullmatch(r"h[1-6]", x[0].name or "") else 1)
     for key, words in SECTIONS.items():
-        for h in heads:
-            label = h.get_text(" ", strip=True).lower()
-            if len(label) < 60 and any(w in label for w in words):
+        # reči su poređane po pouzdanosti: „cena ne uključuje” pre „doplate”, „plan puta” pre opšteg „program”
+        for w in words:
+            body = ""
+            for h, label in labels:
+                if len(label) >= 60 or w not in label:
+                    continue
+                if key == "program" and "fakultativ" in label:
+                    continue  # „fakultativni program” nije plan puta
                 body = _collect_after(h)
                 if len(body) > 30:
                     out[key] = body
                     break
+            if key in out:
+                break
     # ista sekcija pod dva naslova (npr. napomene = obuhvata): ostavi prvu
     for k in list(out):
         if k not in ("naslov", "opis") and any(out[k][:200] == out[j][:200] for j in out if j != k and list(out).index(j) < list(out).index(k)):
