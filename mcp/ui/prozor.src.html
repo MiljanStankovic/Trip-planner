@@ -169,7 +169,7 @@
   .kartica .cena span, .kartica .cena small { white-space: nowrap; }
   /* „puno”: prozor zauzima ceo ekran telefona ili tableta (javlja Claude, a ako ne javi, prepoznaje se po veličini).
      Gore je traka iste boje ispod Claude-ovog dugmeta X i naslova; meni (odeljci) se lepi odmah ispod nje. */
-  body.puno { --vrh-claude: max(calc(var(--gore, 0px) + 48px), 68px); }
+  body.puno { --vrh-claude: max(calc(var(--gore, 0px) + 6px), 58px); }
   html:has(body.puno), body.puno, html:has(body.ceo), body.ceo { background: var(--poz2); }
   body.puno::before { content: ''; position: fixed; z-index: 20; top: 0; left: 0; right: 0; height: var(--vrh-claude); background: var(--poz2); }
   .mob .app, .app.mob { padding: 6px 2px 10px; }
