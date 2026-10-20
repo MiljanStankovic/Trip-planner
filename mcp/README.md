@@ -1,33 +1,33 @@
-# Putovanja za običan Claude chat
+# Putovanja: dodatak za Claude desktop (lokalno)
 
-Dodatak za Claude desktop aplikaciju: u običnom razgovoru napišeš „pokaži mi putovanja“
-ili „putovanja za Grčku“ i u poruci se otvori prozor sa ponudama agencija (datum, prevoz,
-trajanje, cena po osobi i ukupno za putnike). Klik na ponudu otvara detalje u istom prozoru; „Pitaj Claude-a“ šalje ponudu u razgovor.
+Isti prozor kao konektor, ali sve radi na tvom računaru: dodatak sam skenira agencije i čuva bazu u
+`~/.local/share/putovanja` (istu kao alat `pt` u terminalu). Za većinu je jednostavniji **konektor** sa
+[putovanja.miljan-stankovic99.workers.dev](https://putovanja.miljan-stankovic99.workers.dev): radi i na telefonu i
+tabletu, bez instalacije. Dodatak je za one koji žele podatke lokalno.
 
-Prozor je cela aplikacija: ponude po zemljama, detalj ponude sa ukupnom cenom, kalendar, praćenje, uradi sam i izvori. Koristi istu bazu kao terminal (`~/.local/share/putovanja`). Na koraku 0 smo proverili:
-
-1. da li Claude aplikacija prikazuje prozor za lokalni dodatak,
-2. da li radi na besplatnom nalogu,
-3. da li Claude sam namesti Python (dodatak je tipa `uv`, ne traži instaliran Python).
+Dodatak je tipa `uv`: Claude aplikacija sama namesti Python, ne treba ga instalirati.
 
 ## Instalacija
 
-1. Skini [Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb) (poslednja verzija).
+1. Skini [Putovanja.mcpb](https://github.com/MiljanStankovic/Trip-planner/raw/main/mcp/Putovanja.mcpb).
 2. Dvoklik na fajl, ili u Claude aplikaciji: Settings → Extensions → Advanced settings → Install Extension….
-3. Install. U novom razgovoru napiši: **pokaži mi putovanja**.
+3. Install. U novom razgovoru napiši **„pokaži mi putovanja”**.
+
+## Šta je unutra
+
+| Fajl | Šta je |
+|---|---|
+| `manifest.json` | opis dodatka i alata |
+| `src/server.py` | lokalni MCP server (alati `otvori_putovanja`, `detalji_ponude`, `skeniraj_agencije`, `putovanja_podaci`) |
+| `ui/prozor.src.html` | izvor prozora, isti za dodatak i za konektor na Cloudflare-u |
+| `napravi.py` | ugradi MCP Apps SDK u `src/prozor.html` (prozor nema pristup internetu) i spakuje `.mcpb` |
 
 ## Pravljenje paketa
 
 ```bash
-python mcp/napravi.py --paket   # mcp/Putovanja.mcpb (treba npm/npx)
+python mcp/napravi.py           # samo prozor: mcp/src/prozor.html
+python mcp/napravi.py --paket   # i mcp/Putovanja.mcpb (treba npm/npx)
 ```
 
-`napravi.py` ugradi MCP Apps SDK u `src/prozor.html` (prozor nema pristup internetu)
-i spakuje folder alatom `@anthropic-ai/mcpb`.
-
-## Nova verzija
-
-1. Podigni verziju na tri mesta: `manifest.json`, `pyproject.toml`, `VERZIJA` u `src/server.py` i u `ui/prozor.src.html`
-   (adresa prozora sadrži verziju, inače Claude prikazuje stari, zapamćeni prozor).
-2. `python mcp/napravi.py --paket`
-3. Commit `mcp/Putovanja.mcpb` u `main`: link za preuzimanje u README-u uvek vodi na taj fajl.
+Nova verzija: podigni verziju na svim mestima navedenim u glavnom [README-u](../README.md#razvoj), napravi paket i
+commituj `mcp/Putovanja.mcpb` u `main` (link za preuzimanje uvek vodi na taj fajl).

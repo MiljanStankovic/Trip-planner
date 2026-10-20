@@ -66,7 +66,7 @@ const ALATI = [
   {
     name: 'pretrazi_ponude',
     title: 'Pretraži ponude',
-    description: 'Pretražuje SVE ponude (oko 1500, 20 agencija) po bilo kojoj kombinaciji: tekst, zemlje, kontinent, agencija, prevoz, datumi ili mesec, ' +
+    description: 'Pretražuje SVE ponude (oko 1500, 23 agencije) po bilo kojoj kombinaciji: tekst, zemlje, kontinent, agencija, prevoz, datumi ili mesec, ' +
       'jednodnevni izleti, broj noći, cena po osobi u evrima, samo sa popustom, datum po izboru; sort. Vraća broj i spisak. ' +
       'Kad je prikazi=true (podrazumevano) rezultat se pokaže i u prozoru Putovanja kao lista sa tvojim naslovom (npr. "Dnevni izleti", "Polasci u oktobru"); ' +
       'ako prozor nije otvoren, posle pozovi otvori_putovanja sa istim filter i naslov. Primeri: dnevni izleti → {dnevni_izlet:true}; sve u oktobru → {mesec:"2026-10"}; ' +

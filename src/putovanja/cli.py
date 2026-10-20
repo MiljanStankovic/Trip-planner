@@ -11,6 +11,13 @@
   pt agencije istorija ID          istorija cene jedne ponude
   pt agencije odbij ID             ne predlaži više ovu ponudu
   pt preporuke [--limit 10]        najbolje ponude po profilu
+  pt kalendar [YYYY-MM]            polasci po danima za mesec
+  pt popusti ID [ID ...]           popusti za više osoba sa stranica ponuda
+  pt prati [ID]                    uključi/isključi praćenje cene; bez ID-a spisak praćenih
+  pt obavestenja [--procitano]     pad cene praćenih, nove ponude po željama
+  pt uradisam lista|sacuvaj|obrisi sačuvane kombinacije prevoz + smeštaj
+  pt izvori                        agencije: broj ponuda, poslednji sken, greške
+  pt stanje                        kad je bio poslednji sken, koliko ponuda
   pt trello tabla                  liste i kartice
   pt trello predlog ID             ponudu kao karticu u "📬 Predlozi"
   pt trello dodaj --lista izleti --naslov "..." [--opis ...] [--rok 2026-11-08]

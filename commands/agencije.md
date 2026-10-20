@@ -1,5 +1,5 @@
 ---
-description: Skeniraj domaće agencije (20 preko pt, plus Filip Travel preko WebFetch-a) i prikaži nove i pojeftinjene ponude
+description: Skeniraj domaće agencije (23 preko pt, plus Filip Travel preko WebFetch-a) i prikaži nove i pojeftinjene ponude
 argument-hint: "[destinacija ili tip, opciono]"
 ---
 
