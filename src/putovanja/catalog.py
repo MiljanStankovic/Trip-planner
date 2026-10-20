@@ -18,7 +18,7 @@ AGENCY_SITES = {
     "halotours": "https://www.halotours.rs/", "belvi": "https://www.belvi.rs/", "felix": "https://www.felixtravel.rs/",
     "fibula": "https://www.fibula.rs/", "jungletribe": "https://www.jungletribe.rs/", "kontiki": "https://kontiki.rs/",
     "bigblue": "https://bigblue.rs/", "odeon": "https://www.odeontravel.rs/", "filip": "https://www.filiptravel.rs/",
-    "ponte": "https://www.ponte.rs/", "plana": "https://www.planatours.rs/", "viva": "https://www.vivatravel.rs/",
+    "ponte": "https://www.ponte.rs/", "plana": "https://www.planatravel.rs/", "viva": "https://www.vivatravel.rs/",
     "rapsody": "https://www.rapsodytravel.rs/", "itravel": "https://itravel.rs/", "jumbo": "https://www.jumbo.rs/",
 }
 
@@ -26,7 +26,7 @@ AGENCY_NAMES = {
     "travelland": "Travelland", "argus": "Argus Tours", "grandtours": "Grand Tours", "halotours": "Halo Tours",
     "belvi": "Belvi Travel", "felix": "Felix Travel", "fibula": "Fibula", "jungletribe": "Jungle Tribe",
     "kontiki": "Kontiki", "bigblue": "Big Blue", "odeon": "Odeon", "filip": "Filip Travel",
-    "ponte": "Ponte Travel", "plana": "Plana Tours",
+    "ponte": "Ponte Travel", "plana": "Plan A Travel",
     "viva": "Viva Travel", "rapsody": "Rapsody Travel", "itravel": "I Travel", "jumbo": "Jumbo Travel",
 }
 

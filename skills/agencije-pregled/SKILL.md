@@ -13,7 +13,7 @@ Cilj: jednom nedeljno (ili na dve nedelje) kratak, iskren pregled šta vredi od 
 
 2. **Skeniraj.** `pt --json agencije skeniraj`, pa `pt --json izvori` za greške po agenciji. Zatim `pt --json obavestenja`: padovi cena praćenih aranžmana i nove ponude po željama idu prvi u pregled.
 
-3. **Filip Travel, Ponte i Plana se u nedeljnom pregledu preskaču.** Njih čitaš samo kad korisnik pozove `/putovanja:agencije` ili `/putovanja:zemlja`. U izveštaju ih ne pominji kao grešku.
+3. **Filip Travel se u nedeljnom pregledu preskaču.** Njih čitaš samo kad korisnik pozove `/putovanja:agencije` ili `/putovanja:zemlja`. U izveštaju ih ne pominji kao grešku.
 
 4. **Izaberi.** `pt --json preporuke --limit 12` i `pt --json agencije nove --dana 14`. Od toga izaberi **najviše 5** stvarno dobrih:
    - po jedna destinacija, raznovrsno (city break avionom, autobusom, wellness, praznici)

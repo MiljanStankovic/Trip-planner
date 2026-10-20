@@ -288,3 +288,30 @@ def test_popusti_iz_teksta_i_soba():
     assert popusti.iz_soba(d["sobe"]) == ["1/1 soba: +160 €"]
     assert popusti.iz_ponude("FIRST MINUTE ponuda", "") == ["rani booking"]
     assert popusti.iz_detalja({"opis": "Lep hotel blizu plaže."}) == []
+
+
+def test_ponte_cenovnik_i_istekli_termin():
+    from putovanja.scrapers.ponte import Ponte
+    html = """<html><body><h1>SANKT PETERBURG I MOSKVA 30.12.2036.-06.01.2037. 8 DANA/ 7 NOćI</h1>
+    <p>Avionski prevoz letovima Turkish Airlines</p>
+    <p>Prices are in EUR per/person Polazak 30/12 Povratak 06/01 Noći Dana 7/8 Po osobi u dvokrevetnoj sobi 1,390.00 Single 1,390.00</p></body></html>"""
+    o = Ponte().parse(html, "https://www.ponte.rs/aranzmani/sankt-peterburg-30-12-2036/")[0]
+    assert (o.date_from, o.date_to, o.nights, o.price, o.transport) == ("2036-12-30", "2037-01-06", 7, 1390.0, "avion")
+    # isteklo: godina u naslovu je prošla, ne sme da dobije „sledeću godinu”
+    stari = html.replace("2036", "2020").replace("2037", "2021")
+    assert Ponte().parse(stari, "https://www.ponte.rs/aranzmani/x/") == []
+
+
+def test_plana_kartica():
+    from putovanja.scrapers.plana import Plana
+    html = """<article class="pt-hotel-card pt-travel-card"><div class="doledesno stiker-slika">129€</div>
+    <div class="pt-travel-card__dates"><div class="pt-travel-card__date"><span class="pt-travel-card__date-day">11</span>
+    <span class="pt-travel-card__date-month">NOV</span></div></div>
+    <h2><a href="/putovanja/evropa/madjarska/budimpesta-01.html">Budimpešta</a></h2>
+    <div class="pt-travel-card__destination">Mađarska</div>
+    <div class="dana-nocenja"><div class="dana">4</div><div class="nocenja">2</div></div>
+    <div class="pt-travel-card__transport"><img alt="autobusom"></div></article>"""
+    o = Plana().parse(html, "x")[0]
+    assert (o.title, o.nights, o.price, o.transport) == ("Budimpešta", 2, 129.0, "autobus")
+    assert o.url == "https://www.planatravel.rs/putovanja/evropa/madjarska/budimpesta-01.html"
+    assert o.date_from and o.date_from[5:] == "11-11"

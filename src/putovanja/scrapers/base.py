@@ -12,6 +12,8 @@ import requests
 from ..models import Offer
 
 USER_AGENT = "Mozilla/5.0 (putovanja-cli; licni planer putovanja)"
+SERVER = "https://putovanja.miljan-stankovic99.workers.dev"
+POSREDNIK = {"https://grandtours.rs/": f"{SERVER}/preuzmi/grandtours"}  # samo ovo, samo kad direktno dobije 403
 _robots_cache: dict[str, robotparser.RobotFileParser | None] = {}
 
 
@@ -42,6 +44,9 @@ def fetch(url: str, timeout: int = 30) -> str:
         raise BlockedByRobots(url)
     r = requests.get(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html,application/xhtml+xml,application/json;q=0.9,*/*;q=0.8",
                                     "Accept-Language": "sr,en;q=0.8"}, timeout=timeout)
+    if r.status_code == 403 and url in POSREDNIK:
+        # sajt odbija adrese ovog računara/servera: ista javna stranica preko našeg Workera
+        r = requests.get(POSREDNIK[url], headers={"User-Agent": USER_AGENT}, timeout=timeout)
     r.raise_for_status()
     r.encoding = r.apparent_encoding or r.encoding
     return r.text

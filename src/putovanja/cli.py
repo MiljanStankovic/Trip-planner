@@ -78,7 +78,7 @@ def cmd_scan(cfg: Config, args) -> int:
     if not args.json:
         for k, v in SKIPPED.items():
             console.print(f"[dim]{v}[/]")
-        console.print("[dim]Filip Travel, Ponte i Plana čita Claude komandom /putovanja:agencije[/]")
+        console.print("[dim]Filip Travel čita Claude komandom /putovanja:agencije[/]")
     _out(summary, args.json)
     return 0
 

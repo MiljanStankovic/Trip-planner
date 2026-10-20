@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.7.3';
+const VERZIJA = '0.7.4';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -415,6 +415,19 @@ export default {
       const st = await fajl('stanje.json');
       return new Response(`Putovanja ${VERZIJA}\nPonuda: ${st?.ponuda ?? '?'}, poslednji sken: ${st?.poslednji_sken ?? '?'}\nAdresa za Claude: ${url.origin}/mcp\n`,
         { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+    }
+    // Posrednik za dnevni sken: GitHub-ove adrese neki sajtovi odbijaju (403), Cloudflare-ove ne.
+    // Samo čita javnu početnu stranicu jedne agencije, jednom dnevno (keširano 6 h). Ništa drugo.
+    if (url.pathname === '/preuzmi/grandtours' && request.method === 'GET') {
+      const keš = caches.default, kljuc = new Request('https://putovanja.keš/grandtours');
+      let r = await keš.match(kljuc);
+      if (!r) {
+        const o = await fetch('https://grandtours.rs/', { headers: { 'user-agent': 'Mozilla/5.0 (putovanja; licni planer putovanja)', 'accept-language': 'sr,en;q=0.8' } });
+        if (!o.ok) return new Response(`grandtours.rs: ${o.status}`, { status: 502 });
+        r = new Response(await o.text(), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=21600' } });
+        await keš.put(kljuc, r.clone());
+      }
+      return r;
     }
     if (!url.pathname.startsWith('/mcp')) return new Response('Nema', { status: 404 });
     if (request.method === 'GET') return new Response(null, { status: 405, headers: { allow: 'POST' } });

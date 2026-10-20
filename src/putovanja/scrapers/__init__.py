@@ -12,6 +12,8 @@ from .bigblue import BigBlue
 from .felix import Felix
 from .fibula import Fibula
 from .grandtours import GrandTours
+from .plana import Plana
+from .ponte import Ponte
 from .halotours import HaloTours
 from .itravel import ITravel
 from .jumbo import Jumbo
@@ -23,7 +25,7 @@ from .travelland import Travelland
 
 SCRAPERS: dict[str, type[Scraper]] = {
     s.source: s for s in (Travelland, Argus, GrandTours, HaloTours, Belvi, Felix, Fibula, JungleTribe, Kontiki, BigBlue, Odeon,
-                     VivaTravel, Rapsody, ITravel, Jumbo)
+                     VivaTravel, Rapsody, ITravel, Jumbo, Ponte, Plana)
 }
 
 # Agencije koje čita Claude (WebFetch), ne Python.
@@ -36,8 +38,6 @@ CLAUDE_SOURCES = {
             "https://www.filiptravel.rs/sr/stranica/wellness-i-spa/",
         ],
     },
-    "ponte": {"name": "Ponte Travel", "pages": ["https://www.ponte.rs/"]},
-    "plana": {"name": "Plana Tours", "pages": ["https://www.planatours.rs/"]},
 }
 
 SKIPPED: dict[str, str] = {

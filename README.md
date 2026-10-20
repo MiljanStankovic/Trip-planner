@@ -147,7 +147,7 @@ Bez ključa sve radi; Claude komande koriste Trello MCP.
 | I Travel | `pt` | daleke destinacije, primer ponude po mesecu |
 | Jumbo Travel | `pt` | tropski paketi let + hotel, bez fiksnog datuma |
 | Play Travel | preskočeno | sajtu je istekao HTTPS sertifikat |
-| Filip Travel, Ponte, Plana Tours | Claude, samo kad pozoveš `/putovanja:agencije` ili `/putovanja:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
+| Filip Travel | Claude, samo kad pozoveš `/putovanja:agencije` ili `/putovanja:zemlja` | sajt odbija skripte ili cene učitava JavaScript; nisu u nedeljnom pregledu |
 
 Nova agencija: javi Claude-u link, ili napravi klasu sa `pages` i `parse()` u `src/putovanja/scrapers/` i dodaj je u `scrapers/__init__.py`.
 
