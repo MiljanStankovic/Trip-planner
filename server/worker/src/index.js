@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.7.1';
+const VERZIJA = '0.7.2';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -160,7 +160,10 @@ async function filtrirajSve(f = {}) {
   const kont = f.kontinent ? bezKvacica(f.kontinent) : '';
   const ag = f.agencija ? bezKvacica(f.agencija) : '';
   const datumi = (p) => (p.svi_datumi?.length ? p.svi_datumi : [p.date_from]).filter(Boolean);
-  const od = f.mesec ? `${f.mesec}-01` : f.od || '', doo = f.mesec ? `${f.mesec}-31` : f.do || '';
+  const danas = new Date().toISOString().slice(0, 10);
+  // prošli polasci ne trebaju nikome: početak najranije danas
+  const od0 = f.mesec ? `${f.mesec}-01` : f.od || '', doo = f.mesec ? `${f.mesec}-31` : f.do || '';
+  const od = od0 && od0 < danas ? danas : od0;
   const out = (sve ?? []).filter((p) => {
     if (reci.length) { const t = bezKvacica(`${p.naziv ?? ''} ${p.title ?? ''} ${p.destination ?? ''} ${p.zemlja ?? ''} ${p.agencija ?? ''}`); if (!reci.every((r) => t.includes(r))) return false; }
     if (zem.length && !zem.includes(bezKvacica(p.zemlja))) return false;
@@ -169,7 +172,7 @@ async function filtrirajSve(f = {}) {
     if (f.prevoz && p.transport !== f.prevoz) return false;
     if (od || doo) { const d = datumi(p); if (!d.some((x) => (!od || x >= od) && (!doo || x <= doo))) return false; }
     if (f.datum_po_izboru === true && p.date_from) return false;
-    if (f.dnevni_izlet === true && !(p.nights === 0 || IZLET.test(`${p.naziv ?? ''} ${p.title ?? ''}`))) return false;
+    if (f.dnevni_izlet === true && !(p.nights === 0 || (p.nights == null && IZLET.test(`${p.naziv ?? ''} ${p.title ?? ''}`)))) return false;
     if (f.noci_min != null && !(p.nights >= f.noci_min)) return false;
     if (f.noci_max != null && !(p.nights != null && p.nights <= f.noci_max)) return false;
     const e = evra(p);
