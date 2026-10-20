@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.6.6';
+const VERZIJA = '0.7.0';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -22,6 +22,8 @@ const UPUTSTVO =
   'otvori_putovanja (sa zemljom ako je navedena). Prozor je cela aplikacija: korisnik u njemu sam bira zemlje, ' +
   'otvara ponude i prati cene. Za pitanja o jednoj ponudi koristi detalji_ponude umesto pretrage weba. ' +
   'Ponude se osvežavaju svako jutro. Odgovaraj kratko, srpskom latinicom. ' +
+  'Kad je prozor otvoren, ti i korisnik ga koristite zajedno: sta_vidim kaže šta gleda (pozovi ga kad kaže „ova ponuda”, „ovde” ili pita o ekranu), ' +
+  'a pokazi_u_putovanjima menja prikaz u istom prozoru (zemlja, pretraga, ponuda, filteri, kalendar) umesto da otvaraš novi. ' +
   'Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Da pano prati isto što i telefon: u Claude Code otkucaj /putovanja adresa <adresa konektora>. Ako je korisnik u poruci dao svoju adresu konektora, napiši mu tu komandu sa njegovom adresom, spremnu za kopiranje; ako nije, reci da adresu nađe u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor.';
 
 const ALATI = [
@@ -46,6 +48,26 @@ const ALATI = [
     description: 'Ponude se skeniraju automatski svako jutro; ovo vraća kada je bio poslednji sken.',
     inputSchema: { type: 'object', properties: {} },
     _meta: { ui: { visibility: ['model', 'app'] } },
+  },
+  {
+    name: 'sta_vidim',
+    title: 'Šta je otvoreno u Putovanjima',
+    description: 'Šta korisnik upravo gleda u otvorenom prozoru Putovanja: odeljak, izabrana zemlja ili pretraga, filteri, ponude na ekranu (sa id) i otvorena ponuda. ' +
+      'Pozovi pre odgovora kad korisnik kaže „ova ponuda”, „ovde”, „ovo što gledam” ili pita nešto o onome što je na ekranu.',
+    inputSchema: { type: 'object', properties: {} },
+    annotations: { readOnlyHint: true },
+  },
+  {
+    name: 'pokazi_u_putovanjima',
+    title: 'Pokaži u Putovanjima',
+    description: 'Upravlja već otvorenim prozorom Putovanja: korisnik vidi promenu odmah. Koristi kad traži da mu nađeš, pokažeš, otvoriš ili sortiraš nešto, ' +
+      'a prozor je otvoren (sta_vidim kaže aktivan). Ako prozor nije otvoren, pozovi otvori_putovanja. Sva polja su opciona: ' +
+      'zemlja (npr. "Španija"), kontinent ("Evropa"), pretraga (mesto, hotel, agencija), ponuda_id (otvara ponudu), odeljak (ponude | kalendar | praceno | uradisam), ' +
+      'mesec ("2026-11": u kalendaru taj mesec, u ponudama filter), sort (preporuka | cena | datum | popust), prevoz (avion | autobus | sopstveni | brod | voz | "" za sve), putnici ("2+0", "2+1", "1+0"…).',
+    inputSchema: { type: 'object', properties: {
+      zemlja: { type: 'string' }, kontinent: { type: 'string' }, pretraga: { type: 'string' }, ponuda_id: { type: 'string' },
+      odeljak: { type: 'string', enum: ['ponude', 'kalendar', 'praceno', 'uradisam'] }, mesec: { type: 'string' },
+      sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] }, prevoz: { type: 'string' }, putnici: { type: 'string' } } },
   },
   {
     name: 'putovanja_podaci',
@@ -184,6 +206,18 @@ async function podaciZaProzor(env, korisnik, komanda, a = []) {
     case 'stanje': return fajl('stanje.json');
     case 'popusti': return {};
     case 'uradisam': return [];
+    case 'vidim': {
+      if (!korisnik || !env.KV) return { ok: false };
+      const v = String(a[0] ?? '').slice(0, 6000);
+      await env.KV.put(`k:${korisnik}:vidim`, JSON.stringify({ ts: Date.now(), stanje: JSON.parse(v || '{}') }), { expirationTtl: 172800 });
+      return { ok: true };
+    }
+    case 'naredba': {
+      if (!korisnik || !env.KV) return { ts: 0 };
+      const n = await env.KV.get(`k:${korisnik}:naredba`, 'json');
+      const posle = Number(a[0] || 0);
+      return n && n.ts > posle ? n : { ts: n?.ts ?? 0 };
+    }
     case 'adresa': return { adresa: korisnik ? `${ADRESA_SAJTA}/mcp/${korisnik}` : null };
     case 'agencije': return { poruka: 'Sken radi automatski svako jutro.' };
     default: return { greska: `komanda ${komanda} nije podržana` };
@@ -205,6 +239,24 @@ async function pozoviAlat(env, korisnik, ime, a = {}) {
   }
   if (ime === 'detalji_ponude') return (await ponuda(String(a.id ?? ''), a.osoba)) ?? { greska: 'Nema te ponude.' };
   if (ime === 'skeniraj_agencije') return { skeniranje: SKEN, stanje: await fajl('stanje.json'), poruka: 'Sken radi automatski svako jutro.' };
+  if (ime === 'sta_vidim') {
+    if (!korisnik || !env.KV) return { aktivan: false, poruka: 'Konektor je dodat bez lične adrese, pa ne vidim prozor. Pitaj korisnika šta gleda.' };
+    const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
+    if (!v) return { aktivan: false, poruka: 'Prozor Putovanja još nije otvoren. Otvori ga sa otvori_putovanja.' };
+    const pre = Math.round((Date.now() - v.ts) / 1000);
+    return { aktivan: pre < 120, pre_sekundi: pre, ...v.stanje, ...(pre >= 120 ? { poruka: 'Ovo je poslednje stanje; prozor se ne javlja više od 2 minuta (možda je zatvoren).' } : {}) };
+  }
+  if (ime === 'pokazi_u_putovanjima') {
+    if (!korisnik || !env.KV) return { poslato: false, poruka: 'Bez lične adrese ne mogu da upravljam prozorom. Pozovi otvori_putovanja.' };
+    const dozvoljeno = ['zemlja', 'kontinent', 'pretraga', 'ponuda_id', 'odeljak', 'mesec', 'sort', 'prevoz', 'putnici'];
+    const n = { ts: Date.now() };
+    for (const k of dozvoljeno) if (a[k] !== undefined && a[k] !== null) n[k] = String(a[k]).slice(0, 120);
+    await env.KV.put(`k:${korisnik}:naredba`, JSON.stringify(n), { expirationTtl: 3600 });
+    const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
+    const aktivan = v && Date.now() - v.ts < 120000;
+    return { poslato: true, prozor_aktivan: !!aktivan, naredba: n,
+      poruka: aktivan ? 'Poslato u otvoren prozor; promena se vidi za 2–3 sekunde. Posle možeš da pozoveš sta_vidim da proveriš.' : 'Prozor se ne javlja (možda nije otvoren): bolje pozovi otvori_putovanja.' };
+  }
   if (ime === 'putovanja_podaci') return { komanda: a.komanda, rezultat: await podaciZaProzor(env, korisnik, a.komanda, a.argumenti ?? []), skeniranje: SKEN };
   throw Object.assign(new Error(`Nepoznat alat: ${ime}`), { code: -32602 });
 }

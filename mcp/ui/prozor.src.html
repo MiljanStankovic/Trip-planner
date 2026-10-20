@@ -1067,6 +1067,79 @@ function crtajBocno() {
       <button class="malo" data-akcija="claude-code">Pokreni app u Claude Code</button>
     </div>`;
 }
+
+// ---------- zajedno sa Claude-om: on vidi šta je na ekranu i može da menja prikaz ----------
+function stanjeEkrana() {
+  const n = putnici(S.putnici);
+  const st = { uredjaj: mob() ? 'telefon' : 'veliki ekran', prikaz: S.prikaz, odeljak: S.odeljak,
+    putnici: PUTNICI.find(([v]) => v === S.putnici)?.[1] ?? S.putnici };
+  if (S.odeljak === 'ponude' && !S.ponuda) {
+    st.izbor = S.pretraga ? `pretraga „${S.pretraga}”` : S.zemlja ? (jeKont(S.zemlja) ? `kontinent ${imeIzbora(S.zemlja)}` : `zemlja ${S.zemlja}`) : 'preporučeno';
+    st.filteri = { redosled: SORT.find(([v]) => v === S.sort)?.[1], prevoz: S.prevoz || 'svaki', kada: S.mesec || 'bilo kada' };
+    st.ukupno = TURE.length;
+    st.na_ekranu = TURE.slice(0, 12).map((t) => { const p = t.glavna; return { id: p.id, naziv: ime(p), zemlja: p.zemlja, agencija: p.agencija, polazak: p.date_from || 'po izboru',
+      noci: p.nights, prevoz: p.transport, cena_po_osobi: p.price ? iznos(p.price, p.currency) : 'na upit', polazaka: t.svi.length }; });
+  }
+  if (S.ponuda) { const p = S.ponuda; st.otvorena_ponuda = { id: p.id, naziv: ime(p), zemlja: p.zemlja, agencija: p.agencija, polazak: p.date_from || 'po izboru', noci: p.nights,
+    prevoz: p.transport, cena_po_osobi: p.price ? iznos(p.price, p.currency) : 'na upit', ukupno: p.ukupno?.ukupno_sa_preporucenim ? `${iznos(p.ukupno.ukupno_sa_preporucenim, p.ukupno.valuta ?? p.currency)} za ${n.ukupno}` : undefined, pratim: !!p.pratim, url: p.url }; }
+  if (S.odeljak === 'kalendar' && S.kal) st.kalendar = { mesec: S.kal.mesec, izabran_dan: S.kalDan, polazaka_tog_dana: (S.kal.dani?.[S.kalDan] ?? []).length };
+  if (S.odeljak === 'uradisam') st.uradi_sam = { ...S.diy };
+  if (S.odeljak === 'praceno') st.praceno = S.prac.slice(0, 10).map((p) => ({ id: p.id, naziv: ime(p), cena_sada: p.cena_sada }));
+  return st;
+}
+function tekstZaClaudea(st) {
+  const l = [`Korisnik ima otvoren prozor Putovanja (${st.uredjaj}${st.prikaz === 'fullscreen' ? ', preko celog ekrana' : ''}). Odeljak: ${st.odeljak}. Putnici: ${st.putnici}.`];
+  if (st.izbor) l.push(`Lista: ${st.izbor}, ${st.ukupno} aranžmana; redosled ${st.filteri.redosled}, prevoz ${st.filteri.prevoz}, kada ${st.filteri.kada}.`,
+    ...st.na_ekranu.map((p, i) => `${i + 1}. ${p.naziv} (${p.zemlja}, ${p.agencija}), polazak ${p.polazak}${p.noci != null ? `, ${p.noci} noći` : ''}, ${p.cena_po_osobi} po osobi [id ${p.id}]`));
+  if (st.otvorena_ponuda) { const p = st.otvorena_ponuda; l.push(`Otvorena ponuda: ${p.naziv} (${p.zemlja}, ${p.agencija}), polazak ${p.polazak}, ${p.cena_po_osobi} po osobi${p.ukupno ? `, ukupno ${p.ukupno}` : ''} [id ${p.id}].`); }
+  if (st.kalendar) l.push(`Kalendar: ${st.kalendar.mesec}, izabran dan ${st.kalendar.izabran_dan} (${st.kalendar.polazaka_tog_dana} polazaka).`);
+  l.push('Za promenu prikaza koristi pokazi_u_putovanjima; detalje ponude daje detalji_ponude.');
+  return l.join('\n');
+}
+let poslednjeStanje = '', tajmerStanja = null;
+function prijaviStanje() {
+  clearTimeout(tajmerStanja);
+  tajmerStanja = setTimeout(() => {
+    if (S.ucitava) return prijaviStanje();
+    const st = stanjeEkrana(), j = JSON.stringify(st);
+    if (j === poslednjeStanje) return;
+    poslednjeStanje = j;
+    pt('vidim', j).catch(() => {});
+    try { app.updateModelContext({ content: [{ type: 'text', text: tekstZaClaudea(st) }] }).catch(() => {}); } catch {}
+  }, 700);
+}
+let poslednjaNaredba = null;
+async function proveriNaredbe() {
+  if (document.hidden) return;
+  let n = null;
+  try { n = await pt('naredba', poslednjaNaredba ?? 0); } catch { return; }
+  if (!n) return;
+  if (poslednjaNaredba === null) { poslednjaNaredba = n.ts || 0; return; } // stare naredbe se ne izvršavaju
+  if (!n.ts || n.ts <= poslednjaNaredba) return;
+  poslednjaNaredba = n.ts;
+  await primeniNaredbu(n);
+}
+async function primeniNaredbu(n) {
+  zatvoriMeni?.();
+  if (n.putnici && PUTNICI.some(([v]) => v === n.putnici)) { S.putnici = n.putnici; sacuvaj('putnici', n.putnici); }
+  if (n.sort && SORT.some(([v]) => v === n.sort)) S.sort = n.sort;
+  if (n.prevoz !== undefined) S.prevoz = n.prevoz === 'svaki' ? '' : n.prevoz;
+  if (n.odeljak === 'kalendar') return otvoriKalendar(n.mesec || undefined);
+  if (n.odeljak === 'praceno') return otvoriPraceno();
+  if (n.odeljak === 'uradisam') return otvoriDiy();
+  if (n.pretraga) { $('trazi').value = n.pretraga; S.odeljak = 'ponude'; await trazi(n.pretraga); }
+  else if (n.zemlja || n.kontinent) await otvoriZemlju(n.kontinent ? '@' + (Object.keys(S.zemlje ?? {}).find((k) => k.toLowerCase() === n.kontinent.toLowerCase()) ?? n.kontinent)
+      : (Object.values(S.zemlje ?? {}).flatMap((z) => Object.keys(z)).find((z) => z.toLowerCase() === n.zemlja.toLowerCase()) ?? n.zemlja));
+  else if (n.odeljak === 'ponude') { S.odeljak = 'ponude'; S.ponuda = null; }
+  if (n.mesec && n.odeljak !== 'kalendar') S.mesec = n.mesec;
+  if (n.ponuda_id) {
+    S.odeljak = 'ponude';
+    const p = S.lista.find((x) => x.id === n.ponuda_id || x.id.startsWith(n.ponuda_id));
+    if (p) return otvoriPonudu(p);
+    try { const d = await pt('ponuda', n.ponuda_id); if (d && d.id) return otvoriPonudu(d); } catch {}
+  }
+  S.strana = 0; S.koliko = 8; naVrh(); crtaj();
+}
 let posmatrac = null;
 function beskonacno() {
   posmatrac?.disconnect();
@@ -1103,6 +1176,7 @@ function crtaj() {
   $('sadrzaj').innerHTML = (S.greska ? `<div class="poruka">${esc(S.greska)}</div>` : '') + (S.ucitava && !(S.odeljak === 'ponude' && !S.ponuda) ? `<div class="oznaka" style="margin-top:10px">${esc(S.ucitava)}</div>` : '') + telo;
   if (lista) { $('naslov').hidden = !!S.sveZemlje && !siroko(); $('naslov').innerHTML = naslovListe(TURE.length); }
   beskonacno();
+  prijaviStanje();
 }
 function idiNa(v) {
   S.strana = 0;
@@ -1237,6 +1311,9 @@ tema(app.getHostContext());
 crtaj();
 // odmah preko celog prozora, ako Claude to dozvoljava; ako ne, ostaje u razgovoru
 if (S.modovi.includes('fullscreen') && S.prikaz !== 'fullscreen') promeniPrikaz('fullscreen');
+// Claude može da menja prikaz dok je prozor otvoren (naredbe stižu preko servera)
+setInterval(proveriNaredbe, 3000);
+proveriNaredbe();
 }
 </script>
 </body>

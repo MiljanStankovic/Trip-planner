@@ -292,3 +292,22 @@ test('/putovanja adresa <adresa>: pano posle čita sa lične adrese; pogrešna a
   expect(adrese.every(a => a.endsWith('/mcp/mojkod12345678'))).toBe(true)
   await ui.unmount()
 })
+
+test('Claude vidi pano i menja ga: pano_stanje i pano_prikazi', async ($, on) => {
+  mock.store(on)
+  obe(on, async (_$: any, e: any) => ok(e.argv))
+  on('ui.open', async () => ({ value: { isPlaced: true } }) as any)
+  await $.command.run({ command: 'putovanja', args: '' } as any)
+  const ui = await $.ui.mount({ plugin: 'putovanja', surface: 'terminal', ...PANE })
+  await ui.advance(50)
+  const a = await $.tool.call({ tool: 'mcp__putovanja__pano_stanje' } as any) as any
+  expect(String(a.text ?? JSON.stringify(a.result))).toContain('preporučeno')
+  const b = await $.tool.call({ tool: 'mcp__putovanja__pano_prikazi', zemlja: 'tajland' } as any) as any
+  const tb = String(b.text ?? JSON.stringify(b.result))
+  expect(tb).toContain('Tajland')
+  await ui.advance(50)
+  expect(await ui.find({ key: `b1-${PONUDA.id}` })).toBeDefined()
+  const c = await $.tool.call({ tool: 'mcp__putovanja__pano_prikazi', ponuda_id: PONUDA.id } as any) as any
+  expect(String(c.text ?? JSON.stringify(c.result))).toContain('Otvorena ponuda')
+  await ui.unmount()
+})

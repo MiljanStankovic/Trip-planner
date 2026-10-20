@@ -571,6 +571,52 @@ function pitaj($: any, text: string) {
   void $.prompt.submit({ text })
 }
 
+
+// ---------- Claude u Claude Code-u vidi pano i može da ga menja ----------
+
+async function stanjePanoa($: any): Promise<Record<string, unknown>> {
+  const n = await read($, nav)
+  const os = putnici(n.putnici).ukupno
+  const st: Record<string, unknown> = { pano_otvoren: true, prikaz: n.view, putnici: putnici(n.putnici).tekst }
+  const kratko = (p: Ponuda) => ({ id: p.id, naziv: ime(p), zemlja: p.zemlja, agencija: p.agencija, polazak: p.date_from ?? 'po izboru',
+    noci: p.nights, prevoz: p.transport, cena_po_osobi: p.price ? cena(p) : 'na upit' })
+  if (n.view === 'zemlja' || n.view === 'pocetna' || n.view === 'kontinent') {
+    const l = n.view === 'zemlja' ? await read($, lista) : await read($, top)
+    st.izbor = n.view === 'zemlja' ? `zemlja ${n.zemlja}` : 'preporučeno'
+    st.redosled = n.sort
+    st.ukupno = l.length
+    st.na_ekranu = grupisi(l, n.sort).slice(0, 12).map(t => ({ ...kratko(t.glavna), polazaka: t.svi.length }))
+  }
+  if (n.view === 'ponuda') {
+    const p = await read($, ponuda)
+    if (p) st.otvorena_ponuda = { ...kratko(p), url: p.url, pratim: !!p.pratim, ukupno_za_putnike: p.ukupno?.ukupno_sa_preporucenim ? `${Math.round(p.ukupno.ukupno_sa_preporucenim)} ${p.currency === 'RSD' ? 'din' : '€'} za ${os}` : undefined }
+  }
+  if (n.view === 'kalendar') { const k = await read($, kal); if (k) st.kalendar = { mesec: k.mesec, dana_sa_polascima: Object.keys(k.dani ?? {}).length } }
+  return st
+}
+
+async function prikaziUPanou($: any, a: Record<string, string | undefined>): Promise<string> {
+  if (a.putnici && /^\d\+\d$/.test(a.putnici)) await update($, nav, x => ({ ...x, putnici: a.putnici as string }))
+  if (a.sort && ['preporuka', 'cena', 'datum', 'popust'].includes(a.sort)) await update($, nav, x => ({ ...x, sort: a.sort as Nav['sort'], strana: 0 }))
+  if (a.odeljak === 'kalendar') { await otvoriKalendar($, a.mesec); return 'Otvoren kalendar.' }
+  if (a.odeljak === 'praceno') { await otvoriPracenje($); return 'Otvoreno praćeno.' }
+  if (a.odeljak === 'uradisam') { await otvoriDiy($, a.zemlja ? { kuda: a.zemlja } : undefined); return 'Otvoreno Uradi sam.' }
+  if (a.ponuda_id) {
+    const p = (await read($, lista)).find(x => x.id.startsWith(a.ponuda_id as string)) ?? (await read($, top)).find(x => x.id.startsWith(a.ponuda_id as string))
+      ?? ((await pt($, ['ponuda', a.ponuda_id])) as Ponuda | null)
+    if (p?.id) { await otvoriPonudu($, p); return `Otvorena ponuda ${ime(p)}.` }
+    return 'Nema te ponude.'
+  }
+  if (a.zemlja) {
+    const z = await read($, zemlje)
+    const ime_ = Object.values(z).flatMap(c => Object.keys(c)).find(x => x.toLowerCase() === (a.zemlja as string).toLowerCase()) ?? a.zemlja
+    await otvoriZemlju($, ime_)
+    return `Otvorena zemlja ${ime_}.`
+  }
+  if (a.odeljak === 'ponude') { await idiNa($, { view: 'pocetna' }); return 'Otvorene preporuke.' }
+  return 'Promenjeno.'
+}
+
 // ---------- registracija ----------
 
 let VISINA = 0 // poslednja poznata visina terminala (redovi), za pano od 3/5 ekrana
@@ -584,7 +630,29 @@ export const register: Register = (on, options) => {
       description: 'Otvori Putovanja: ponude agencija po zemljama, kalendar, praćenje cena i Uradi sam (prevoz + smeštaj).',
       argumentHint: '[zemlja | adresa <adresa konektora>]',
     })
+    try {
+      await $.tool.register({
+        name: 'pano_stanje', isDeferred: false,
+        description: 'Šta korisnik upravo gleda u panou Putovanja (Claude Code): prikaz, izabrana zemlja, redosled, ponude na ekranu sa id i otvorena ponuda. ' +
+          'Pozovi kad kaže „ova ponuda”, „ovde”, „ovo što gledam” ili pita o onome što je u panou.',
+        inputSchema: { type: 'object', properties: {} },
+      })
+      await $.tool.register({
+        name: 'pano_prikazi', isDeferred: false,
+        description: 'Menja prikaz u panou Putovanja, korisnik odmah vidi promenu: zemlja (npr. "Španija"), ponuda_id (otvara ponudu), ' +
+          'odeljak (ponude | kalendar | praceno | uradisam), mesec ("2026-11" za kalendar), sort (preporuka | cena | datum | popust), putnici ("2+0", "2+1"…). ' +
+          'Koristi kad traži da mu nađeš, pokažeš ili otvoriš nešto u Putovanjima dok je pano otvoren.',
+        inputSchema: { type: 'object', properties: { zemlja: { type: 'string' }, ponuda_id: { type: 'string' }, odeljak: { type: 'string', enum: ['ponude', 'kalendar', 'praceno', 'uradisam'] },
+          mesec: { type: 'string' }, sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] }, putnici: { type: 'string' } } },
+      })
+    } catch { /* starija verzija Claude Code-a: bez alata */ }
     return next(e)
+  })
+
+  on('tool.call', { tool: 'mcp__putovanja__pano_stanje' } as any, async ($: any) => ({ result: JSON.stringify(await stanjePanoa($), null, 1) }) as any)
+  on('tool.call', { tool: 'mcp__putovanja__pano_prikazi' } as any, async ($: any, e: any) => {
+    const poruka = await prikaziUPanou($, e as Record<string, string | undefined>)
+    return { result: JSON.stringify({ poruka, sada: await stanjePanoa($) }, null, 1) } as any
   })
 
   // /putovanja:pano je isti pano kao /putovanja, ali je i fajl u commands/, pa ga Claude aplikacija zna od starta
@@ -621,6 +689,7 @@ export const register: Register = (on, options) => {
       text: uPanou ? (args ? `Otvoren pano Putovanja: ${args}.` : 'Otvoren pano Putovanja.') : 'Putovanja',
       context: [
         'Korisnik je otvorio pano Putovanja (ponude domaćih turističkih agencija po kontinentima i zemljama, cene po osobi).',
+        'Ti i korisnik koristite pano zajedno: pano_stanje kaže šta gleda (pozovi ga kad kaže „ova ponuda” ili „ovde”), pano_prikazi menja prikaz (zemlja, ponuda, kalendar, redosled).',
         'Iz panoa stižu poruke kao "Uporedi ponudu <ID>" i "Uradi sam…". Radi ih po skillu putovanja-planer i uradi-sam;',
         'podaci: alat detalji_ponude iz konektora Putovanja ako je dodat, inače `pt --json ponuda <ID> --detalji` ako je alat instaliran,',
         'a ako nema ni jednog, pročitaj stranicu ponude (url) sa weba.',
