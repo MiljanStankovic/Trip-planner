@@ -235,7 +235,7 @@
   .siroko .alati { grid-template-columns: minmax(0, 1fr) minmax(260px, 420px); align-items: center; column-gap: 16px; }
   .siroko .alati .filteri { grid-column: 1 / -1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   @media (max-width: 1350px) { .siroko .padaj span { display: none; } .siroko .padaj select { padding-left: 14px; } }
-  .glavno > ol.lista, .glavno > ol.kartice { margin-top: 10px; }
+  .oblast > ol.lista, .oblast > ol.kartice { margin-top: 10px; }
   .pretraga { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 12px; border: 1px solid var(--l2); border-radius: 999px; background: var(--poz); }
   .pretraga:focus-within { border-color: var(--t2); }
   .pretraga svg { color: var(--t3); }
@@ -253,8 +253,8 @@
   .dest-dugme small { font-weight: 400; opacity: .75; }
   .filteri .brojac { margin-left: auto; color: var(--t3); font-size: 12.5px; white-space: nowrap; }
   .telo { flex: 1; min-height: 0; display: flex; }
-  .glavno { flex: 1; min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 14px calc(var(--dno, 0px) + 16px); }
-  body.puno .glavno { padding-bottom: calc(max(var(--dno, 0px), 56px) + 12px); }
+  .oblast { flex: 1; min-width: 0; overflow-y: auto; overscroll-behavior: contain; padding: 4px 14px calc(var(--dno, 0px) + 16px); }
+  body.puno .oblast { padding-bottom: calc(max(var(--dno, 0px), 56px) + 12px); }
   .bocno { position: static !important; flex: none; width: 236px; max-height: none !important; overflow-y: auto; padding: 12px 8px 16px 10px; border-right: 1px solid var(--l1); }
   .siroko .vrh { display: flex; }
   .naslov-liste { display: flex; align-items: baseline; gap: 8px; margin: 0; min-width: 0; }
@@ -276,12 +276,87 @@
   .app:not(.siroko) .padaj select { padding-left: 14px; }
   .mob .padaj select { padding-left: 14px; }
   .mob .filteri .brojac { display: none; }
-  .mob .glavno { padding: 0 10px calc(var(--dno, 0px) + 16px); }
-  body.puno.mob .glavno { padding-bottom: calc(max(var(--dno, 0px), 56px) + 12px); }
+  .mob .oblast { padding: 0 10px calc(var(--dno, 0px) + 16px); }
+  body.puno.mob .oblast { padding-bottom: calc(max(var(--dno, 0px), 56px) + 12px); }
   /* u razgovoru (ne preko celog ekrana) prozor ima stalnu visinu, a lista se skroluje u njemu */
   body:not(.ceo):not(.puno) .app { border: 1px solid var(--l1); border-radius: 12px; overflow: hidden; }
   body:not(.ceo):not(.puno) { --visina: 620px; }
   body.mob:not(.ceo):not(.puno) { --visina: 560px; }
+
+  /* ---------- kalendar ---------- */
+  .meseci { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 0 14px 2px; }
+  .meseci::-webkit-scrollbar { display: none; }
+  .mes { flex: none; display: grid; justify-items: center; min-width: 52px; padding: 5px 10px 4px; border: 1px solid var(--l1); border-radius: 12px; background: var(--poz); color: var(--t2); line-height: 1.15; }
+  .mes b { font-size: 14px; font-weight: 600; color: var(--t1); }
+  .mes small { font-size: 11.5px; color: var(--t3); font-variant-numeric: tabular-nums; }
+  .mes[aria-pressed="true"] { background: var(--t1); border-color: var(--t1); }
+  .mes[aria-pressed="true"] b, .mes[aria-pressed="true"] small { color: var(--poz); }
+  .mes:active, .kd:active, .link-red:active, .dugme:active, .cip:active { transform: scale(0.98); }
+  .kal { display: grid; gap: 18px; padding-top: 12px; }
+  .kal-dani, .kal-celije { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .kal-dani span { text-align: center; font-size: 11.5px; color: var(--t3); padding-bottom: 4px; }
+  .kal-dani .vikend { color: var(--t2); font-weight: 600; }
+  .kd { position: relative; display: grid; align-content: center; justify-items: center; gap: 3px; aspect-ratio: 1 / 1; max-height: 64px; width: 100%;
+    border: 1px solid transparent; border-radius: 10px; background: var(--poz); color: var(--t1); padding: 0; transition: transform .12s ease; }
+  .kd.prazan { background: transparent; }
+  .kd b { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .kd.vikend { background: var(--poz2); }
+  .kd:disabled { opacity: .38; cursor: default; background: transparent; }
+  .kd.danas b { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+  .kd.praznik::after { content: ''; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 50%; background: var(--upoz); }
+  .kd[aria-pressed="true"] { border-color: var(--t1); box-shadow: inset 0 0 0 1px var(--t1); }
+  .kd i, .kal-legenda i { font-style: normal; font-size: 10.5px; font-weight: 600; line-height: 1; padding: 2px 5px; border-radius: 999px; color: var(--t1); font-variant-numeric: tabular-nums; }
+  .n1 { background: color-mix(in srgb, var(--cena) 18%, transparent); }
+  .n2 { background: color-mix(in srgb, var(--cena) 34%, transparent); }
+  .n3 { background: color-mix(in srgb, var(--cena) 55%, transparent); }
+  .n4 { background: var(--cena); color: var(--poz) !important; }
+  .kal-legenda { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; color: var(--t3); }
+  .kal-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .kal-legenda i { width: 14px; height: 10px; padding: 0; display: inline-block; }
+  .kal-legenda i.pr { width: 6px; height: 6px; border-radius: 50%; background: var(--upoz); }
+  .kal-dan-zag { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; scroll-margin-top: 8px; }
+  .kal-dan-zag h3 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: -0.01em; }
+  .kal-dan-zag small { color: var(--t2); font-size: 13px; }
+  .siroko-dugme { display: flex; justify-content: center; width: 100%; min-height: 44px; align-items: center; margin-top: 12px; }
+  .kal-skelet { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding-top: 12px; }
+  .kal-skelet i { aspect-ratio: 1; max-height: 64px; border-radius: 10px; background: var(--poz); animation: puls 1.4s ease-in-out infinite; }
+  @keyframes puls { 50% { opacity: .45; } }
+  @media (prefers-reduced-motion: reduce) { .kal-skelet i { animation: none; } .kd, .mes, .link-red { transition: none; } }
+  body:not(.mob) .kal { grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); align-items: start; gap: 28px; }
+  body:not(.mob) .kal-mreza { position: sticky; top: 12px; }
+  body:not(.mob) .kal-dan ol.kartice { grid-template-columns: 1fr; }
+  .za-kalendar .naslov-liste { grid-column: 1 / -1; }
+
+  /* ---------- uradi sam ---------- */
+  .diy-forma { display: grid; gap: 12px; margin: 12px 0 18px; padding: 14px; border: 1px solid var(--l1); border-radius: 14px; background: var(--poz); }
+  .polje-red { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 8px; align-items: end; }
+  .polje-red.dva { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .polje { display: grid; gap: 4px; min-width: 0; }
+  .polje span { font-size: 12.5px; color: var(--t3); }
+  .polje input, .polje select { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--l2); border-radius: 10px; background: var(--poz2); color: var(--t1); font-size: 15px; }
+  .polje input:focus, .polje select:focus { outline: 2px solid var(--info); outline-offset: 0; border-color: transparent; }
+  .zameni { display: grid; place-items: center; width: 40px; height: 44px; border: 0; background: transparent; color: var(--t2); border-radius: 10px; }
+  .zameni:hover { background: var(--poz2); }
+  .diy-trazi { align-self: end; height: 44px; min-height: 44px; font-size: 15px; display: flex; align-items: center; justify-content: center; }
+  .diy-sazetak { margin: 0; color: var(--t2); font-size: 13px; }
+  .diy-blok { margin: 0 0 18px; }
+  .diy-blok h3 { font-size: 15px; font-weight: 650; margin: 0 0 8px; }
+  .link-lista { border: 1px solid var(--l1); border-radius: 12px; overflow: hidden; background: var(--poz); }
+  .link-red { display: grid; grid-template-columns: 22px minmax(0, 1fr) 16px; gap: 12px; align-items: center; width: 100%; min-height: 56px; padding: 8px 14px;
+    border: 0; border-bottom: 1px solid var(--l1); background: transparent; color: var(--t1); text-align: left; transition: transform .12s ease; }
+  .link-red:last-child { border-bottom: 0; }
+  .link-red:hover { background: var(--poz2); }
+  .link-red > svg:first-child { width: 22px; height: 22px; color: var(--t2); }
+  .link-red > svg:last-child { width: 16px; height: 16px; color: var(--t3); }
+  .link-red b { display: block; font-size: 14.5px; font-weight: 600; }
+  .link-red small { display: block; font-size: 12.5px; color: var(--t3); }
+  .diy-prazno { padding: 6px 2px 18px; }
+  .diy-prazno b { display: block; font-size: 19px; font-weight: 650; margin-bottom: 4px; }
+  .diy-prazno p { margin: 0 0 12px; color: var(--t2); max-width: 52ch; }
+  .diy-prazno .cip { min-height: 40px; padding: 0 14px; font-size: 14px; }
+  body:not(.mob) #sadrzaj:has(.diy-forma) > * { max-width: 760px; }
+  .put .ik svg, .kad svg.ik { width: 15px; height: 15px; vertical-align: -3px; }
+  .kartica .kad svg.ik { width: 14px; height: 14px; margin-right: 2px; }
 
   @media (max-width: 600px) {
     .red { grid-template-columns: 44px minmax(0, 1fr) auto; }
@@ -312,7 +387,7 @@
   </div>
   <div class="telo" id="telo">
     <aside class="bocno" id="bocno" hidden></aside>
-    <main class="glavno" id="sadrzaj"></main>
+    <main class="oblast" id="sadrzaj"></main>
   </div>
 </div>
 
@@ -326,7 +401,20 @@ const MES = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'avg', 'sep', 'okt
 const MES_PUNO = ['januar', 'februar', 'mart', 'april', 'maj', 'jun', 'jul', 'avgust', 'septembar', 'oktobar', 'novembar', 'decembar'];
 const DAN = ['ned', 'pon', 'uto', 'sre', 'čet', 'pet', 'sub'];
 const DAN_PUNO = ['nedelja', 'ponedeljak', 'utorak', 'sreda', 'četvrtak', 'petak', 'subota'];
-const PREVOZ = { avion: ['✈️', 'avion'], autobus: ['🚌', 'autobus'], sopstveni: ['🚗', 'sopstveni'], brod: ['🚢', 'brod'], voz: ['🚆', 'voz'] };
+const SVG = (d) => `<svg class="ik" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+const IK = {
+  avion: SVG('<path d="M10.5 13.5 4 12l-1 1.5 5.5 2.5 1.5 4.5 1.5-1-.5-5 5-4.5 3.5-.5c1-.2 1.5-1.4.8-2.1s-1.9-.2-2.1.8L18.2 11 13.5 16"/>'),
+  autobus: SVG('<rect x="4" y="3.5" width="16" height="14" rx="2.5"/><path d="M4 11h16M8 17.5V20M16 17.5V20"/><circle cx="8" cy="14.3" r=".9"/><circle cx="16" cy="14.3" r=".9"/>'),
+  sopstveni: SVG('<path d="M5 16V12l2-5h10l2 5v4M3.5 12h17M5 16h14v2.5H5z"/><circle cx="8" cy="14" r=".9"/><circle cx="16" cy="14" r=".9"/>'),
+  brod: SVG('<path d="M3 17c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 6 0M5 14l-1-4h16l-1 4M8 10V6h8v4M12 3v3"/>'),
+  voz: SVG('<rect x="6" y="3" width="12" height="14" rx="3"/><path d="M6 10h12M9 20l-1.5 1.5M15 20l1.5 1.5M9 17l-1 3h8l-1-3"/>'),
+  krevet: SVG('<path d="M3 18V7M21 18v-5a3 3 0 0 0-3-3h-8v6M3 15h18"/><circle cx="6.5" cy="11.5" r="1.8"/>'),
+  mapa: SVG('<path d="m9 4-6 2.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4zM9 4v13M15 6.5v13"/>'),
+  napolje: SVG('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  strelica: SVG('<path d="m9 6 6 6-6 6"/>'),
+  zamena: SVG('<path d="M7 7h12l-3-3M17 17H5l3 3"/>'),
+};
+const PREVOZ = { avion: [IK.avion, 'avion'], autobus: [IK.autobus, 'autobus'], sopstveni: [IK.sopstveni, 'sopstveni'], brod: [IK.brod, 'brod'], voz: [IK.voz, 'voz'] };
 const PUTNICI = [['1+0', '1 osoba'], ['2+0', '2 odrasla'], ['2+1', '2 + dete'], ['2+2', '2 + 2 dece'], ['3+0', '3 odrasla'], ['4+0', '4 odrasla']];
 const SORT = [['preporuka', 'Preporučeno'], ['cena', 'Najjeftinije'], ['datum', 'Najranije'], ['popust', 'Popust']];
 
@@ -483,7 +571,9 @@ async function otvoriDiy() {
   S.odeljak = 'uradisam';
   await radi('', async () => {
     S.diyLista = (await pt('uradisam', 'lista', ...(S.diy.kuda ? [S.diy.kuda] : []))) ?? [];
-    S.diyAg = S.diy.kuda ? ((await pt('zemlja', S.diy.kuda)) ?? []) : [];
+    let ag = [];
+    if (S.diy.kuda) { try { ag = await pt('pretraga', S.diy.kuda); } catch {} if (!Array.isArray(ag) || !ag.length) ag = (await pt('zemlja', S.diy.kuda)) ?? []; }
+    S.diyAg = ag;
   });
 }
 async function prati(p) {
@@ -647,24 +737,53 @@ function crtajPonudu() {
     ${d.greska ? `<div class="poruka">${esc(d.greska)}</div>` : ''}
     ${sekcije.filter(([k]) => d[k]).map(([k, nas], i) => `<details ${i === 0 && S.prikaz === 'fullscreen' ? 'open' : ''}><summary>${nas}</summary>${k === 'opis' ? `<p style="color:var(--t2);margin:6px 0 0">${esc(lin(d[k]).join(' ').slice(0, 500))}</p>` : `<ul>${lin(d[k]).slice(0, 12).map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`}</details>`).join('')}`;
 }
+// kalendar: mreža meseca (po danima, broj polazaka kao jačina tačke) i polasci izabranog dana
 function crtajKalendar() {
   const k = S.kal;
-  if (!k) return '<div class="prazno">Učitavam…</div>';
-  const dani = Object.entries(k.dani ?? {});
-  const ps = S.prikaz === 'fullscreen' ? 8 : 3, dokle = (S.strana + 1) * ps;
-  const mi = Number(k.mesec.slice(5)) - 1;
+  if (!k) return `<div class="kal-skelet">${'<i></i>'.repeat(35)}</div>`;
+  const [god, mes] = k.mesec.split('-').map(Number);
+  const prvi = new Date(god, mes - 1, 1), dana = new Date(god, mes, 0).getDate();
+  const pomak = (prvi.getDay() + 6) % 7; // ponedeljak prvi
+  const danas = new Date().toISOString().slice(0, 10);
+  const dani = k.dani ?? {};
+  const maks = Math.max(1, ...Object.values(dani).map((l) => l.length));
+  if (!S.kalDan || !S.kalDan.startsWith(k.mesec)) S.kalDan = Object.keys(dani).sort().find((d) => d >= danas) ?? Object.keys(dani).sort()[0] ?? '';
+  const celije = [];
+  for (let i = 0; i < pomak; i++) celije.push('<span class="kd prazan"></span>');
+  for (let d = 1; d <= dana; d++) {
+    const iso = `${k.mesec}-${String(d).padStart(2, '0')}`, n = dani[iso]?.length ?? 0;
+    const nivo = !n ? 0 : Math.min(4, Math.ceil((4 * n) / maks));
+    const vik = ((pomak + d - 1) % 7) >= 5;
+    celije.push(`<button class="kd${vik ? ' vikend' : ''}${iso === danas ? ' danas' : ''}${k.praznici?.[iso] ? ' praznik' : ''}" data-dan="${iso}" aria-pressed="${iso === S.kalDan}" ${n ? '' : 'disabled'}
+      aria-label="${d}. ${MES_PUNO[mes - 1]}${n ? `, ${polasci(n)}` : ', bez polazaka'}${k.praznici?.[iso] ? `, ${esc(k.praznici[iso])}` : ''}">
+      <b>${d}</b>${n ? `<i class="n${nivo}">${n}</i>` : ''}</button>`);
+  }
+  const l = [...(dani[S.kalDan] ?? [])].sort((a, b) => eur(a) - eur(b));
+  const dt = S.kalDan ? new Date(S.kalDan + 'T12:00:00') : null;
+  const n = putnici(S.putnici).ukupno;
+  TURE = l.map((p) => ({ glavna: p, svi: [p] }));
   return `
-    <div class="cipovi" id="meseci" style="margin:4px 0">${(k.meseci ?? []).map((m) => `<button class="cip" data-m="${m.mesec}" aria-pressed="${m.mesec === k.mesec}">${MES[Number(m.mesec.slice(5)) - 1]}<small>${m.broj}</small></button>`).join('')}</div>
-    <h2>${MES_PUNO[mi]} ${k.mesec.slice(0, 4)}<small>${dani.reduce((a, [, l]) => a + l.length, 0)} polazaka</small></h2>
-    ${Object.keys(k.praznici ?? {}).length ? `<div class="oznaka">Praznici: ${Object.entries(k.praznici).map(([d, x]) => `${kratakDatum(d)} ${esc(x)}`).join(', ')}</div>` : ''}
-    ${dani.slice(0, dokle).map(([d, l]) => {
-      const dt = new Date(d + 'T12:00:00');
-      return `<div class="dan-zag">${DAN_PUNO[dt.getDay()]} ${kratakDatum(d)}${k.praznici?.[d] ? ` · ${esc(k.praznici[d])}` : ''}<small>${l.length}</small></div>
-        ${l.slice(0, S.prikaz === 'fullscreen' ? 5 : 3).map((p, i) => `<div class="mini" data-kd="${d}" data-ki="${i}"><span>${esc(ime(p))} <span class="tiho">${esc(p.zemlja)}, ${esc(p.agencija)}</span></span><b>${iznos(p.price, p.currency) || 'na upit'}</b></div>`).join('')}
-        ${l.length > (S.prikaz === 'fullscreen' ? 5 : 3) ? `<div class="oznaka" style="padding:2px 6px">+${l.length - (S.prikaz === 'fullscreen' ? 5 : 3)} još tog dana</div>` : ''}`;
-    }).join('') || '<div class="prazno">Nema polazaka u ovom mesecu.</div>'}
-    ${dani.length > dokle ? `<button class="vise" data-akcija="vise-str">Prikaži još dana (${dani.length - dokle})</button>` : ''}
-    <div class="strane"><button class="malo" data-akcija="pitaj-mesec">Pitaj Claude-a za najbolje u ovom mesecu</button></div>`;
+    <div class="kal">
+      <div class="kal-mreza">
+        <div class="kal-dani">${['pon', 'uto', 'sre', 'čet', 'pet', 'sub', 'ned'].map((x, i) => `<span${i >= 5 ? ' class="vikend"' : ''}>${x}</span>`).join('')}</div>
+        <div class="kal-celije">${celije.join('')}</div>
+        <div class="kal-legenda"><span><i class="n1"></i>malo</span><span><i class="n4"></i>mnogo polazaka</span>${Object.keys(k.praznici ?? {}).length ? '<span><i class="pr"></i>praznik</span>' : ''}</div>
+      </div>
+      <div class="kal-dan">
+        ${dt ? `<div class="kal-dan-zag"><h3>${DAN_PUNO[dt.getDay()]}, ${dt.getDate()}. ${MES_PUNO[dt.getMonth()]}</h3><small>${polasci(l.length)}${k.praznici?.[S.kalDan] ? ` · ${esc(k.praznici[S.kalDan])}` : ''}</small></div>
+          <ol class="kartice">${l.map((p, i) => kartica({ glavna: p, svi: [p] }, i, n)).join('')}</ol>`
+        : '<div class="prazno">Ovog meseca nema polazaka. Izaberi drugi mesec gore.</div>'}
+        <button class="dugme siroko-dugme" data-akcija="pitaj-mesec">Pitaj Claude-a za najbolje polaske u ${MES_PUNO[mes - 1]}u</button>
+      </div>
+    </div>`;
+}
+function alatiKalendara() {
+  const k = S.kal; if (!k) return;
+  const ukupno = Object.values(k.dani ?? {}).reduce((a, l) => a + l.length, 0);
+  $('naslov').innerHTML = `<h2>${MES_PUNO[Number(k.mesec.slice(5)) - 1]} ${k.mesec.slice(0, 4)}</h2><small>${polasci(ukupno)}</small>`;
+  $('filteri').innerHTML = `<div class="meseci" id="meseci">${(k.meseci ?? []).filter((m) => m.broj).map((m) =>
+    `<button class="mes" data-m="${m.mesec}" aria-pressed="${m.mesec === k.mesec}"><b>${MES[Number(m.mesec.slice(5)) - 1]}</b><small>${m.broj}</small></button>`).join('')}</div>`;
+  requestAnimationFrame(() => document.querySelector('#meseci [aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' }));
 }
 function crtajPraceno() {
   const o = S.obav;
@@ -681,30 +800,62 @@ function crtajPraceno() {
         <span>${iz(p.cena_pocetna, p)} → <b>${iz(p.cena_sada, p)}</b>${pr ? ` <span style="color:${pr < 0 ? 'var(--ok)' : 'var(--upoz)'}">${pr < 0 ? '▼' : '▲'}${Math.abs(Math.round(pr))}</span>` : ''}</span></div>`;
     }).join('') : '<div class="prazno">Još ništa ne pratiš. Otvori ponudu i klikni „Prati cenu“.</div>'}`;
 }
+// uradi sam: forma (oznake iznad polja, pravi izbor datuma), pa prevoz i smeštaj kao spiskovi sa linkovima
+const isoDatum = (s) => {
+  if (!s) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = String(s).match(/^(\d{1,2})\.(\d{1,2})\.?(\d{4})?/); if (!m) return '';
+  const t = new Date(); const y = m[3] ? +m[3] : t.getFullYear();
+  const r = `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return !m[3] && r < t.toISOString().slice(0, 10) ? `${y + 1}${r.slice(4)}` : r;
+};
+const nociIzmedju = (a, b) => (a && b ? Math.round((new Date(b) - new Date(a)) / 864e5) : 0);
 function diyLinkovi(d) {
   const e = encodeURIComponent, od = d.odakle || 'Beograd', ku = d.kuda, n = putnici(S.putnici).ukupno;
-  const iso = (s) => { const m = (s || '').match(/^(\d{1,2})\.(\d{1,2})\.?(\d{4})?/); if (!m) return ''; const t = new Date(); let y = m[3] ? +m[3] : t.getFullYear(); const r = `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; return !m[3] && r < t.toISOString().slice(0, 10) ? `${y + 1}${r.slice(4)}` : r; };
-  const a = iso(d.od), b = iso(d.do);
+  const a = isoDatum(d.od), b = isoDatum(d.do);
   return {
-    prevoz: [['Avion · Google Flights', `https://www.google.com/travel/flights?q=${e(`Flights from ${od} to ${ku} on ${a} through ${b}`)}&hl=sr`], ['Svi prevozi · Rome2rio', `https://www.rome2rio.com/map/${e(od)}/${e(ku)}`], ['Autobus', `https://www.google.com/search?q=${e(`autobus ${od} ${ku} karte red vožnje`)}`], ['Autom · Google Maps', `https://www.google.com/maps/dir/?api=1&origin=${e(od)}&destination=${e(ku)}&travelmode=driving`]],
-    smestaj: [[`Booking · ${n} os.`, `https://www.booking.com/searchresults.html?ss=${e(ku)}&checkin=${a}&checkout=${b}&group_adults=${n}&no_rooms=1&lang=sr`], ['Airbnb', `https://www.airbnb.com/s/${e(ku)}/homes?checkin=${a}&checkout=${b}&adults=${n}`], ['Trivago', `https://www.trivago.rs/sr/srl?search=${e(ku)}`], ['Google hoteli', `https://www.google.com/travel/search?q=${e(`hoteli ${ku}`)}`]],
+    prevoz: [[IK.avion, 'Avion', 'Google Flights', `https://www.google.com/travel/flights?q=${e(`Flights from ${od} to ${ku} on ${a} through ${b}`)}&hl=sr`],
+      [IK.mapa, 'Sve opcije prevoza', 'Rome2rio', `https://www.rome2rio.com/map/${e(od)}/${e(ku)}`],
+      [IK.autobus, 'Autobus', 'red vožnje i karte', `https://www.google.com/search?q=${e(`autobus ${od} ${ku} karte red vožnje`)}`],
+      [IK.sopstveni, 'Kolima', 'Google Maps', `https://www.google.com/maps/dir/?api=1&origin=${e(od)}&destination=${e(ku)}&travelmode=driving`]],
+    smestaj: [[IK.krevet, 'Booking', `${n} ${n === 1 ? 'osoba' : 'osobe'}, ${a ? 'tvoji datumi' : 'bez datuma'}`, `https://www.booking.com/searchresults.html?ss=${e(ku)}&checkin=${a}&checkout=${b}&group_adults=${n}&no_rooms=1&lang=sr`],
+      [IK.krevet, 'Airbnb', 'stanovi i sobe', `https://www.airbnb.com/s/${e(ku)}/homes?checkin=${a}&checkout=${b}&adults=${n}`],
+      [IK.krevet, 'Trivago', 'poređenje hotela', `https://www.trivago.rs/sr/srl?search=${e(ku)}`],
+      [IK.mapa, 'Google hoteli', 'na mapi', `https://www.google.com/travel/search?q=${e(`hoteli ${ku}`)}`]],
   };
 }
+const PRIMERI = ['Lisabon', 'Budimpešta', 'Istanbul', 'Rim', 'Beč', 'Atina'];
 function crtajDiy() {
   const d = S.diy, l = d.kuda ? diyLinkovi(d) : null;
-  const ag = grupisi(S.diyAg, 'cena').slice(0, 4);
+  const a = isoDatum(d.od), b = isoDatum(d.do), nn = nociIzmedju(a, b), np = putnici(S.putnici);
+  const ag = grupisi(S.diyAg, 'cena').slice(0, 5);
+  const red = ([ik, naziv, opis, url]) => `<button class="link-red" data-url="${esc(url)}">${ik}<span><b>${esc(naziv)}</b><small>${esc(opis)}</small></span>${IK.napolje}</button>`;
   return `
-    <h2>Uradi sam<small>prevoz i smeštaj u sopstvenoj režiji</small></h2>
-    <form class="forma" id="diy-forma">
-      ${[['odakle', 'Odakle', 'Beograd'], ['kuda', 'Kuda', 'npr. Lisabon'], ['od', 'Od', '5.12.'], ['do', 'Do', '9.12.']].map(([k, lab, ph]) => `<label>${lab}<input name="${k}" value="${esc(d[k])}" placeholder="${ph}"></label>`).join('')}
-      <label>&nbsp;<button class="dugme glavno" style="width:100%">Prikaži</button></label>
+    <form class="diy-forma" id="diy-forma">
+      <div class="polje-red">
+        <label class="polje"><span>Odakle</span><input name="odakle" value="${esc(d.odakle)}" placeholder="Beograd" autocomplete="off"></label>
+        <button type="button" class="zameni" data-akcija="diy-zameni" aria-label="Zameni odakle i kuda">${IK.zamena}</button>
+        <label class="polje"><span>Kuda</span><input name="kuda" value="${esc(d.kuda)}" placeholder="npr. Lisabon" autocomplete="off" enterkeyhint="search"></label>
+      </div>
+      <div class="polje-red dva">
+        <label class="polje"><span>Polazak</span><input type="date" name="od" value="${a}"></label>
+        <label class="polje"><span>Povratak</span><input type="date" name="do" value="${b}" ${a ? `min="${a}"` : ''}></label>
+      </div>
+      <div class="polje-red dva">
+        <label class="polje"><span>Putnici</span><select name="putnici">${PUTNICI.map(([v, t]) => `<option value="${v}" ${v === S.putnici ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+        <button class="dugme glavno diy-trazi">Prikaži opcije</button>
+      </div>
+      ${nn > 0 ? `<p class="diy-sazetak">${noci(nn)}, ${np.ukupno} ${np.ukupno === 1 ? 'osoba' : 'osobe'}</p>` : ''}
     </form>
-    <div class="red-kontrola">${izborPutnika()}</div>
-    ${l ? `<div class="linkovi"><div><h3>Prevoz</h3>${l.prevoz.map(([n, u]) => `<button class="link" data-url="${esc(u)}">${esc(n)}</button>`).join('')}</div>
-      <div><h3>Smeštaj</h3>${l.smestaj.map(([n, u]) => `<button class="link" data-url="${esc(u)}">${esc(n)}</button>`).join('')}</div></div>
-      <div class="akcije"><button class="dugme glavno" data-akcija="diy-pitaj">Neka Claude nađe 2–3 kombinacije</button></div>` : '<div class="prazno">Upiši kuda i datume, pa dobijaš linkove za avion, autobus i smeštaj.</div>'}
-    ${ag.length ? `<h2>Agencije za ${esc(d.kuda)}<small>za poređenje</small></h2>${ag.map((t, i) => `<div class="mini" data-dg="${i}"><span>${esc(ime(t.glavna))} <span class="tiho">${esc(t.glavna.agencija)}, ${kratakDatum(t.glavna.date_from)}</span></span><b>${iznos(t.glavna.price, t.glavna.currency) || 'na upit'}</b></div>`).join('')}` : ''}
-    ${S.diyLista.length ? `<h2>Sačuvane kombinacije</h2>${S.diyLista.map((k) => `<div class="mini"><span>${esc(k.naslov || k.kuda)} <span class="tiho">${esc(k.od || '')}–${esc(k.do || '')}</span></span><b>${iznos(k.po_osobi, 'EUR')} / os.</b></div>`).join('')}` : ''}`;
+    ${l ? `
+      <section class="diy-blok"><h3>Prevoz do ${esc(d.kuda)}</h3><div class="link-lista">${l.prevoz.map(red).join('')}</div></section>
+      <section class="diy-blok"><h3>Smeštaj u ${esc(d.kuda)}</h3><div class="link-lista">${l.smestaj.map(red).join('')}</div></section>
+      <button class="dugme glavno siroko-dugme" data-akcija="diy-pitaj">Neka Claude složi 2–3 kombinacije sa cenom</button>
+      ${ag.length ? `<section class="diy-blok"><h3>Ili preko agencije</h3><p class="oznaka">Gotovi aranžmani za poređenje cene.</p>
+        <ol class="kartice">${ag.map((t, i) => kartica(t, i, np.ukupno).replace('class="kartica"', `class="kartica" data-dg="${i}"`)).join('')}</ol></section>` : ''}`
+    : `<div class="diy-prazno"><b>Gde ideš?</b><p>Upiši grad i datume. Dobijaš linkove za let, autobus i smeštaj sa tvojim datumima, a Claude može da složi kombinacije i uporedi ih sa agencijama.</p>
+        <div class="cipovi">${PRIMERI.map((g) => `<button class="cip" data-primer="${g}">${g}</button>`).join('')}</div></div>`}
+    ${S.diyLista.length ? `<section class="diy-blok"><h3>Sačuvane kombinacije</h3>${S.diyLista.map((k) => `<div class="mini"><span>${esc(k.naslov || k.kuda)} <span class="tiho">${esc(k.od || '')}–${esc(k.do || '')}</span></span><b>${iznos(k.po_osobi, 'EUR')} / os.</b></div>`).join('')}</section>` : ''}`;
 }
 function crtajIzvore() {
   const iz = S.izvori, st = S.stanje;
@@ -756,11 +907,14 @@ function crtaj() {
   document.body.classList.toggle('mob', mob());
   document.body.classList.toggle('ceo', S.prikaz === 'fullscreen');
   document.body.classList.toggle('puno', puno());
-  const sir = siroko(), lista = S.odeljak === 'ponude' && !S.ponuda;
+  const sir = siroko(), lista = S.odeljak === 'ponude' && !S.ponuda, kalendar = S.odeljak === 'kalendar' && !!S.kal;
   $('app').classList.toggle('siroko', sir);
   $('bocno').hidden = !(sir && S.odeljak === 'ponude');
   if (!$('bocno').hidden) $('bocno').innerHTML = crtajBocno();
-  $('alati').hidden = !lista;
+  $('alati').hidden = !(lista || kalendar);
+  $('alati').classList.toggle('za-kalendar', kalendar);
+  document.querySelector('.pretraga').hidden = !lista;
+  if (kalendar) { $('naslov').hidden = false; alatiKalendara(); }
   if (lista) { $('filteri').innerHTML = crtajFiltere(); $('obrisi').hidden = !$('trazi').value; }
   const novo = (S.obav?.ukupno ?? 0);
   $('tabovi').innerHTML = ODELJCI.map(([v, l]) => `<button class="tab" data-v="${v}" aria-current="${v === S.odeljak ? 'page' : 'false'}">${ikona(v)}${l}${v === 'praceno' && novo ? `<span class="broj">${novo}</span>` : ''}</button>`).join('');
@@ -810,7 +964,8 @@ $('naslov').addEventListener('click', (e) => {
   if (a === 'ocisti-pretragu') { $('trazi').value = ''; trazi(''); }
   if (a === 'ocisti-filtere') { S.prevoz = ''; S.mesec = ''; S.strana = 0; S.koliko = 8; crtaj(); }
 });
-$('filteri').addEventListener('click', (e) => { if (e.target.closest('[data-akcija="sve-zemlje"]')) { S.sveZemlje = !S.sveZemlje; naVrh(); crtaj(); } });
+$('filteri').addEventListener('click', (e) => {
+  const m = e.target.closest('[data-m]'); if (m) return otvoriKalendar(m.dataset.m); if (e.target.closest('[data-akcija="sve-zemlje"]')) { S.sveZemlje = !S.sveZemlje; naVrh(); crtaj(); } });
 window.addEventListener('resize', () => crtaj());
 // okretanje tableta: odmah drugi raspored
 try { screen.orientation?.addEventListener('change', () => setTimeout(crtaj, 50)); } catch {}
@@ -824,12 +979,13 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (b('[data-s]')) { S.sort = b('[data-s]').dataset.s; S.strana = 0; S.koliko = 8; return crtaj(); }
   if (b('[data-p]')) { S.putnici = b('[data-p]').dataset.p; sacuvaj('putnici', S.putnici); if (S.ponuda?.ucitano) return otvoriPonudu(S.ponuda); return crtaj(); }
   if (b('.red')) return otvoriPonudu(TURE[Number(b('.red').dataset.i)].glavna);
-  if (b('.kartica')) return otvoriPonudu(TURE[Number(b('.kartica').dataset.i)].glavna);
+  if (b('[data-dg]')) { const tt = grupisi(S.diyAg, 'cena'); S.odeljak = 'ponude'; return otvoriPonudu(tt[Number(b('[data-dg]').dataset.dg)].glavna); }
+  if (b('.kartica')) { const t = TURE[Number(b('.kartica').dataset.i)]; if (S.odeljak !== 'ponude') S.odeljak = 'ponude'; return otvoriPonudu(t.glavna); }
   if (b('[data-t]')) { const ts = termini(S.ponuda).sort((a, c) => (a.datum ?? '9999').localeCompare(c.datum ?? '9999')); const x = ts[Number(b('[data-t]').dataset.t)]; return otvoriPonudu({ ...S.ponuda, id: x.id, date_from: x.datum, price: x.cena, old_price: x.stara, currency: x.valuta }); }
-  if (b('[data-m]')) return otvoriKalendar(b('[data-m]').dataset.m);
+  if (b('[data-dan]')) { S.kalDan = b('[data-dan]').dataset.dan; crtaj(); document.querySelector('.kal-dan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (b('[data-primer]')) { S.diy = { ...S.diy, kuda: b('[data-primer]').dataset.primer }; sacuvaj('diy', S.diy); return otvoriDiy(); }
   if (b('[data-kd]')) { const el = b('[data-kd]'); S.odeljak = 'ponude'; return otvoriPonudu(S.kal.dani[el.dataset.kd][Number(el.dataset.ki)]); }
   if (b('[data-pr]')) { const el = b('[data-pr]'); const izv = { prac: S.prac, padovi: S.obav?.padovi, nove: S.obav?.nove_po_zeljama }[el.dataset.izvor]; S.odeljak = 'ponude'; return otvoriPonudu(izv[Number(el.dataset.pr)]); }
-  if (b('[data-dg]')) { const tt = grupisi(S.diyAg, 'cena'); S.odeljak = 'ponude'; return otvoriPonudu(tt[Number(b('[data-dg]').dataset.dg)].glavna); }
   if (b('[data-url]')) return link(b('[data-url]').dataset.url);
   const a = b('[data-akcija]')?.dataset.akcija; if (!a) return;
   const p = S.ponuda, n = putnici(S.putnici);
@@ -844,9 +1000,10 @@ $('sadrzaj').addEventListener('click', (e) => {
   if (a === 'prati') return prati(p);
   if (a === 'sajt') return link(p.url);
   if (a === 'pitaj') return pitaj(`Šta misliš o ponudi „${ime(p)}“ (${p.agencija}, polazak ${p.date_from ?? 'po izboru'}, ${iznos(p.price, p.currency) || 'cena na upit'} po osobi)? Nas je ${n.ukupno}${n.deca ? `, od toga ${n.deca} dece` : ''}. Detalji: detalji_ponude id ${p.id}.`);
-  if (a === 'diy') { S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od: kratakDatum(p.date_from) }; sacuvaj('diy', S.diy); return otvoriDiy(); }
+  if (a === 'diy') { const od = p.date_from || ''; const doo = od && p.nights ? new Date(new Date(od + 'T12:00:00').getTime() + p.nights * 864e5).toISOString().slice(0, 10) : ''; S.diy = { ...S.diy, kuda: (ime(p).split(/[,–-]/)[0] || p.zemlja).trim(), od, do: doo }; sacuvaj('diy', S.diy); return otvoriDiy(); }
+  if (a === 'diy-zameni') { const f = $('diy-forma'); const x = f.odakle.value; f.odakle.value = f.kuda.value; f.kuda.value = x; return; }
   if (a === 'claude-code') return pitajZaClaudeCode();
-  if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${S.diy.od}–${S.diy.do}, ${n.ukupno} osobe. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
+  if (a === 'diy-pitaj') return pitaj(`Uradi sam: ${S.diy.odakle} → ${S.diy.kuda}, ${kratakDatum(isoDatum(S.diy.od)) || 'datum otvoren'}–${kratakDatum(isoDatum(S.diy.do)) || ''}, ${n.ukupno} ${n.ukupno === 1 ? 'osoba' : 'osobe'}. Nađi 2–3 kombinacije prevoz + smeštaj sa cenom po osobi i uporedi sa agencijama.`);
   if (a === 'pitaj-mesec') return pitaj(`Pogledaj polaske za ${MES_PUNO[Number(S.kal.mesec.slice(5)) - 1]} (kalendar u Putovanjima) i predloži 3 najbolje opcije za vikend ili praznik, sa cenom po osobi i ukupno za ${n.ukupno}.`);
   if (a === 'sken') return skeniraj();
 });
@@ -854,6 +1011,8 @@ $('sadrzaj').addEventListener('submit', (e) => {
   e.preventDefault();
   const f = new FormData(e.target);
   S.diy = { odakle: f.get('odakle') || 'Beograd', kuda: String(f.get('kuda') || '').trim(), od: f.get('od'), do: f.get('do') };
+  if (f.get('putnici')) { S.putnici = f.get('putnici'); sacuvaj('putnici', S.putnici); }
+  document.activeElement?.blur?.();
   sacuvaj('diy', S.diy); otvoriDiy();
 });
 $('sadrzaj').addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.target.classList?.contains('red') || e.target.classList?.contains('kartica'))) e.target.click(); });
