@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.6.5';
+const VERZIJA = '0.6.6';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -234,8 +234,11 @@ async function obradi(env, korisnik, poruka) {
     case 'resources/templates/list': return ok({ resourceTemplates: [] });
     case 'prompts/list': return ok({ prompts: [] });
     case 'resources/read':
-      if (params.uri !== PROZOR) return { jsonrpc: '2.0', id, error: { code: -32002, message: 'Nema tog resursa' } };
-      return ok({ contents: [{ uri: PROZOR, mimeType: MIME_PROZORA, text: PROZOR_HTML, _meta: { ui: { prefersBorder: false } } }] });
+      // i stare adrese prozora (prozor-0.6.1.html…): Claude pamti spisak alata sa starom adresom, pa posle svake
+      // nove verzije ne sme da dobije grešku; uvek dobija najnoviji prozor
+      if (!/^ui:\/\/putovanja\/prozor(-[\w.]+)?\.html$/.test(String(params.uri ?? '')))
+        return { jsonrpc: '2.0', id, error: { code: -32002, message: 'Nema tog resursa' } };
+      return ok({ contents: [{ uri: params.uri, mimeType: MIME_PROZORA, text: PROZOR_HTML, _meta: { ui: { prefersBorder: false } } }] });
     default:
       if (id === undefined) return null; // obaveštenje, bez odgovora
       return { jsonrpc: '2.0', id, error: { code: -32601, message: `Metoda ${method} nije podržana` } };
