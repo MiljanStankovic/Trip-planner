@@ -58,7 +58,13 @@
   .deo { color: var(--t3); font-size: 12px; padding: 16px 10px 4px; }
   .kont { display: flex; align-items: center; gap: 6px; width: 100%; border: 0; background: transparent; padding: 5px 10px; border-radius: var(--rs); color: var(--t1); text-align: left; font-size: 13.5px; }
   .kont:hover { background: var(--poz2); }
-  .kont .str { width: 12px; color: var(--t3); transition: transform .15s; }
+  .kont .str, .kont-str .str { width: 12px; color: var(--t3); transition: transform .15s; display: inline-block; }
+  .kont-red { display: flex; align-items: center; }
+  .kont-red .kont { padding-left: 4px; }
+  .kont-str { border: 0; background: transparent; padding: 5px 2px 5px 10px; border-radius: var(--rs); cursor: pointer; }
+  .kont-str:hover { background: var(--poz2); }
+  .kont-str[aria-expanded="true"] .str { transform: rotate(90deg); }
+  .kont[aria-pressed="true"] { background: var(--poz2); font-weight: 600; box-shadow: inset 2px 0 0 var(--cena); }
   .kont[aria-expanded="true"] .str { transform: rotate(90deg); }
   .kont small, .zem small { margin-left: auto; color: var(--t3); font-size: 12px; font-variant-numeric: tabular-nums; }
   .zem { display: flex; width: 100%; border: 0; background: transparent; padding: 4px 10px 4px 28px; border-radius: var(--rs); color: var(--t2); text-align: left; font-size: 13px; }
@@ -202,7 +208,10 @@
   .kartica .cena b { font-size: 17px; }
   .vise { display: block; width: 100%; min-height: 48px; margin: 10px 0 0; padding: 0 12px; border: 1px solid var(--l1); border-radius: var(--r); background: transparent; font-size: 14px; color: var(--t2); }
   .sve-zemlje { margin-top: 6px; }
-  .sve-zemlje .kont-zag { font-size: 12.5px; color: var(--t3); margin: 12px 2px 6px; }
+  .sve-zemlje .kont-zag { display: flex; width: 100%; justify-content: space-between; align-items: center; min-height: 44px; border: 0; border-bottom: 1px solid var(--l1);
+    background: transparent; font-size: 14px; font-weight: 600; color: var(--t1); margin: 8px 0 6px; padding: 0 2px; text-align: left; }
+  .sve-zemlje .kont-zag span { font-size: 12.5px; font-weight: 500; color: var(--info); }
+  .sve-zemlje .kont-zag[aria-pressed="true"] span { color: var(--cena); }
   .sve-zemlje .cipovi .cip { padding: 8px 13px; font-size: 14px; }
   .mob .akcije { display: grid; grid-template-columns: 1fr 1fr; }
   .mob .akcije .dugme { min-height: 48px; padding: 0 10px; font-size: 14px; }
@@ -338,10 +347,22 @@ async function radi(poruka, fn) {
 }
 
 // ---------- akcije ----------
+// izbor može biti zemlja ili ceo kontinent („@Evropa”)
+const jeKont = (z) => typeof z === 'string' && z.startsWith('@');
+const imeIzbora = (z) => (jeKont(z) ? z.slice(1) : z);
+async function ponudeKontinenta(k) {
+  try { const l = await pt('kontinent', k); if (Array.isArray(l)) return l; } catch {}
+  // stariji server (desktop dodatak): zemlju po zemlju
+  const out = [];
+  for (const z of Object.keys(S.zemlje?.[k] ?? {})) out.push(...((await pt('zemlja', z)) ?? []));
+  return out;
+}
 async function otvoriZemlju(z) {
   S.odeljak = 'ponude'; S.ponuda = null; S.strana = 0; S.zemlja = z; S.sveZemlje = false; S.koliko = 8;
-  await radi(z ? `Učitavam ${z}…` : 'Učitavam preporuke…', async () => {
-    if (z) S.lista = (await pt('zemlja', z)) ?? [];
+  if (jeKont(z)) S.kontinent = z.slice(1);
+  await radi(z ? `Učitavam ${imeIzbora(z)}…` : 'Učitavam preporuke…', async () => {
+    if (jeKont(z)) S.lista = await ponudeKontinenta(z.slice(1));
+    else if (z) S.lista = (await pt('zemlja', z)) ?? [];
     else S.lista = (await pt('top', 'preporuka', '--limit', '60'))?.ponude ?? [];
   });
 }
@@ -407,6 +428,7 @@ function cipoviZemalja() {
     <div class="red-kontrola"><div class="seg" id="kontinenti">${kont.map(([kk]) => `<button data-k="${esc(kk)}" aria-pressed="${kk === k}">${esc(kk)}</button>`).join('')}</div></div>
     <div class="cipovi" id="zemlje">
       <button class="cip" data-z="" aria-pressed="${!S.zemlja}">★ Preporučeno</button>
+      <button class="cip" data-z="@${esc(k)}" aria-pressed="${S.zemlja === '@' + k}">Sve: ${esc(k)}<small>${zem.reduce((a, [, c]) => a + c, 0)}</small></button>
       ${vidljive.map(([z, c]) => `<button class="cip" data-z="${esc(z)}" aria-pressed="${z === S.zemlja}">${esc(z)}<small>${c}</small></button>`).join('')}
       ${zem.length > 10 ? `<button class="cip" data-sve="1">${S.sviZemlje ? 'manje' : `+${zem.length - 10} zemalja`}</button>` : ''}
     </div>`;
@@ -422,7 +444,7 @@ function redPonude(t, i, n) {
   const od = p.note === "cena 'od'" || new Set(cene).size > 1;
   const [ik, pr] = PREVOZ[p.transport] ?? ['', ''];
   const pp = Math.max(0, ...t.svi.map(popust));
-  const opis = [!S.zemlja ? p.zemlja : '', p.agencija, ts.length > 1 ? polasci(ts.length) : ''].filter(Boolean).join(', ');
+  const opis = [!S.zemlja || jeKont(S.zemlja) ? p.zemlja : '', p.agencija, ts.length > 1 ? polasci(ts.length) : ''].filter(Boolean).join(', ');
   const uk = lo && n > 1 ? `${iznos(lo * n, val)} za ${n}` : 'po osobi';
   return `<li class="red" role="button" tabindex="0" data-i="${i}">
     ${datumHtml(p.date_from)}
@@ -442,7 +464,7 @@ function kartica(t, i, n) {
   const dt = p.date_from ? new Date(p.date_from + 'T12:00:00') : null;
   const kad = [dt ? `<span class="d">${DAN[dt.getDay()]} ${kratakDatum(p.date_from)}</span>` : '<span class="tiho">datum po izboru</span>',
     pr ? `${ik} ${pr}` : '', noci(p.nights)].filter(Boolean).join(' · ');
-  const ko = [!S.zemlja ? p.zemlja : '', p.agencija, ts.length > 1 ? polasci(ts.length) : ''].filter(Boolean).join(', ');
+  const ko = [!S.zemlja || jeKont(S.zemlja) ? p.zemlja : '', p.agencija, ts.length > 1 ? polasci(ts.length) : ''].filter(Boolean).join(', ');
   return `<li class="kartica" role="button" tabindex="0" data-i="${i}" aria-label="${esc(`${ime(p)}, ${dt ? kratakDatum(p.date_from) : 'datum po izboru'}, ${lo ? iznos(lo, val) + ' po osobi' : 'cena na upit'}`)}">
     <div class="naziv">${esc(ime(p))}${pp ? `<span class="pop">−${pp}%</span>` : ''}</div>
     <div class="cena">${lo ? `<b>${od ? '<span class="od">od</span>' : ''}${iznos(lo, val)}</b><small>${lo && n > 1 ? `${iznos(lo * n, val)} za ${n}` : 'po osobi'}</small>` : '<b><span class="od">cena</span>na upit</b>'}</div>
@@ -454,10 +476,10 @@ function crtajPonudeMob() {
   const n = putnici(S.putnici).ukupno;
   const sveZ = Object.values(S.zemlje ?? {}).flatMap((z) => Object.entries(z)).sort((a, b) => b[1] - a[1]);
   const traka = [['', '★ Preporučeno'], ...sveZ.slice(0, 12).map(([z]) => [z, z])];
-  if (S.zemlja && !traka.some(([z]) => z === S.zemlja)) traka.splice(1, 0, [S.zemlja, S.zemlja]);
+  if (S.zemlja && !traka.some(([z]) => z === S.zemlja)) traka.splice(1, 0, [S.zemlja, jeKont(S.zemlja) ? `${imeIzbora(S.zemlja)} · sve` : S.zemlja]);
   if (S.sveZemlje) return `
     <div class="zag-glavno"><h2>Sve zemlje</h2><button class="malo" data-akcija="zatvori-zemlje">Zatvori</button></div>
-    <div class="sve-zemlje">${Object.entries(S.zemlje ?? {}).map(([k, z]) => `<div class="kont-zag">${esc(k)}</div>
+    <div class="sve-zemlje">${Object.entries(S.zemlje ?? {}).map(([k, z]) => `<button class="kont-zag" data-z="@${esc(k)}" aria-pressed="${S.zemlja === '@' + k}">${esc(k)} <span>sve ponude (${Object.values(z).reduce((a, b) => a + b, 0)}) ›</span></button>
       <div class="cipovi">${Object.entries(z).sort((a, b) => b[1] - a[1]).map(([zz, c]) => `<button class="cip" data-z="${esc(zz)}" aria-pressed="${zz === S.zemlja}">${esc(zz)}<small>${c}</small></button>`).join('')}</div>`).join('')}</div>`;
   TURE = grupisi(S.lista, S.zemlja && S.sort === 'preporuka' ? 'cena' : S.sort);
   const vid = TURE.slice(0, S.koliko);
@@ -466,7 +488,7 @@ function crtajPonudeMob() {
   return `
     <div class="traka" id="traka">${traka.map(([z, l]) => `<button class="cip" data-z="${esc(z)}" aria-pressed="${z === S.zemlja}">${esc(l)}</button>`).join('')}
       <button class="cip" data-akcija="sve-zemlje">Sve zemlje ›</button></div>
-    <h2>${S.zemlja ? esc(S.zemlja) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
+    <h2>${S.zemlja ? esc(imeIzbora(S.zemlja)) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
     <button class="filter-dugme" data-akcija="filteri" aria-expanded="${S.filteri}">↕ <b>${sortNaziv}</b> · 👥 <b>${putNaziv}</b><span class="str">${S.filteri ? '▴' : '▾'}</span></button>
     ${S.filteri ? `<div class="filter-panel">
       <div><div class="oznaka">Redosled</div><div class="cipovi">${SORT.map(([v, l]) => `<button class="cip" data-s="${v}" aria-pressed="${v === S.sort}">${l}</button>`).join('')}</div></div>
@@ -488,7 +510,7 @@ function crtajPonude() {
   return `
     ${siroko() ? '' : cipoviZemalja()}
     <div class="zag-glavno">
-      <h2>${S.zemlja ? esc(S.zemlja) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
+      <h2>${S.zemlja ? esc(imeIzbora(S.zemlja)) : 'Preporučeno za tebe'}<small>${TURE.length} ${S.zemlja ? 'aranžmana' : 'ponuda'}</small></h2>
     </div>
     <div class="red-kontrola">
       <span class="oznaka">Redosled</span><div class="seg" id="sort">${SORT.map(([v, l]) => `<button data-s="${v}" aria-pressed="${v === S.sort}">${l}</button>`).join('')}</div>
@@ -625,7 +647,7 @@ function crtajBocno() {
       <div class="deo">Destinacije</div>
       <button class="zem" style="padding-left:10px" data-z="" aria-pressed="${!S.zemlja && !S.ponuda}">★ Preporučeno za tebe</button>
       ${kont.map(([k, z]) => `
-        <button class="kont" data-k="${esc(k)}" aria-expanded="${k === otv}"><span class="str">›</span>${esc(k)}<small>${Object.values(z).reduce((a, b) => a + b, 0)}</small></button>
+        <div class="kont-red"><button class="kont-str" data-k="${esc(k)}" aria-expanded="${k === otv}" aria-label="${k === otv ? 'Sakrij' : 'Prikaži'} zemlje: ${esc(k)}"><span class="str">›</span></button><button class="kont" data-z="@${esc(k)}" aria-pressed="${S.zemlja === '@' + k}">${esc(k)}<small>${Object.values(z).reduce((a, b) => a + b, 0)}</small></button></div>
         ${k === otv ? Object.entries(z).sort((a, b) => b[1] - a[1]).map(([zz, c]) => `<button class="zem" data-z="${esc(zz)}" aria-pressed="${zz === S.zemlja}">${esc(zz)}<small>${c}</small></button>`).join('') : ''}`).join('')}` : ''}
     <div class="dno-bocno">
       <span class="verzija">Putovanja ${VERZIJA}</span>
@@ -685,6 +707,7 @@ $('bocno').addEventListener('click', (e) => {
   const b = (sel) => e.target.closest(sel);
   if (b('[data-v]')) return idiNa(b('[data-v]').dataset.v);
   if (b('[data-k]')) { const k = b('[data-k]').dataset.k; S.kontinent = S.kontinent === k ? '__' : k; return crtaj(); }
+  if (b('.kont[data-z]')) { const k = b('.kont[data-z]').dataset.z.slice(1); S.kontinent = k; return otvoriZemlju('@' + k); }
   if (b('[data-z]')) return otvoriZemlju(b('[data-z]').dataset.z);
   if (b('[data-prikaz]')) return promeniPrikaz(S.prikaz === 'fullscreen' ? 'inline' : 'fullscreen');
   if (b('[data-akcija="claude-code"]')) return pitajZaClaudeCode();
@@ -751,7 +774,7 @@ app.ontoolresult = (r) => {
   const d = r?.structuredContent; if (!d?.lista) return;
   S.lista = d.lista; S.zemlje = d.zemlje ?? {}; S.stanje = d.stanje; S.zemlja = d.zemlja ?? ''; S.sken = d.skeniranje;
   if (d.verzija) VERZIJA = d.verzija;
-  const k = Object.entries(S.zemlje).find(([, z]) => S.zemlja in z)?.[0]; if (k) S.kontinent = k;
+  const k = jeKont(S.zemlja) ? S.zemlja.slice(1) : Object.entries(S.zemlje).find(([, z]) => S.zemlja in z)?.[0]; if (k) S.kontinent = k;
   if (d.prikaz === 'kalendar') return otvoriKalendar();
   if (d.prikaz === 'praceno') return otvoriPraceno();
   if (d.prikaz === 'uradisam') return otvoriDiy();
