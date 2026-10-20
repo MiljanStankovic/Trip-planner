@@ -598,6 +598,15 @@ async function stanjePanoa($: any): Promise<Record<string, unknown>> {
 async function prikaziUPanou($: any, a: Record<string, string | undefined>): Promise<string> {
   if (a.putnici && /^\d\+\d$/.test(a.putnici)) await update($, nav, x => ({ ...x, putnici: a.putnici as string }))
   if (a.sort && ['preporuka', 'cena', 'datum', 'popust'].includes(a.sort)) await update($, nav, x => ({ ...x, sort: a.sort as Nav['sort'], strana: 0 }))
+  if ((a as any).filter && typeof (a as any).filter === 'object') {
+    const naslov = String((a as any).naslov || 'Izbor od Claude-a')
+    const l = (await pt($, ['filter', JSON.stringify((a as any).filter)])) as Ponuda[] | null
+    if (!l) return 'Pretraga po filteru radi samo sa podacima sa servera (ne sa lokalnim alatom).'
+    await update($, lista, () => l)
+    await idiNa($, { view: 'zemlja', zemlja: naslov, strana: 0 })
+    await update($, status, () => '')
+    return `U panou je lista „${naslov}”: ${l.length} aranžmana.`
+  }
   if (a.odeljak === 'kalendar') { await otvoriKalendar($, a.mesec); return 'Otvoren kalendar.' }
   if (a.odeljak === 'praceno') { await otvoriPracenje($); return 'Otvoreno praćeno.' }
   if (a.odeljak === 'uradisam') { await otvoriDiy($, a.zemlja ? { kuda: a.zemlja } : undefined); return 'Otvoreno Uradi sam.' }
@@ -641,9 +650,11 @@ export const register: Register = (on, options) => {
         name: 'pano_prikazi', isDeferred: false,
         description: 'Menja prikaz u panou Putovanja, korisnik odmah vidi promenu: zemlja (npr. "Španija"), ponuda_id (otvara ponudu), ' +
           'odeljak (ponude | kalendar | praceno | uradisam), mesec ("2026-11" za kalendar), sort (preporuka | cena | datum | popust), putnici ("2+0", "2+1"…). ' +
-          'Koristi kad traži da mu nađeš, pokažeš ili otvoriš nešto u Putovanjima dok je pano otvoren.',
+          'Koristi kad traži da mu nađeš, pokažeš ili otvoriš nešto u Putovanjima dok je pano otvoren. Za traženje po kriterijumima (dnevni izleti, sve u oktobru, do 300 €…) pošalji filter i naslov.',
         inputSchema: { type: 'object', properties: { zemlja: { type: 'string' }, ponuda_id: { type: 'string' }, odeljak: { type: 'string', enum: ['ponude', 'kalendar', 'praceno', 'uradisam'] },
-          mesec: { type: 'string' }, sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] }, putnici: { type: 'string' } } },
+          mesec: { type: 'string' }, sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] }, putnici: { type: 'string' },
+          naslov: { type: 'string', description: 'naslov liste kad šalješ filter' },
+          filter: { type: 'object', description: 'lista po bilo kom kriterijumu preko svih ponuda: tekst, zemlje [], kontinent, agencija, prevoz, od, do (YYYY-MM-DD), mesec (YYYY-MM), dnevni_izlet, noci_min, noci_max, cena_max, cena_min (evra po osobi), samo_popust, datum_po_izboru, sort. Npr. dnevni izleti: {dnevni_izlet:true}; sve u oktobru: {mesec:"2026-10"}.' } } },
       })
     } catch { /* starija verzija Claude Code-a: bez alata */ }
     return next(e)

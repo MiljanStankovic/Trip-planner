@@ -584,7 +584,7 @@ const S = {
   lista: [], zemlje: {}, stanje: null, strana: 0, ponuda: null, ucitava: '', greska: '', sviZemlje: false,
   kal: null, prac: [], obav: null, izvori: null, sken: null, diy: procitaj('diy', { odakle: 'Beograd', kuda: '', od: '', do: '' }), diyLista: [], diyAg: [],
   prikaz: 'inline', modovi: [], filteri: false, sveZemlje: false, koliko: 8,
-  pretraga: '', prevoz: '', mesec: '', preTrage: null,
+  pretraga: '', prevoz: '', mesec: '', preTrage: null, claude: null,
 };
 let VERZIJA = '0.3.2';
 // telefon: uzak prozor; tablet (ekran na dodir): uspravno kao telefon, položeno kao računar.
@@ -637,7 +637,7 @@ async function ponudeKontinenta(k) {
 const naVrh = () => { const g = $('sadrzaj'); if (g) g.scrollTop = 0; };
 async function otvoriZemlju(z) {
   S.odeljak = 'ponude'; S.ponuda = null; S.strana = 0; S.zemlja = z; S.sveZemlje = false; S.koliko = 8;
-  S.pretraga = ''; S.preTrage = null; S.mesec = ''; if ($('trazi')) $('trazi').value = ''; naVrh();
+  S.pretraga = ''; S.preTrage = null; S.mesec = ''; S.claude = null; if ($('trazi')) $('trazi').value = ''; naVrh();
   if (jeKont(z)) S.kontinent = z.slice(1);
   await radi(z ? `Učitavam ${imeIzbora(z)}…` : 'Učitavam preporuke…', async () => {
     if (jeKont(z)) S.lista = await ponudeKontinenta(z.slice(1));
@@ -653,6 +653,7 @@ async function trazi(q) {
     return;
   }
   if (!S.pretraga) S.preTrage = S.lista;
+  S.claude = null;
   S.pretraga = q; S.ponuda = null; S.sveZemlje = false; S.odeljak = 'ponude'; S.strana = 0; S.koliko = 8;
   let l = null;
   try { l = await pt('pretraga', q); } catch {}
@@ -663,6 +664,14 @@ async function trazi(q) {
     l = (S.preTrage ?? []).filter((p) => reci.every((r) => n(`${ime(p)} ${p.destination} ${p.zemlja} ${p.agencija}`).includes(r)));
   }
   S.lista = l; naVrh(); crtaj();
+}
+// lista koju je složio Claude (pretrazi_ponude ili otvori_putovanja sa filterom)
+async function otvoriClaudeListu(naslov, filter) {
+  S.odeljak = 'ponude'; S.ponuda = null; S.zemlja = ''; S.pretraga = ''; S.preTrage = null; S.sveZemlje = false; S.strana = 0; S.koliko = 8;
+  S.mesec = ''; S.prevoz = ''; if ($('trazi')) $('trazi').value = '';
+  S.claude = { naslov: naslov || 'Izbor od Claude-a', filter: filter || {} };
+  naVrh();
+  await radi(`Slažem: ${S.claude.naslov}…`, async () => { S.lista = (await pt('filter', JSON.stringify(S.claude.filter))) ?? []; });
 }
 async function otvoriPonudu(p) {
   if (!S.ponuda) S.skrolListe = $('sadrzaj')?.scrollTop ?? 0;
@@ -755,10 +764,10 @@ function stavka(t, i, n, dodatno = '') {
 const redPonude = stavka, kartica = stavka;
 let TURE = [];
 function naslovListe(n) {
-  const ime_ = S.pretraga ? `„${S.pretraga}”` : S.zemlja ? imeIzbora(S.zemlja) : 'Preporučeno za tebe';
+  const ime_ = S.claude ? S.claude.naslov : S.pretraga ? `„${S.pretraga}”` : S.zemlja ? imeIzbora(S.zemlja) : 'Preporučeno za tebe';
   const filt = S.prevoz || S.mesec;
-  return `<h2>${esc(ime_)}</h2><small>${n} ${S.pretraga || S.zemlja ? 'aranžmana' : 'ponuda'}</small>
-    ${S.pretraga ? '<button class="ocisti" data-akcija="ocisti-pretragu">Obriši pretragu</button>' : filt ? '<button class="ocisti" data-akcija="ocisti-filtere">Poništi filtere</button>' : ''}`;
+  return `<h2>${esc(ime_)}</h2><small>${n} ${S.pretraga || S.zemlja || S.claude ? 'aranžmana' : 'ponuda'}${S.claude ? ' · složio Claude' : ''}</small>
+    ${S.claude ? '<button class="ocisti" data-akcija="ocisti-claude">Nazad na preporuke</button>' : S.pretraga ? '<button class="ocisti" data-akcija="ocisti-pretragu">Obriši pretragu</button>' : filt ? '<button class="ocisti" data-akcija="ocisti-filtere">Poništi filtere</button>' : ''}`;
 }
 const skelet = () => '<li class="skelet-st"></li>'.repeat(6);
 function praznaLista() {
@@ -1074,7 +1083,7 @@ function stanjeEkrana() {
   const st = { uredjaj: mob() ? 'telefon' : 'veliki ekran', prikaz: S.prikaz, odeljak: S.odeljak,
     putnici: PUTNICI.find(([v]) => v === S.putnici)?.[1] ?? S.putnici };
   if (S.odeljak === 'ponude' && !S.ponuda) {
-    st.izbor = S.pretraga ? `pretraga „${S.pretraga}”` : S.zemlja ? (jeKont(S.zemlja) ? `kontinent ${imeIzbora(S.zemlja)}` : `zemlja ${S.zemlja}`) : 'preporučeno';
+    st.izbor = S.claude ? `lista koju si složio: „${S.claude.naslov}” (${JSON.stringify(S.claude.filter)})` : S.pretraga ? `pretraga „${S.pretraga}”` : S.zemlja ? (jeKont(S.zemlja) ? `kontinent ${imeIzbora(S.zemlja)}` : `zemlja ${S.zemlja}`) : 'preporučeno';
     st.filteri = { redosled: SORT.find(([v]) => v === S.sort)?.[1], prevoz: S.prevoz || 'svaki', kada: S.mesec || 'bilo kada' };
     st.ukupno = TURE.length;
     st.na_ekranu = TURE.slice(0, 12).map((t) => { const p = t.glavna; return { id: p.id, naziv: ime(p), zemlja: p.zemlja, agencija: p.agencija, polazak: p.date_from || 'po izboru',
@@ -1124,6 +1133,7 @@ async function primeniNaredbu(n) {
   if (n.putnici && PUTNICI.some(([v]) => v === n.putnici)) { S.putnici = n.putnici; sacuvaj('putnici', n.putnici); }
   if (n.sort && SORT.some(([v]) => v === n.sort)) S.sort = n.sort;
   if (n.prevoz !== undefined) S.prevoz = n.prevoz === 'svaki' ? '' : n.prevoz;
+  if (n.lista) return otvoriClaudeListu(n.lista.naslov, n.lista.filter);
   if (n.odeljak === 'kalendar') return otvoriKalendar(n.mesec || undefined);
   if (n.odeljak === 'praceno') return otvoriPraceno();
   if (n.odeljak === 'uradisam') return otvoriDiy();
@@ -1208,6 +1218,7 @@ $('naslov').addEventListener('click', (e) => {
   const a = e.target.closest('[data-akcija]')?.dataset.akcija;
   if (a === 'ocisti-pretragu') { $('trazi').value = ''; trazi(''); }
   if (a === 'ocisti-filtere') { S.prevoz = ''; S.mesec = ''; S.strana = 0; S.koliko = 8; crtaj(); }
+  if (a === 'ocisti-claude') otvoriZemlju('');
 });
 $('filteri').addEventListener('click', (e) => {
   const m = e.target.closest('[data-m]'); if (m) return otvoriKalendar(m.dataset.m);
@@ -1297,6 +1308,7 @@ app.onhostcontextchanged = (ctx) => { tema({ ...app.getHostContext(), ...ctx });
 app.ontoolresult = (r) => {
   const d = r?.structuredContent; if (!d?.lista) return;
   S.lista = d.lista; S.zemlje = d.zemlje ?? {}; S.stanje = d.stanje; S.zemlja = d.zemlja ?? ''; S.sken = d.skeniranje;
+  S.claude = d.claude ? { naslov: d.claude.naslov, filter: d.claude.filter } : null;
   if (d.verzija) VERZIJA = d.verzija;
   const k = jeKont(S.zemlja) ? S.zemlja.slice(1) : Object.entries(S.zemlje).find(([, z]) => S.zemlja in z)?.[0]; if (k) S.kontinent = k;
   if (d.prikaz === 'kalendar') return otvoriKalendar();

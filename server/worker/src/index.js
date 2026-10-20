@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '0.7.0';
+const VERZIJA = '0.7.1';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -24,6 +24,7 @@ const UPUTSTVO =
   'Ponude se osvežavaju svako jutro. Odgovaraj kratko, srpskom latinicom. ' +
   'Kad je prozor otvoren, ti i korisnik ga koristite zajedno: sta_vidim kaže šta gleda (pozovi ga kad kaže „ova ponuda”, „ovde” ili pita o ekranu), ' +
   'a pokazi_u_putovanjima menja prikaz u istom prozoru (zemlja, pretraga, ponuda, filteri, kalendar) umesto da otvaraš novi. ' +
+  'Za bilo kakvo traženje po kriterijumima (dnevni izleti, sve u oktobru, do 300 €, avionom, sa popustom…) koristi pretrazi_ponude sa naslovom: rezultat se pokaže u prozoru kao lista. ' +
   'Kad korisnik pita kako da pokrene ili doda Putovanja u Claude Code (pano pored razgovora), daj tačno ove korake, kratko, bez izmišljanja: 1) Treba Claude Code na računaru: terminal ili Code u aplikaciji Claude. Ako ga nema, instalira se jednom komandom: Windows (PowerShell): irm https://claude.ai/install.ps1 | iex; Mac ili Linux: curl -fsSL https://claude.ai/install.sh | bash. 2) U Claude Code pošalji, jednu pa drugu: /plugin marketplace add MiljanStankovic/Trip-planner i /plugin install putovanja@putovanja. 3) Zatvori i ponovo otvori Claude Code, pa otkucaj /putovanja; pano se otvara pored razgovora. Ništa drugo ne treba (ni Python), ponude stižu sa istog servera kao ovaj konektor. 4) Da pano prati isto što i telefon: u Claude Code otkucaj /putovanja adresa <adresa konektora>. Ako je korisnik u poruci dao svoju adresu konektora, napiši mu tu komandu sa njegovom adresom, spremnu za kopiranje; ako nije, reci da adresu nađe u Podešavanja → Konektori → putovanja. Ako pita sa telefona ili tableta, reci da se ovo radi na računaru; na telefonu već ima prozor.';
 
 const ALATI = [
@@ -32,7 +33,20 @@ const ALATI = [
     title: 'Otvori Putovanja',
     description: 'Otvara Putovanja u prozoru: ponude domaćih agencija, preporučene ili za jednu zemlju (npr. "Grčka"). ' +
       'prikaz: pocetna | kalendar | praceno | uradisam. Prozor je cela aplikacija, korisnik dalje bira sam.',
-    inputSchema: { type: 'object', properties: { zemlja: { type: 'string', default: '' }, prikaz: { type: 'string', default: 'pocetna' } } },
+    inputSchema: { type: 'object', properties: { zemlja: { type: 'string', default: '' }, prikaz: { type: 'string', default: 'pocetna' },
+      naslov: { type: 'string', description: 'naslov liste kad se otvara sa filterom' },
+      filter: { type: 'object', description: 'isti filter kao u pretrazi_ponude: prozor se otvara sa tom listom', properties: {
+      tekst: { type: 'string', description: 'reči koje moraju da budu u nazivu, mestu, zemlji ili agenciji' },
+      zemlje: { type: 'array', items: { type: 'string' } }, kontinent: { type: 'string' }, agencija: { type: 'string' },
+      prevoz: { type: 'string', enum: ['avion', 'autobus', 'sopstveni', 'brod', 'voz'] },
+      od: { type: 'string', description: 'polazak od datuma, YYYY-MM-DD' }, do: { type: 'string', description: 'polazak do datuma, YYYY-MM-DD' },
+      mesec: { type: 'string', description: 'YYYY-MM, polasci u tom mesecu' },
+      dnevni_izlet: { type: 'boolean', description: 'samo jednodnevni izleti (bez noćenja)' },
+      noci_min: { type: 'integer' }, noci_max: { type: 'integer' },
+      cena_max: { type: 'number', description: 'najviše evra po osobi' }, cena_min: { type: 'number' },
+      samo_popust: { type: 'boolean' }, datum_po_izboru: { type: 'boolean', description: 'samo ponude bez fiksnog datuma (paketi)' },
+      sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] },
+    } } } },
     _meta: { ui: { resourceUri: PROZOR } },
   },
   {
@@ -48,6 +62,28 @@ const ALATI = [
     description: 'Ponude se skeniraju automatski svako jutro; ovo vraća kada je bio poslednji sken.',
     inputSchema: { type: 'object', properties: {} },
     _meta: { ui: { visibility: ['model', 'app'] } },
+  },
+  {
+    name: 'pretrazi_ponude',
+    title: 'Pretraži ponude',
+    description: 'Pretražuje SVE ponude (oko 1000, 15 agencija) po bilo kojoj kombinaciji: tekst, zemlje, kontinent, agencija, prevoz, datumi ili mesec, ' +
+      'jednodnevni izleti, broj noći, cena po osobi u evrima, samo sa popustom, datum po izboru; sort. Vraća broj i spisak. ' +
+      'Kad je prikazi=true (podrazumevano) rezultat se pokaže i u prozoru Putovanja kao lista sa tvojim naslovom (npr. "Dnevni izleti", "Polasci u oktobru"); ' +
+      'ako prozor nije otvoren, posle pozovi otvori_putovanja sa istim filter i naslov. Primeri: dnevni izleti → {dnevni_izlet:true}; sve u oktobru → {mesec:"2026-10"}; ' +
+      'Grčka avionom do 400 € → {zemlje:["Grčka"], prevoz:"avion", cena_max:400}.',
+    inputSchema: { type: 'object', properties: { naslov: { type: 'string', description: 'kratak naslov liste za prozor' }, prikazi: { type: 'boolean', default: true },
+      filter: { type: 'object', properties: {
+      tekst: { type: 'string', description: 'reči koje moraju da budu u nazivu, mestu, zemlji ili agenciji' },
+      zemlje: { type: 'array', items: { type: 'string' } }, kontinent: { type: 'string' }, agencija: { type: 'string' },
+      prevoz: { type: 'string', enum: ['avion', 'autobus', 'sopstveni', 'brod', 'voz'] },
+      od: { type: 'string', description: 'polazak od datuma, YYYY-MM-DD' }, do: { type: 'string', description: 'polazak do datuma, YYYY-MM-DD' },
+      mesec: { type: 'string', description: 'YYYY-MM, polasci u tom mesecu' },
+      dnevni_izlet: { type: 'boolean', description: 'samo jednodnevni izleti (bez noćenja)' },
+      noci_min: { type: 'integer' }, noci_max: { type: 'integer' },
+      cena_max: { type: 'number', description: 'najviše evra po osobi' }, cena_min: { type: 'number' },
+      samo_popust: { type: 'boolean' }, datum_po_izboru: { type: 'boolean', description: 'samo ponude bez fiksnog datuma (paketi)' },
+      sort: { type: 'string', enum: ['preporuka', 'cena', 'datum', 'popust'] },
+    } } } },
   },
   {
     name: 'sta_vidim',
@@ -110,6 +146,46 @@ async function pretraga(upit) {
   }
   return nadjeno;
 }
+
+
+// ---------- filter preko svih ponuda (indeks.json) ----------
+const IZLET = /jednodnevn|bez noćenja|bez nocenja|\bizlet/i;
+const evra = (p) => (!p.price ? null : p.currency === 'RSD' ? p.price / 117 : p.price);
+async function filtrirajSve(f = {}) {
+  const [sve, zemlje] = await Promise.all([fajl('indeks.json'), fajl('zemlje.json')]);
+  const kontinentOd = {};
+  for (const [k, z] of Object.entries(zemlje ?? {})) for (const ime of Object.keys(z)) kontinentOd[ime] = k;
+  const reci = f.tekst ? bezKvacica(f.tekst).split(/[^a-z0-9]+/).filter((r) => r.length > 1) : [];
+  const zem = (f.zemlje ?? []).map((z) => bezKvacica(z));
+  const kont = f.kontinent ? bezKvacica(f.kontinent) : '';
+  const ag = f.agencija ? bezKvacica(f.agencija) : '';
+  const datumi = (p) => (p.svi_datumi?.length ? p.svi_datumi : [p.date_from]).filter(Boolean);
+  const od = f.mesec ? `${f.mesec}-01` : f.od || '', doo = f.mesec ? `${f.mesec}-31` : f.do || '';
+  const out = (sve ?? []).filter((p) => {
+    if (reci.length) { const t = bezKvacica(`${p.naziv ?? ''} ${p.title ?? ''} ${p.destination ?? ''} ${p.zemlja ?? ''} ${p.agencija ?? ''}`); if (!reci.every((r) => t.includes(r))) return false; }
+    if (zem.length && !zem.includes(bezKvacica(p.zemlja))) return false;
+    if (kont && bezKvacica(kontinentOd[p.zemlja] ?? '') !== kont) return false;
+    if (ag && !bezKvacica(p.agencija).includes(ag)) return false;
+    if (f.prevoz && p.transport !== f.prevoz) return false;
+    if (od || doo) { const d = datumi(p); if (!d.some((x) => (!od || x >= od) && (!doo || x <= doo))) return false; }
+    if (f.datum_po_izboru === true && p.date_from) return false;
+    if (f.dnevni_izlet === true && !(p.nights === 0 || IZLET.test(`${p.naziv ?? ''} ${p.title ?? ''}`))) return false;
+    if (f.noci_min != null && !(p.nights >= f.noci_min)) return false;
+    if (f.noci_max != null && !(p.nights != null && p.nights <= f.noci_max)) return false;
+    const e = evra(p);
+    if (f.cena_max != null && !(e != null && e <= f.cena_max)) return false;
+    if (f.cena_min != null && !(e != null && e >= f.cena_min)) return false;
+    if (f.samo_popust === true && !(p.old_price && p.price && p.old_price > p.price)) return false;
+    return true;
+  });
+  const sort = f.sort || (od ? 'datum' : 'cena');
+  const prvi = (p) => (od ? datumi(p).find((x) => x >= od) : p.date_from) ?? '9999';
+  if (sort === 'cena') out.sort((a, b) => (evra(a) ?? 1e9) - (evra(b) ?? 1e9));
+  else if (sort === 'datum') out.sort((a, b) => prvi(a).localeCompare(prvi(b)));
+  else if (sort === 'popust') out.sort((a, b) => ((b.old_price ?? b.price) - b.price) / (b.old_price || 1) - ((a.old_price ?? a.price) - a.price) / (a.old_price || 1));
+  return out;
+}
+const kratkoZaModel = (p) => `${p.naziv || p.title} (${p.zemlja}, ${p.agencija}), ${p.date_from || 'datum po izboru'}${p.nights != null ? `, ${p.nights} noći` : ''}${p.transport ? `, ${p.transport}` : ''}, ${p.price ? `${Math.round(p.price)} ${p.currency === 'RSD' ? 'din' : '€'}` : 'na upit'} [id ${p.id}]`;
 
 async function kontinent(naziv) {
   const ime = String(naziv).trim().toLowerCase();
@@ -187,6 +263,7 @@ async function podaciZaProzor(env, korisnik, komanda, a = []) {
     }
     case 'zemlja': return zemlja(a.join(' '));
     case 'kontinent': return kontinent(a.join(' '));
+    case 'filter': { let f = {}; try { f = JSON.parse(a[0] || '{}'); } catch {} return filtrirajSve(f); }
     case 'pretraga': return pretraga(a.join(' '));
     case 'ponuda': {
       const osobe = a.includes('--osobe') ? a[a.indexOf('--osobe') + 1] : 2;
@@ -230,15 +307,32 @@ async function pozoviAlat(env, korisnik, ime, a = {}) {
   if (ime === 'otvori_putovanja') {
     const z = String(a.zemlja ?? '').trim();
     const [zemlje, stanje] = await Promise.all([fajl('zemlje.json'), fajl('stanje.json')]);
-    const lista = z ? await zemlja(z) : ((await fajl('top.json'))?.ponude ?? []);
+    const saFilterom = a.filter && typeof a.filter === 'object' && Object.keys(a.filter).length;
+    const lista = saFilterom ? await filtrirajSve(a.filter) : z ? await zemlja(z) : ((await fajl('top.json'))?.ponude ?? []);
     return {
-      prikaz: a.prikaz || 'pocetna', zemlja: z, stanje, zemlje, lista, skeniranje: SKEN, verzija: VERZIJA, prijavljen: !!korisnik,
+      prikaz: a.prikaz || 'pocetna', zemlja: saFilterom ? '' : z, stanje, zemlje, lista, skeniranje: SKEN, verzija: VERZIJA, prijavljen: !!korisnik,
+      ...(saFilterom ? { claude: { naslov: String(a.naslov || 'Izbor od Claude-a').slice(0, 80), filter: a.filter } } : {}),
       za_model: `Prozor je otvoren (${z ? 'zemlja ' + z : 'preporučeno'}, ${lista.length} ponuda). Prvih pet: ` +
         lista.slice(0, 5).map((p) => `${p.naziv || p.title} (${p.zemlja}), ${p.date_from || 'datum po izboru'}, ${p.price ?? 'na upit'} ${p.currency ?? ''}, ${p.agencija}`).join('; '),
     };
   }
   if (ime === 'detalji_ponude') return (await ponuda(String(a.id ?? ''), a.osoba)) ?? { greska: 'Nema te ponude.' };
   if (ime === 'skeniraj_agencije') return { skeniranje: SKEN, stanje: await fajl('stanje.json'), poruka: 'Sken radi automatski svako jutro.' };
+  if (ime === 'pretrazi_ponude') {
+    const f = a.filter && typeof a.filter === 'object' ? a.filter : {};
+    const l = await filtrirajSve(f);
+    const naslov = String(a.naslov || 'Izbor od Claude-a').slice(0, 80);
+    let uProzoru = 'nije traženo';
+    if (a.prikazi !== false && korisnik && env.KV) {
+      const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
+      if (v && Date.now() - v.ts < 120000) {
+        await env.KV.put(`k:${korisnik}:naredba`, JSON.stringify({ ts: Date.now(), lista: { naslov, filter: f } }), { expirationTtl: 3600 });
+        uProzoru = 'poslato u otvoren prozor (vidi se za 2–3 s)';
+      } else uProzoru = 'prozor nije otvoren: pozovi otvori_putovanja sa istim filter i naslov';
+    }
+    return { ukupno: l.length, naslov, u_prozoru: uProzoru, filter: f,
+      prvih: l.slice(0, 30).map(kratkoZaModel), ...(l.length > 30 ? { napomena: `Prikazano 30 od ${l.length}; ostalo je u prozoru.` } : {}) };
+  }
   if (ime === 'sta_vidim') {
     if (!korisnik || !env.KV) return { aktivan: false, poruka: 'Konektor je dodat bez lične adrese, pa ne vidim prozor. Pitaj korisnika šta gleda.' };
     const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
