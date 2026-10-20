@@ -105,3 +105,9 @@ class Rapsody(LemaxList):
     source = "rapsody"
     name = "Rapsody Travel"
     site = "https://www.rapsodytravel.rs"
+
+
+class Go2(LemaxList):
+    source = "go2"
+    name = "Go2 Travelling"
+    site = "https://go2travelling.net"
