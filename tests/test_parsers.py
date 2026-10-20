@@ -365,3 +365,14 @@ def test_clocktravel_naslov_i_tabela():
     Termin putovanja Cena po osobi 11.11-15.11.2036 Iz Niša 139€ Iz Beograda 109€ ARANŽMANA OBUHVATA: 2 noćenja sa doručkom</body></html>"""
     o = ClockTravel().parse(html, "https://clocktravel.rs/x/magicna-toskana-11-11-2036/")[0]
     assert (o.price, o.date_from, o.date_to, o.nights, o.transport) == (109.0, "2036-11-11", "2036-11-15", 2, "autobus")
+
+
+def test_zemlja_i_u_padezima():
+    from putovanja.geo import classify
+    assert classify("Nova godina u Milanu")[0] == "Italija"
+    assert classify("Nova godina u Severnoj Italiji")[0] == "Italija"
+    assert classify("Nova godina u Atini")[0] == "Grčka"
+    assert classify("Praznici na Malti")[0] == "Malta"
+    assert classify("Dvorci Bavarske")[0] == "Nemačka"
+    assert classify("Porto")[0] == "Portugalija" and classify("Portorož")[0] == "Slovenija"
+    assert classify("Dan primirja u Istanbulu")[0] == "Turska"  # „rim” ne sme da pogodi „primirja”

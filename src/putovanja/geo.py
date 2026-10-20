@@ -163,6 +163,20 @@ _add("Španija", "ljoret", "lloret")
 _add("Francuska", "les orres", "les 2 alpes", "deux alpes", "villarodin", "serre chevalier", "risoul", "val thorens", "tignes")
 _add("Dominikanska Republika", "bayahibe", "bavaro", "la romana")
 _add("Sveti Martin", "st martin", "saint martin", "sint maarten")
+_add("Italija", "emilij", "romanj", "san remo", "livigno", "val di sole", "marilleva", "severn italij")
+_add("Francuska", "sybelles")
+_add("Grčka", "atin")
+_add("Malta", "malt")
+_add("Slovenija", "slovenack", "radenc")
+_add("Mađarska", "pecuj")
+_add("Nemačka", "bavarsk")
+
+# Padeži: „u Milanu”, „u Veneciji”, „po Toskani”. Za duže reči ključ bez poslednjeg samoglasnika
+# (milano -> milan, italija -> italij), da pogodi sve oblike; kraće reči ostaju cele (porto ≠ portorož).
+for _w, _c in list(KEYWORDS.items()):
+    if len(_w) >= 6 and _w[-1] in "aeiou" and " " not in _w:
+        KEYWORDS.setdefault(_w[:-1], _c)
+
 _SORTED = sorted(KEYWORDS.items(), key=lambda kv: -len(kv[0]))
 
 
