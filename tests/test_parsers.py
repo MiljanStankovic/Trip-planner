@@ -351,9 +351,11 @@ def test_oktopod_polasci_i_cena():
 
 
 def test_toptravel_izlet_u_dinarima():
+    from datetime import date, timedelta
     from putovanja.scrapers.toptravel import TopTravel
-    html = """<html><head><title>Temišvar 2036 – Top Travel</title></head><body>TEMIŠVAR 2036 JEDNODNEVNI IZLET
-    TERMINI : 24.10. / 07.11. SIGURAN POLAZAK IZ NOVOG SADA ... CENA ARANŽMANA PO OSOBI: Polazak iz Novog Sada 2.300,00 dinara
+    d1, d2 = date.today() + timedelta(days=10), date.today() + timedelta(days=24)  # sajt piše datume bez godine
+    html = f"""<html><head><title>Temišvar 2036 – Top Travel</title></head><body>TEMIŠVAR 2036 JEDNODNEVNI IZLET
+    TERMINI : {d1:%d.%m.} / {d2:%d.%m.} SIGURAN POLAZAK IZ NOVOG SADA ... CENA ARANŽMANA PO OSOBI: Polazak iz Novog Sada 2.300,00 dinara
     Polazak iz Zrenjanina 2.100,00 dinara CENA ARANŽMANA UKLJUČUJE: prevoz</body></html>"""
     o = TopTravel().parse(html, "x")
     assert o and o[0].nights == 0 and o[0].currency == "RSD" and o[0].price == 2100.0
