@@ -1,6 +1,6 @@
 [project]
 name = "putovanja"
-version = "1.0.0"
+version = "1.0.1"
 description = "Ponude 23 domaće turističke agencije po kontinentima i zemljama: istorija cena, detalji sa sajtova, preporuke i Trello"
 readme = "README.md"
 requires-python = ">=3.11"

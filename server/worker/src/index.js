@@ -10,7 +10,7 @@ import PROZOR_HTML from './prozor.html';
 import POCETNA_HTML from './pocetna.html';
 import IKONA from './ikona.png';
 
-const VERZIJA = '1.0.0';
+const VERZIJA = '1.0.1';
 const PROZOR = `ui://putovanja/prozor-${VERZIJA}.html`;
 const MIME_PROZORA = 'text/html;profile=mcp-app';
 const ADRESA_SAJTA = 'https://putovanja.miljan-stankovic99.workers.dev';
@@ -97,7 +97,7 @@ const ALATI = [
     name: 'pokazi_u_putovanjima',
     title: 'Pokaži u Putovanjima',
     description: 'Upravlja već otvorenim prozorom Putovanja: korisnik vidi promenu odmah. Koristi kad traži da mu nađeš, pokažeš, otvoriš ili sortiraš nešto, ' +
-      'a prozor je otvoren (sta_vidim kaže aktivan). Ako prozor nije otvoren, pozovi otvori_putovanja. Sva polja su opciona: ' +
+      'a prozor je otvoren u ovom razgovoru (promena stiže za nekoliko sekundi). Ako prozor nije otvoren, pozovi otvori_putovanja. Sva polja su opciona: ' +
       'zemlja (npr. "Španija"), kontinent ("Evropa"), pretraga (mesto, hotel, agencija), ponuda_id (otvara ponudu), odeljak (ponude | kalendar | praceno | uradisam), ' +
       'mesec ("2026-11": u kalendaru taj mesec, u ponudama filter), sort (preporuka | cena | datum | popust), prevoz (avion | autobus | sopstveni | brod | voz | "" za sve), putnici ("2+0", "2+1", "1+0"…).',
     inputSchema: { type: 'object', properties: {
@@ -327,11 +327,9 @@ async function pozoviAlat(env, korisnik, ime, a = {}) {
     const naslov = String(a.naslov || 'Izbor od Claude-a').slice(0, 80);
     let uProzoru = 'nije traženo';
     if (a.prikazi !== false && korisnik && env.KV) {
-      const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
-      if (v && Date.now() - v.ts < 120000) {
-        await env.KV.put(`k:${korisnik}:naredba`, JSON.stringify({ ts: Date.now(), lista: { naslov, filter: f } }), { expirationTtl: 3600 });
-        uProzoru = 'poslato u otvoren prozor (vidi se za 2–3 s)';
-      } else uProzoru = 'prozor nije otvoren: pozovi otvori_putovanja sa istim filter i naslov';
+      // uvek pošalji (jedan upis); prozor proverava naredbe na 5–20 s, a model iz razgovora zna da li je prozor otvoren
+      await env.KV.put(`k:${korisnik}:naredba`, JSON.stringify({ ts: Date.now(), lista: { naslov, filter: f } }), { expirationTtl: 3600 });
+      uProzoru = 'poslato u prozor Putovanja; ako je otvoren u ovom razgovoru, lista se pojavi za nekoliko sekundi. Ako prozor nije otvoren, pozovi otvori_putovanja sa istim filter i naslov.';
     }
     return { ukupno: l.length, naslov, u_prozoru: uProzoru, filter: f,
       prvih: l.slice(0, 30).map(kratkoZaModel), ...(l.length > 30 ? { napomena: `Prikazano 30 od ${l.length}; ostalo je u prozoru.` } : {}) };
@@ -341,7 +339,9 @@ async function pozoviAlat(env, korisnik, ime, a = {}) {
     const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
     if (!v) return { aktivan: false, poruka: 'Prozor Putovanja još nije otvoren. Otvori ga sa otvori_putovanja.' };
     const pre = Math.round((Date.now() - v.ts) / 1000);
-    return { aktivan: pre < 120, pre_sekundi: pre, ...v.stanje, ...(pre >= 120 ? { poruka: 'Ovo je poslednje stanje; prozor se ne javlja više od 2 minuta (možda je zatvoren).' } : {}) };
+    // prozor javlja stanje samo kad se promeni šta se gleda (štedi upise), pa staro stanje ne znači zatvoren prozor
+    return { pre_sekundi: pre, ...v.stanje,
+      poruka: pre < 1800 ? 'Poslednje stanje koje je prozor javio (javlja se kad korisnik promeni šta gleda).' : 'Stanje je starije od pola sata; prozor je možda zatvoren. Ako treba, pozovi otvori_putovanja.' };
   }
   if (ime === 'pokazi_u_putovanjima') {
     if (!korisnik || !env.KV) return { poslato: false, poruka: 'Bez lične adrese ne mogu da upravljam prozorom. Pozovi otvori_putovanja.' };
@@ -349,10 +349,8 @@ async function pozoviAlat(env, korisnik, ime, a = {}) {
     const n = { ts: Date.now() };
     for (const k of dozvoljeno) if (a[k] !== undefined && a[k] !== null) n[k] = String(a[k]).slice(0, 120);
     await env.KV.put(`k:${korisnik}:naredba`, JSON.stringify(n), { expirationTtl: 3600 });
-    const v = await env.KV.get(`k:${korisnik}:vidim`, 'json');
-    const aktivan = v && Date.now() - v.ts < 120000;
-    return { poslato: true, prozor_aktivan: !!aktivan, naredba: n,
-      poruka: aktivan ? 'Poslato u otvoren prozor; promena se vidi za 2–3 sekunde. Posle možeš da pozoveš sta_vidim da proveriš.' : 'Prozor se ne javlja (možda nije otvoren): bolje pozovi otvori_putovanja.' };
+    return { poslato: true, naredba: n,
+      poruka: 'Poslato u prozor Putovanja; ako je otvoren u ovom razgovoru, promena se vidi za nekoliko sekundi. Ako prozor nije otvoren, pozovi otvori_putovanja.' };
   }
   if (ime === 'putovanja_podaci') return { komanda: a.komanda, rezultat: await podaciZaProzor(env, korisnik, a.komanda, a.argumenti ?? []), skeniranje: SKEN };
   throw Object.assign(new Error(`Nepoznat alat: ${ime}`), { code: -32602 });

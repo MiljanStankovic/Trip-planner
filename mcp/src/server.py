@@ -19,7 +19,7 @@ from typing import Any
 from mcp.server.mcpserver import MCPServer
 
 OVDE = Path(__file__).parent
-VERZIJA = "1.0.0"
+VERZIJA = "1.0.1"
 # verzija je u adresi prozora: Claude pamti prozor po adresi, pa nova verzija mora imati novu adresu
 PROZOR = f"ui://putovanja/prozor-{VERZIJA}.html"
 MIME_PROZORA = "text/html;profile=mcp-app"

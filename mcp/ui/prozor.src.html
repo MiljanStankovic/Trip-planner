@@ -581,7 +581,7 @@ const S = {
   prikaz: 'inline', modovi: [], filteri: false, sveZemlje: false, koliko: 8,
   pretraga: '', prevoz: '', mesec: '', preTrage: null, claude: null,
 };
-let VERZIJA = '1.0.0';
+let VERZIJA = '1.0.1';
 // telefon: uzak prozor; tablet (ekran na dodir): uspravno kao telefon, položeno kao računar.
 // Orijentacija se čita sa ekrana, ne iz prozora: prozor u razgovoru raste u visinu sa sadržajem.
 const naDodir = () => { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } };
@@ -719,7 +719,7 @@ async function pitajZaClaudeCode() {
   try { adresa = (await pt('adresa'))?.adresa ?? null; } catch {}
   pitaj(adresa ? `${PITANJE_CLAUDE_CODE} Moja adresa konektora je ${adresa}, uključi je u korake da pano prati isto što i ovde.` : PITANJE_CLAUDE_CODE);
 }
-function pitaj(tekst) { app.sendMessage({ role: 'user', content: [{ type: 'text', text: tekst }] }).catch(() => {}); }
+function pitaj(tekst) { budi(); app.sendMessage({ role: 'user', content: [{ type: 'text', text: tekst }] }).catch(() => {}); }
 function link(url) { app.openLink({ url }).catch(() => {}); }
 
 // ---------- crtanje ----------
@@ -1099,7 +1099,23 @@ function tekstZaClaudea(st) {
   l.push('Za promenu prikaza koristi pokazi_u_putovanjima; detalje ponude daje detalji_ponude.');
   return l.join('\n');
 }
-let poslednjeStanje = '', tajmerStanja = null;
+// Stanje ekrana: Claude u ovom razgovoru ga dobija odmah preko updateModelContext (ne ide preko servera).
+// Server (sta_vidim, pano u Claude Code-u) dobija ga samo kad se promeni ŠTA se gleda, najviše jednom u 30 s:
+// besplatni Cloudflare dozvoljava 1.000 upisa dnevno, pa skrolovanje i sitne promene ne idu na server.
+let poslednjeStanje = '', poslednjeNaServeru = '', naServerVreme = 0, tajmerStanja = null, tajmerServera = null;
+const STANJE_RAZMAK = 30000;
+function kljucStanja(st) {
+  return JSON.stringify([st.odeljak, st.izbor, st.filteri, st.putnici, st.otvorena_ponuda?.id, st.kalendar?.mesec, st.kalendar?.izabran_dan, st.uradi_sam]);
+}
+function posaljiStanje(st) {
+  clearTimeout(tajmerServera);
+  const k = kljucStanja(st);
+  if (k === poslednjeNaServeru) return;
+  const ceka = naServerVreme + STANJE_RAZMAK - Date.now();
+  if (ceka > 0) { tajmerServera = setTimeout(() => posaljiStanje(stanjeEkrana()), ceka); return; }
+  poslednjeNaServeru = k; naServerVreme = Date.now();
+  pt('vidim', JSON.stringify(st)).catch(() => {});
+}
 function prijaviStanje() {
   clearTimeout(tajmerStanja);
   tajmerStanja = setTimeout(() => {
@@ -1107,20 +1123,44 @@ function prijaviStanje() {
     const st = stanjeEkrana(), j = JSON.stringify(st);
     if (j === poslednjeStanje) return;
     poslednjeStanje = j;
-    pt('vidim', j).catch(() => {});
     try { app.updateModelContext({ content: [{ type: 'text', text: tekstZaClaudea(st) }] }).catch(() => {}); } catch {}
+    posaljiStanje(st);
   }, 700);
 }
-let poslednjaNaredba = null;
+// Naredbe od Claude-a (pokazi_u_putovanjima, pretrazi_ponude) stižu preko servera, pa ih prozor povremeno proverava.
+// Često (5 s) samo dok je verovatno da Claude upravo radi: korisnik je upravo pisao Claude-u (klik van prozora,
+// „Pitaj Claude-a”), vratio se na prozor, ili je Claude upravo nešto poslao. Inače ređe (20 s), a posle pola sata
+// bez ikakve aktivnosti jednom u minuti. Kad prozor nije vidljiv (druga kartica, zaključan telefon) ne pita ništa,
+// a čim se vrati, odmah proveri.
+const NAREDBE_BRZO = 5000, NAREDBE_SPORO = 20000, NAREDBE_ODMOR = 60000;
+let poslednjaNaredba = null, tajmerNaredbi = null, brzoDo = Date.now() + 180000, aktivnost = Date.now();
+let poslednjaProvera = 0, proveravam = false;
+function budi(ms = 180000) {
+  brzoDo = Math.max(brzoDo, Date.now() + ms);
+  aktivnost = Date.now();
+  zakaziNaredbe(Math.max(0, poslednjaProvera + 3000 - Date.now())); // odmah, ali ne češće od 3 s
+}
+function zakaziNaredbe(ms) {
+  clearTimeout(tajmerNaredbi);
+  if (document.hidden) return; // nastavlja se na visibilitychange
+  const sad = Date.now();
+  const razmak = ms ?? (sad < brzoDo ? NAREDBE_BRZO : sad - aktivnost < 1800000 ? NAREDBE_SPORO : NAREDBE_ODMOR);
+  tajmerNaredbi = setTimeout(proveriNaredbe, razmak);
+}
 async function proveriNaredbe() {
-  if (document.hidden) return;
+  if (document.hidden || proveravam) return;
+  proveravam = true; poslednjaProvera = Date.now();
   let n = null;
-  try { n = await pt('naredba', poslednjaNaredba ?? 0); } catch { return; }
-  if (!n) return;
-  if (poslednjaNaredba === null) { poslednjaNaredba = n.ts || 0; return; } // stare naredbe se ne izvršavaju
-  if (!n.ts || n.ts <= poslednjaNaredba) return;
-  poslednjaNaredba = n.ts;
-  await primeniNaredbu(n);
+  try { n = await pt('naredba', poslednjaNaredba ?? 0); } catch { n = null; }
+  proveravam = false;
+  try {
+    if (!n) return;
+    if (poslednjaNaredba === null) { poslednjaNaredba = n.ts || 0; return; } // stare naredbe se ne izvršavaju
+    if (!n.ts || n.ts <= poslednjaNaredba) return;
+    poslednjaNaredba = n.ts;
+    brzoDo = Date.now() + 180000; aktivnost = Date.now(); // Claude radi: verovatno stiže još
+    await primeniNaredbu(n);
+  } finally { zakaziNaredbe(); }
 }
 async function primeniNaredbu(n) {
   zatvoriMeni?.();
@@ -1317,8 +1357,11 @@ tema(app.getHostContext());
 crtaj();
 // odmah preko celog prozora, ako Claude to dozvoljava; ako ne, ostaje u razgovoru
 if (S.modovi.includes('fullscreen') && S.prikaz !== 'fullscreen') promeniPrikaz('fullscreen');
-// Claude može da menja prikaz dok je prozor otvoren (naredbe stižu preko servera)
-setInterval(proveriNaredbe, 3000);
+// Claude može da menja prikaz dok je prozor otvoren (naredbe stižu preko servera, vidi proveriNaredbe)
+document.addEventListener('visibilitychange', () => { if (!document.hidden) budi(120000); });
+window.addEventListener('blur', () => budi());           // klik van prozora: korisnik verovatno piše Claude-u
+window.addEventListener('focus', () => budi(60000));
+for (const d of ['pointerdown', 'keydown']) document.addEventListener(d, () => { aktivnost = Date.now(); }, { passive: true });
 proveriNaredbe();
 }
 </script>
